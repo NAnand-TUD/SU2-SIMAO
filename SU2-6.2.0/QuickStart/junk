@@ -1,0 +1,260 @@
+
+-------------------------------------------------------------------------
+|    ___ _   _ ___                                                      |
+|   / __| | | |_  )   Release 6.2.0  "Falcon"                           |
+|   \__ \ |_| |/ /                                                      |
+|   |___/\___//___|   Suite (Computational Fluid Dynamics Code)         |
+|                                                                       |
+-------------------------------------------------------------------------
+| The current SU2 release has been coordinated by the                   |
+| SU2 International Developers Society <www.su2devsociety.org>          |
+| with selected contributions from the open-source community.           |
+-------------------------------------------------------------------------
+| The main research teams contributing to the current release are:      |
+| - Prof. Juan J. Alonso's group at Stanford University.                |
+| - Prof. Piero Colonna's group at Delft University of Technology.      |
+| - Prof. Nicolas R. Gauger's group at Kaiserslautern U. of Technology. |
+| - Prof. Alberto Guardone's group at Polytechnic University of Milan.  |
+| - Prof. Rafael Palacios' group at Imperial College London.            |
+| - Prof. Vincent Terrapon's group at the University of Liege.          |
+| - Prof. Edwin van der Weide's group at the University of Twente.      |
+| - Lab. of New Concepts in Aeronautics at Tech. Inst. of Aeronautics.  |
+-------------------------------------------------------------------------
+| Copyright 2012-2019, Francisco D. Palacios, Thomas D. Economon,       |
+|                      Tim Albring, and the SU2 contributors.           |
+|                                                                       |
+| SU2 is free software; you can redistribute it and/or                  |
+| modify it under the terms of the GNU Lesser General Public            |
+| License as published by the Free Software Foundation; either          |
+| version 2.1 of the License, or (at your option) any later version.    |
+|                                                                       |
+| SU2 is distributed in the hope that it will be useful,                |
+| but WITHOUT ANY WARRANTY; without even the implied warranty of        |
+| MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE. See the GNU      |
+| Lesser General Public License for more details.                       |
+|                                                                       |
+| You should have received a copy of the GNU Lesser General Public      |
+| License along with SU2. If not, see <http://www.gnu.org/licenses/>.   |
+-------------------------------------------------------------------------
+
+------------------------ Physical Case Definition -----------------------
+Compressible Euler equations.
+Mach number: 0.8.
+Angle of attack (AoA): 1.25 deg, and angle of sideslip (AoS): 0 deg.
+No restart solution, use the values at infinity (freestream).
+Dimensional simulation.
+The reference area is 1 m^2.
+The semi-span will be computed using the max y(3D) value.
+The reference length is 1 m.
+Reference origin for moment evaluation is (0.25, 0, 0).
+Surface(s) where the force coefficients are evaluated: airfoil.
+
+Surface(s) where the objective function is evaluated: airfoil.
+Surface(s) plotted in the output file: airfoil.
+Surface(s) affected by the design variables: airfoil.
+Input mesh file name: mesh_NACA0012_inv.su2
+
+---------------------- Space Numerical Integration ----------------------
+Jameson-Schmidt-Turkel scheme (2nd order in space) for the flow inviscid terms.
+JST viscous coefficients (2nd & 4th): 0.5, 0.02.
+The method includes a grid stretching correction (p = 0.3).
+Gradient Computation using weighted Least-Squares method.
+
+---------------------- Time Numerical Integration -----------------------
+Local time stepping (steady state simulation).
+Euler implicit method for the flow equations.
+FGMRES is used for solving the linear system.
+Using a LU-SGS preconditioning.
+Convergence criteria of the linear solver: 1e-06.
+Max number of linear iterations: 5.
+W Multigrid Cycle, with 3 multigrid levels.
+Damping factor for the residual restriction: 1.
+Damping factor for the correction prolongation: 1.
+No CFL adaptation.
++-------------------------------------------+
+|  MG Level| Presmooth|PostSmooth|CorrectSmo|
++-------------------------------------------+
+|         0|         1|         0|         0|
+|         1|         2|         0|         0|
+|         2|         3|         0|         0|
+|         3|         3|         0|         0|
++-------------------------------------------+
+Courant-Friedrichs-Lewy number:        4
+
+------------------------- Convergence Criteria --------------------------
+Maximum number of iterations: 2.
+Cauchy criteria for Drag using 100 elements and epsilon 1e-06.
+Start convergence criteria at iteration 10.
+
+-------------------------- Output Information ---------------------------
+Writing a solution file every 250 iterations.
+Writing the convergence history every 1 iterations.
+The output file format is Paraview ASCII legacy (.vtk).
+Convergence history file name: history.
+Forces breakdown file name: forces_breakdown.dat.
+Surface flow coefficients file name: surface_flow.
+Flow variables file name: flow.
+Restart flow file name: restart_flow.dat.
+
+------------------- Config File Boundary Information --------------------
++-----------------------------------------+
+|         Marker Type|         Marker Name|
++-----------------------------------------+
+|          Euler wall|             airfoil|
++-----------------------------------------+
+|           Far-field|            farfield|
++-----------------------------------------+
+
+---------------------- Read Grid File Information -----------------------
+Two dimensional problem.
+5233 points.
+2 surface markers.
++------------------------------------+
+| Index|        Marker|      Elements|
++------------------------------------+
+|     0|       airfoil|           200|
+|     1|      farfield|            50|
++------------------------------------+
+10216 triangles.
+
+------------------------- Geometry Preprocessing ------------------------
+Setting point connectivity.
+Renumbering points (Reverse Cuthill McKee Ordering).
+Recomputing point connectivity.
+Setting element connectivity.
+Checking the numerical grid orientation.
+Identifying edges and vertices.
+Computing centers of gravity.
+Setting the control volume structure.
+Area of the computational grid: 1.25e+03.
+Finding max control volume width.
+Searching for the closest normal neighbors to the surfaces.
+Storing a mapping from global to local point index.
+Compute the surface curvature.
+Max K: 7.84e+03. Mean K: 34.8. Standard deviation K: 494.
+Checking for periodicity.
+Setting the multigrid structure.
++-------------------------------------------+
+|  MG Level|       CVs|Aggl. Rate|       CFL|
++-------------------------------------------+
+|         0|      5233|    1/1.00|         4|
+|         1|      1533|    1/3.41|      3.25|
+|         2|       443|    1/3.46|      2.62|
+|         3|       125|    1/3.54|      2.09|
++-------------------------------------------+
+Wetted area = 2.04 m.
+Area projection in the x-plane = 0.12 m, y-plane = 1 m.
+Max. coordinate in the x-direction = 1 m, y-direction = 0.06 m.
+Min coordinate in the x-direction = 0 m, y-direction = -0.06 m.
+
+------------------------- Driver information --------------------------
+A Fluid driver has been instantiated.
+
+------------------------ Iteration Preprocessing ------------------------
+Zone 1: Euler/Navier-Stokes/RANS fluid iteration.
+
+------------------------- Solver Preprocessing --------------------------
+Inviscid flow: Computing density based on free-stream
+temperature and pressure using the ideal gas law.
+Force coefficients computed using free-stream values.
+
+-- Models:
++------------------------------------------------------------------------------+
+|          Viscosity Model|        Conductivity Model|              Fluid Model|
++------------------------------------------------------------------------------+
+|                        -|                         -|             STANDARD_AIR|
++------------------------------------------------------------------------------+
+-- Fluid properties:
++------------------------------------------------------------------------------+
+|                  Name|    Dim. value|    Ref. value|      Unit|Non-dim. value|
++------------------------------------------------------------------------------+
+|          Gas Constant|       287.058|             1|  N.m/kg.K|       287.058|
+|      Spec. Heat Ratio|             -|             -|         -|           1.4|
++------------------------------------------------------------------------------+
+-- Initial and free-stream conditions:
++------------------------------------------------------------------------------+
+|                  Name|    Dim. value|    Ref. value|      Unit|Non-dim. value|
++------------------------------------------------------------------------------+
+|       Static Pressure|        101325|             1|        Pa|        101325|
+|               Density|       1.29225|             1|    kg/m^3|       1.29225|
+|           Temperature|        273.15|             1|         K|        273.15|
+|          Total Energy|        231152|             1|   m^2/s^2|        231152|
+|            Velocity-X|       264.994|             1|       m/s|       264.994|
+|            Velocity-Y|       5.78219|             1|       m/s|       5.78219|
+|    Velocity Magnitude|       265.057|             1|       m/s|       265.057|
++------------------------------------------------------------------------------+
+|           Mach Number|             -|             -|         -|           0.8|
++------------------------------------------------------------------------------+
+Initialize Jacobian structure (Euler). MG level: 0.
+Initialize Jacobian structure (Euler). MG level: 1.
+Initialize Jacobian structure (Euler). MG level: 2.
+Initialize Jacobian structure (Euler). MG level: 3.
+
+----------------- Integration and Numerics Preprocessing ----------------
+Integration Preprocessing.
+Numerics Preprocessing.
+
+---------------------- Python Interface Preprocessing ---------------------
+Setting customized boundary conditions for zone 0
+
+------------------------------ Begin Solver -----------------------------
+
+------------------------ Evaluate Special Output ------------------------
+Writing the forces breakdown file (forces_breakdown.dat).
+-------------------------------------------------------------------------
+
+
+---------------------- Local Time Stepping Summary ----------------------
+MG level: 0 -> Min. DT: 6.35236e-07. Max. DT: 0.00517515. CFL: 4.
+MG level: 1 -> Min. DT: 1.04779e-06. Max. DT: 0.00791625. CFL: 3.24748.
+MG level: 2 -> Min. DT: 1.40349e-06. Max. DT: 0.0105797. CFL: 2.6186.
+MG level: 3 -> Min. DT: 1.24955e-06. Max. DT: 0.0135444. CFL: 2.08648.
+-------------------------------------------------------------------------
+
+----------------------- Residual Evolution Summary ----------------------
+log10[Maximum residual]: -0.0202097.
+Maximum residual point 97, located at (0.00056, -0.00417316).
+-------------------------------------------------------------------------
+
+ Iter    Time(s)     Res[Rho]     Res[RhoE]      CL(Total)      CD(Total)
+    0   0.095595    -1.026860      4.463888       0.112210       0.111098
+
+------------------------ Evaluate Special Output ------------------------
+Writing the forces breakdown file (forces_breakdown.dat).
+-------------------------------------------------------------------------
+
+    1   0.094980    -0.937109      4.577210       0.137165       0.059626
+
+----------------------------- Solver Exit -------------------------------
+Maximum number of external iterations reached (EXT_ITER).
+-------------------------------------------------------------------------
+
+-------------------------- File Output Summary --------------------------
+Writing comma-separated values (CSV) surface files.
+Loading solution output data locally on each rank.
+Sorting output data across all ranks.
+Writing ASCII SU2 native restart file.
+Preparing element connectivity across all ranks.
+Writing Paraview ASCII volume solution file.
+Writing Paraview ASCII surface solution file.
+-------------------------------------------------------------------------
+
+
+------------------------- Solver Postprocessing -------------------------
+Deleted CNumerics container.
+Deleted CIntegration container.
+Deleted CSolver container.
+Deleted CIteration container.
+Deleted CInterpolator container.
+Deleted CTransfer container.
+Deleted CGeometry container.
+Deleted CFreeFormDefBox class.
+Deleted CSurfaceMovement class.
+Deleted CVolumetricMovement class.
+Deleted CConfig container.
+Deleted nInst container.
+Deleted COutput class.
+-------------------------------------------------------------------------
+
+------------------------- Exit Success (SU2_CFD) ------------------------
+

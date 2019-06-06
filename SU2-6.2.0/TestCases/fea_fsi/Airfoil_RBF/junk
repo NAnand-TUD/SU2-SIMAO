@@ -1,0 +1,1630 @@
+102 - SU2_CFD nzone=
+2
+
+-------------------------------------------------------------------------
+|    ___ _   _ ___                                                      |
+|   / __| | | |_  )   Release 6.2.0  "Falcon"                           |
+|   \__ \ |_| |/ /                                                      |
+|   |___/\___//___|   Suite (Computational Fluid Dynamics Code)         |
+|                                                                       |
+-------------------------------------------------------------------------
+| The current SU2 release has been coordinated by the                   |
+| SU2 International Developers Society <www.su2devsociety.org>          |
+| with selected contributions from the open-source community.           |
+-------------------------------------------------------------------------
+| The main research teams contributing to the current release are:      |
+| - Prof. Juan J. Alonso's group at Stanford University.                |
+| - Prof. Piero Colonna's group at Delft University of Technology.      |
+| - Prof. Nicolas R. Gauger's group at Kaiserslautern U. of Technology. |
+| - Prof. Alberto Guardone's group at Polytechnic University of Milan.  |
+| - Prof. Rafael Palacios' group at Imperial College London.            |
+| - Prof. Vincent Terrapon's group at the University of Liege.          |
+| - Prof. Edwin van der Weide's group at the University of Twente.      |
+| - Lab. of New Concepts in Aeronautics at Tech. Inst. of Aeronautics.  |
+-------------------------------------------------------------------------
+| Copyright 2012-2019, Francisco D. Palacios, Thomas D. Economon,       |
+|                      Tim Albring, and the SU2 contributors.           |
+|                                                                       |
+| SU2 is free software; you can redistribute it and/or                  |
+| modify it under the terms of the GNU Lesser General Public            |
+| License as published by the Free Software Foundation; either          |
+| version 2.1 of the License, or (at your option) any later version.    |
+|                                                                       |
+| SU2 is distributed in the hope that it will be useful,                |
+| but WITHOUT ANY WARRANTY; without even the implied warranty of        |
+| MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE. See the GNU      |
+| Lesser General Public License for more details.                       |
+|                                                                       |
+| You should have received a copy of the GNU Lesser General Public      |
+| License along with SU2. If not, see <http://www.gnu.org/licenses/>.   |
+-------------------------------------------------------------------------
+
+------------------------ Physical Case Definition -----------------------
+Compressible Euler equations.
+Mach number: 0.7.
+Angle of attack (AoA): 2.5 deg, and angle of sideslip (AoS): 0 deg.
+No restart solution, use the values at infinity (freestream).
+Dimensional simulation.
+The reference area is 0.5 m^2.
+The semi-span will be computed using the max y(3D) value.
+The reference length is 0.5 m.
+Surface(s) where the force coefficients are evaluated and 
+their reference origin for moment computation: 
+   - leading_edge (-0.125, 0, 0).
+   - pressure_side (-0.125, 0, 0).
+   - suction_side (-0.125, 0, 0) m.
+Surface(s) where the objective function is evaluated: leading_edge, pressure_side, suction_side.
+Surface(s) plotted in the output file: leading_edge, pressure_side, suction_side.
+Input mesh file name: meshFlow.su2
+
+---------------------- Space Numerical Integration ----------------------
+Jameson-Schmidt-Turkel scheme (2nd order in space) for the flow inviscid terms.
+JST viscous coefficients (2nd & 4th): 0.5, 0.02.
+The method includes a grid stretching correction (p = 0.3).
+Gradient computation using Green-Gauss theorem.
+
+---------------------- Time Numerical Integration -----------------------
+Local time stepping (steady state simulation).
+Euler implicit method for the flow equations.
+BCGSTAB is used for solving the linear system.
+Using a ILU(0) preconditioning.
+Convergence criteria of the linear solver: 0.01.
+Max number of linear iterations: 100.
+No CFL adaptation.
+Courant-Friedrichs-Lewy number:       10
+
+------------------------- Convergence Criteria --------------------------
+Maximum number of iterations: 1.
+Reduce the density residual 9 orders of magnitude.
+The minimum bound for the density residual is 10^(-9).
+Start convergence criteria at iteration 0.
+
+-------------------------- Output Information ---------------------------
+Writing a solution file every 999999 iterations.
+Writing the convergence history every 10 iterations.
+The output file format is Paraview ASCII legacy (.vtk).
+Convergence history file name: history.
+Forces breakdown file name: forces_breakdown.dat.
+Surface flow coefficients file name: surface_fluid.
+Flow variables file name: fluid.
+Restart flow file name: restart_fluid.dat.
+
+------------------- Config File Boundary Information --------------------
++-----------------------------------------+
+|         Marker Type|         Marker Name|
++-----------------------------------------+
+|          Euler wall|        leading_edge|
+|                    |                 0.0|
+|                    |       pressure_side|
+|                    |                 0.0|
+|                    |        suction_side|
+|                    |                 0.0|
++-----------------------------------------+
+|           Far-field|            farfield|
++-----------------------------------------+
+|    Clamped boundary|             clamped|
++-----------------------------------------+
+
+-------------------- Interface Boundary Information ---------------------
+The interface markers are: pressure_side, suction_side.
+
+-------------------- Interface Boundary Information ---------------------
+The interface markers are: pressure_side_s, suction_side_s.
+
+---------------------- Read Grid File Information -----------------------
+Two dimensional problem.
+15504 points.
+4 surface markers.
++------------------------------------+
+| Index|        Marker|      Elements|
++------------------------------------+
+|     0|      farfield|           204|
+|     1|  leading_edge|            58|
+|     2|  suction_side|            73|
+|     3| pressure_side|            73|
++------------------------------------+
+15300 quadrilaterals.
+modal call
+
+---------------------- Read Grid File Information -----------------------
+Two dimensional problem.
+801 points.
+3 surface markers.
++------------------------------------+
+| Index|        Marker|      Elements|
++------------------------------------+
+|     0|       clamped|             8|
+|     1|suction_side_s|            92|
+|     2|pressure_side_s|            92|
++------------------------------------+
+704 quadrilaterals.
+modal call
+
+------------------------- Geometry Preprocessing ------------------------
+
+drive structure 156
+
+Setting point connectivity.
+Renumbering points (Reverse Cuthill McKee Ordering).
+Recomputing point connectivity.
+Setting element connectivity.
+Checking the numerical grid orientation.
+There has been a re-orientation of the LINE surface elements.
+Identifying edges and vertices.
+Computing centers of gravity.
+Setting the control volume structure.
+Area of the computational grid: 860.
+Finding max control volume width.
+Searching for the closest normal neighbors to the surfaces.
+Storing a mapping from global to local point index.
+Compute the surface curvature.
+Max K: 6.09e+03. Mean K: 66.1. Standard deviation K: 538.
+Checking for periodicity.
+Setting point connectivity.
+Renumbering points (Reverse Cuthill McKee Ordering).
+Recomputing point connectivity.
+Setting element connectivity.
+Checking the numerical grid orientation.
+There has been a re-orientation of the QUADRILATERAL volume elements.
+There has been a re-orientation of the LINE surface elements.
+Identifying edges and vertices.
+Area of the computational grid: 0.00811.
+Searching for the closest normal neighbors to the surfaces.
+Storing a mapping from global to local point index.
+Checking for periodicity.
+Wetted area = 1.01 m.
+Area projection in the x-plane = 0.03 m, y-plane = 0.5 m.
+Max. coordinate in the x-direction = 0.25 m, y-direction = 0.015 m.
+Min coordinate in the x-direction = -0.25 m, y-direction = -0.015 m.
+Surface area = 0.829 m.
+Area projection in the x-plane = 0.03 m, y-plane = 0.4 m.
+Max. coordinate in the x-direction = 0.25 m, y-direction = 0.015 m.
+Min coordinate in the x-direction = -0.15 m, y-direction = -0.015 m.
+
+------------------------- Driver information --------------------------
+2A Static Fluid-Structure Interaction driver has been instantiated.
+
+------------------------ Iteration Preprocessing ------------------------
+Zone 1: Euler/Navier-Stokes/RANS fluid iteration.
+
+------------------------- Solver Preprocessing --------------------------
+Inviscid flow: Computing density based on free-stream
+temperature and pressure using the ideal gas law.
+Force coefficients computed using free-stream values.
+
+-- Models:
++------------------------------------------------------------------------------+
+|          Viscosity Model|        Conductivity Model|              Fluid Model|
++------------------------------------------------------------------------------+
+|                        -|                         -|                IDEAL_GAS|
++------------------------------------------------------------------------------+
+-- Fluid properties:
++------------------------------------------------------------------------------+
+|                  Name|    Dim. value|    Ref. value|      Unit|Non-dim. value|
++------------------------------------------------------------------------------+
+|          Gas Constant|        287.87|             1|  N.m/kg.K|        287.87|
+|      Spec. Heat Ratio|             -|             -|         -|           1.4|
++------------------------------------------------------------------------------+
+-- Initial and free-stream conditions:
++------------------------------------------------------------------------------+
+|                  Name|    Dim. value|    Ref. value|      Unit|Non-dim. value|
++------------------------------------------------------------------------------+
+|       Static Pressure|        101325|             1|        Pa|        101325|
+|               Density|        1.2886|             1|    kg/m^3|        1.2886|
+|           Temperature|        273.15|             1|         K|        273.15|
+|          Total Energy|        223550|             1|   m^2/s^2|        223550|
+|            Velocity-X|       232.032|             1|       m/s|       232.032|
+|            Velocity-Y|       10.1307|             1|       m/s|       10.1307|
+|    Velocity Magnitude|       232.253|             1|       m/s|       232.253|
++------------------------------------------------------------------------------+
+|           Mach Number|             -|             -|         -|           0.7|
++------------------------------------------------------------------------------+
+Initialize Jacobian structure (Euler). MG level: 0.
+
+----------------- Integration and Numerics Preprocessing ----------------
+Integration Preprocessing.
+
+
+CFD check - driver structure.cpp (2044): nVar_FLOW = 4
+
+
+FEM check - driver structure.cpp (2044): nVar_FEM = 0
+
+
+CSD check - driver structure.cpp (2044): nVar_CSD = 0	0
+Numerics Preprocessing.
+
+------------------------ Iteration Preprocessing ------------------------
+Zone 2: FEM iteration.
+
+------------------------- Solver Preprocessing --------------------------
+Filename: element_properties_1.dat.
+There is no element-based properties file.
+The structural domain has uniform properties.
+Initialize Jacobian structure (Non-Linear Elasticity).
+
+----------------- Integration and Numerics Preprocessing ----------------
+Integration Preprocessing.
+
+
+CFD check - driver structure.cpp (2044): nVar_FLOW = 0
+
+
+FEM check - driver structure.cpp (2044): nVar_FEM = 2
+
+
+CSD check - driver structure.cpp (2044): nVar_CSD = 0	0
+Numerics Preprocessing.
+
+------------------- Multizone Interface Preprocessing -------------------
+From zone 1 to zone 0: Setting coupling using a radial basis function approach.
+Transferring structural displacements. 
+From zone 0 to zone 1: Setting coupling using a radial basis function approach.
+Transferring flow tractions. 
+Setting moving mesh structure for static FSI problems.
+
+---------------------- Python Interface Preprocessing ---------------------
+Setting customized boundary conditions for zone 0
+Setting customized boundary conditions for zone 1
+
+Opening FSI history file.
+
+------------------------------ Begin Solver -----------------------------
+
+Simulation Run using the Multizone Driver
+
+
+MZ driver timeiter loop -- preprocess
+
+
+mz solver; unsteady= 0
+
+
+mz preprocess: fsi= 1
+dynamic mesh update 1 active?			or no -- zone 0
+
+	or no -- zone 1
+
+
+
+ run gauss-seidel
+
+
+
+ run GS main outer iteration 0
+
+
+
+ 283run GS: zone --> 0
+(Fluid: zone 0; Structure: zone 1)
+
+completed SetOuterIter
+
+
+ run GS trasfer data: donor=structure; target=fluid
+
+
+
+659-transfer data: updatemesh = 0	 solver: 13	 transfer: 11
+ mpi stuff
+
+ target processing
+
+collecting target points
+CTransfer_StructuralDisplacements2 
+CTransfer_StructuralDisplacements2 
+CTransfer_StructuralDisplacements2 
+CTransfer_StructuralDisplacements2 
+CTransfer_StructuralDisplacements2 
+CTransfer_StructuralDisplacements2 
+CTransfer_StructuralDisplacements2 
+CTransfer_StructuralDisplacements2 
+CTransfer_StructuralDisplacements2 
+CTransfer_StructuralDisplacements2 
+CTransfer_StructuralDisplacements2 
+CTransfer_StructuralDisplacements2 
+CTransfer_StructuralDisplacements2 
+CTransfer_StructuralDisplacements2 
+CTransfer_StructuralDisplacements2 
+CTransfer_StructuralDisplacements2 
+CTransfer_StructuralDisplacements2 
+CTransfer_StructuralDisplacements2 
+CTransfer_StructuralDisplacements2 
+CTransfer_StructuralDisplacements2 
+CTransfer_StructuralDisplacements2 
+CTransfer_StructuralDisplacements2 
+CTransfer_StructuralDisplacements2 
+CTransfer_StructuralDisplacements2 
+CTransfer_StructuralDisplacements2 
+CTransfer_StructuralDisplacements2 
+CTransfer_StructuralDisplacements2 
+CTransfer_StructuralDisplacements2 
+CTransfer_StructuralDisplacements2 
+CTransfer_StructuralDisplacements2 
+CTransfer_StructuralDisplacements2 
+CTransfer_StructuralDisplacements2 
+CTransfer_StructuralDisplacements2 
+CTransfer_StructuralDisplacements2 
+CTransfer_StructuralDisplacements2 
+CTransfer_StructuralDisplacements2 
+CTransfer_StructuralDisplacements2 
+CTransfer_StructuralDisplacements2 
+CTransfer_StructuralDisplacements2 
+CTransfer_StructuralDisplacements2 
+CTransfer_StructuralDisplacements2 
+CTransfer_StructuralDisplacements2 
+CTransfer_StructuralDisplacements2 
+CTransfer_StructuralDisplacements2 
+CTransfer_StructuralDisplacements2 
+CTransfer_StructuralDisplacements2 
+CTransfer_StructuralDisplacements2 
+CTransfer_StructuralDisplacements2 
+CTransfer_StructuralDisplacements2 
+CTransfer_StructuralDisplacements2 
+CTransfer_StructuralDisplacements2 
+CTransfer_StructuralDisplacements2 
+CTransfer_StructuralDisplacements2 
+CTransfer_StructuralDisplacements2 
+CTransfer_StructuralDisplacements2 
+CTransfer_StructuralDisplacements2 
+CTransfer_StructuralDisplacements2 
+CTransfer_StructuralDisplacements2 
+CTransfer_StructuralDisplacements2 
+CTransfer_StructuralDisplacements2 
+CTransfer_StructuralDisplacements2 
+CTransfer_StructuralDisplacements2 
+CTransfer_StructuralDisplacements2 
+CTransfer_StructuralDisplacements2 
+CTransfer_StructuralDisplacements2 
+CTransfer_StructuralDisplacements2 
+CTransfer_StructuralDisplacements2 
+CTransfer_StructuralDisplacements2 
+CTransfer_StructuralDisplacements2 
+CTransfer_StructuralDisplacements2 
+CTransfer_StructuralDisplacements2 
+CTransfer_StructuralDisplacements2 
+CTransfer_StructuralDisplacements2 
+CTransfer_StructuralDisplacements2 
+
+
+done broadcast
+
+ mpi stuff
+
+ target processing
+
+collecting target points
+CTransfer_StructuralDisplacements2 
+CTransfer_StructuralDisplacements2 
+CTransfer_StructuralDisplacements2 
+CTransfer_StructuralDisplacements2 
+CTransfer_StructuralDisplacements2 
+CTransfer_StructuralDisplacements2 
+CTransfer_StructuralDisplacements2 
+CTransfer_StructuralDisplacements2 
+CTransfer_StructuralDisplacements2 
+CTransfer_StructuralDisplacements2 
+CTransfer_StructuralDisplacements2 
+CTransfer_StructuralDisplacements2 
+CTransfer_StructuralDisplacements2 
+CTransfer_StructuralDisplacements2 
+CTransfer_StructuralDisplacements2 
+CTransfer_StructuralDisplacements2 
+CTransfer_StructuralDisplacements2 
+CTransfer_StructuralDisplacements2 
+CTransfer_StructuralDisplacements2 
+CTransfer_StructuralDisplacements2 
+CTransfer_StructuralDisplacements2 
+CTransfer_StructuralDisplacements2 
+CTransfer_StructuralDisplacements2 
+CTransfer_StructuralDisplacements2 
+CTransfer_StructuralDisplacements2 
+CTransfer_StructuralDisplacements2 
+CTransfer_StructuralDisplacements2 
+CTransfer_StructuralDisplacements2 
+CTransfer_StructuralDisplacements2 
+CTransfer_StructuralDisplacements2 
+CTransfer_StructuralDisplacements2 
+CTransfer_StructuralDisplacements2 
+CTransfer_StructuralDisplacements2 
+CTransfer_StructuralDisplacements2 
+CTransfer_StructuralDisplacements2 
+CTransfer_StructuralDisplacements2 
+CTransfer_StructuralDisplacements2 
+CTransfer_StructuralDisplacements2 
+CTransfer_StructuralDisplacements2 
+CTransfer_StructuralDisplacements2 
+CTransfer_StructuralDisplacements2 
+CTransfer_StructuralDisplacements2 
+CTransfer_StructuralDisplacements2 
+CTransfer_StructuralDisplacements2 
+CTransfer_StructuralDisplacements2 
+CTransfer_StructuralDisplacements2 
+CTransfer_StructuralDisplacements2 
+CTransfer_StructuralDisplacements2 
+CTransfer_StructuralDisplacements2 
+CTransfer_StructuralDisplacements2 
+CTransfer_StructuralDisplacements2 
+CTransfer_StructuralDisplacements2 
+CTransfer_StructuralDisplacements2 
+CTransfer_StructuralDisplacements2 
+CTransfer_StructuralDisplacements2 
+CTransfer_StructuralDisplacements2 
+CTransfer_StructuralDisplacements2 
+CTransfer_StructuralDisplacements2 
+CTransfer_StructuralDisplacements2 
+CTransfer_StructuralDisplacements2 
+CTransfer_StructuralDisplacements2 
+CTransfer_StructuralDisplacements2 
+CTransfer_StructuralDisplacements2 
+CTransfer_StructuralDisplacements2 
+CTransfer_StructuralDisplacements2 
+CTransfer_StructuralDisplacements2 
+CTransfer_StructuralDisplacements2 
+CTransfer_StructuralDisplacements2 
+CTransfer_StructuralDisplacements2 
+CTransfer_StructuralDisplacements2 
+CTransfer_StructuralDisplacements2 
+CTransfer_StructuralDisplacements2 
+CTransfer_StructuralDisplacements2 
+CTransfer_StructuralDisplacements2 
+
+
+done broadcast
+
+finish data transfer
+
+
+ run GS dynupdatemesh --> 0 updatemesh= 1
+kind of grid movement: 14
+
+Deforming the grid for static Fluid-Structure Interaction applications.
+Deforming the volume grid.
+CSysSolve::ConjugateGradient(): system solved by initial guess.
+There is no grid velocity.
+dynamic mesh update 2 completed		
+
+ 307run GS iteration->solve --> 0
+(Fluid: zone 0; Structure: zone 1)
+
+fluid iterators 790
+
+fluid iterators 832
+
+fluid iterators 837
+
+fluid iterators 594
+
+fluid iterator 610
+
+fluid iterator 623
+integration time 79
+MG ITer 99
+
+MG ITer 113
+
+MG cycle 153
+MG cycle 167 RK: 0
+MG cycle 173 RK: 0
+MG cycle 180 RK: 0
+MG cycle 189
+
+space integration 72
+space integration 94
+MG cycle 193
+
+time integration 339
+integration structure - time integration euler implicit
+euler implicit integration
+euler implicit start
+end first loop
+solve or smooth lin. sys.
+linear solver finished
+euler implicit end
+MG cycle 197
+
+MG cycle 205
+
+MG ITer 119
+
+MG ITer 125
+
+MG ITer 131
+
+
+fluid iterator 625
+
+fluid iterator 662
+
+fluid iterators 842
+
+---------------------- Local Time Stepping Summary ----------------------
+MG level: 0 -> Min. DT: 2.72018e-07. Max. DT: 0.00490484. CFL: 10.
+CFL in zone 2: 10
+-------------------------------------------------------------------------
+
+----------------------- Residual Evolution Summary ----------------------
+log10[Maximum residual]: -0.668575.
+Maximum residual point 200, located at (-0.247947, -0.0027749).
+-------------------------------------------------------------------------
+
+ Iter    Time(s)     Res[Rho]     Res[RhoE]      CL(Total)      CD(Total)
+    0   0.092424    -1.839797      3.640471       0.236253       0.068848
+
+fluid iterators 832
+
+fluid iterators 837
+
+fluid iterators 594
+
+fluid iterator 610
+
+fluid iterator 623
+integration time 79
+MG ITer 99
+
+MG ITer 113
+
+MG cycle 153
+MG cycle 167 RK: 0
+MG cycle 173 RK: 0
+MG cycle 180 RK: 0
+MG cycle 189
+
+space integration 72
+space integration 94
+MG cycle 193
+
+time integration 339
+integration structure - time integration euler implicit
+euler implicit integration
+euler implicit start
+end first loop
+solve or smooth lin. sys.
+linear solver finished
+euler implicit end
+MG cycle 197
+
+MG cycle 205
+
+MG ITer 119
+
+MG ITer 125
+
+MG ITer 131
+
+
+fluid iterator 625
+
+fluid iterator 662
+
+fluid iterators 842
+
+fluid iterators 832
+
+fluid iterators 837
+
+fluid iterators 594
+
+fluid iterator 610
+
+fluid iterator 623
+integration time 79
+MG ITer 99
+
+MG ITer 113
+
+MG cycle 153
+MG cycle 167 RK: 0
+MG cycle 173 RK: 0
+MG cycle 180 RK: 0
+MG cycle 189
+
+space integration 72
+space integration 94
+MG cycle 193
+
+time integration 339
+integration structure - time integration euler implicit
+euler implicit integration
+euler implicit start
+end first loop
+solve or smooth lin. sys.
+linear solver finished
+euler implicit end
+MG cycle 197
+
+MG cycle 205
+
+MG ITer 119
+
+MG ITer 125
+
+MG ITer 131
+
+
+fluid iterator 625
+
+fluid iterator 662
+
+fluid iterators 842
+
+fluid iterators 832
+
+fluid iterators 837
+
+fluid iterators 594
+
+fluid iterator 610
+
+fluid iterator 623
+integration time 79
+MG ITer 99
+
+MG ITer 113
+
+MG cycle 153
+MG cycle 167 RK: 0
+MG cycle 173 RK: 0
+MG cycle 180 RK: 0
+MG cycle 189
+
+space integration 72
+space integration 94
+MG cycle 193
+
+time integration 339
+integration structure - time integration euler implicit
+euler implicit integration
+euler implicit start
+end first loop
+solve or smooth lin. sys.
+linear solver finished
+euler implicit end
+MG cycle 197
+
+MG cycle 205
+
+MG ITer 119
+
+MG ITer 125
+
+MG ITer 131
+
+
+fluid iterator 625
+
+fluid iterator 662
+
+fluid iterators 842
+
+fluid iterators 832
+
+fluid iterators 837
+
+fluid iterators 594
+
+fluid iterator 610
+
+fluid iterator 623
+integration time 79
+MG ITer 99
+
+MG ITer 113
+
+MG cycle 153
+MG cycle 167 RK: 0
+MG cycle 173 RK: 0
+MG cycle 180 RK: 0
+MG cycle 189
+
+space integration 72
+space integration 94
+MG cycle 193
+
+time integration 339
+integration structure - time integration euler implicit
+euler implicit integration
+euler implicit start
+end first loop
+solve or smooth lin. sys.
+linear solver finished
+euler implicit end
+MG cycle 197
+
+MG cycle 205
+
+MG ITer 119
+
+MG ITer 125
+
+MG ITer 131
+
+
+fluid iterator 625
+
+fluid iterator 662
+
+fluid iterators 842
+
+
+309 completed iteration->solve
+
+
+ 283run GS: zone --> 1
+(Fluid: zone 0; Structure: zone 1)
+
+completed SetOuterIter
+
+
+ run GS trasfer data: donor=fluid; target=structure
+
+
+
+659-transfer data: updatemesh = 0	 solver: 1	 transfer: 10
+
+
+transfer data: fluid forces
+Physical_Constants[1]=	1
+Physical_Constants[1]=	1
+ mpi stuff
+
+ target processing
+
+collecting target points
+
+
+done broadcast
+
+ mpi stuff
+
+ target processing
+
+collecting target points
+
+
+done broadcast
+
+finish data transfer
+
+
+ run GS dynupdatemesh --> 1 updatemesh= 0
+
+
+ 307run GS iteration->solve --> 1
+(Fluid: zone 0; Structure: zone 1)
+
+ IntIter ExtIter     Res[UTOL]     Res[RTOL]     Res[ETOL]      VMS(Max)
+       0       0      0.000000      0.000000      0.000000    4.3489e+06
+      10       0     -4.462901     -1.171774     -7.488566    4.4896e+06
+      20       0     -8.749815     -5.424233    -15.979179    4.4896e+06
+      22       0     -9.606346     -6.274315    -17.676869    4.4896e+06
+
+
+309 completed iteration->solve
+
+monitor 314 MZ driver
+
+-------------------------------------------------------------------------
+
+Convergence summary for BGS iteration 0
+
+Iter[ID]    BGSRes[Rho]   BGSRes[RhoE]     BGSRes[Ux]     BGSRes[Uy]
+       0       0.112065       4.288738      -3.278787      -1.869074
+
+BGS_Iter        ExtIter     Relaxation
+       0              0       0.700000                              
+
+Simulation time: 0.000000. Time step: 0.000000.
+
+------------------------------------------------------------------------- 
+end convergence
+
+
+ run GS main outer iteration 1
+
+
+
+ 283run GS: zone --> 0
+(Fluid: zone 0; Structure: zone 1)
+
+completed SetOuterIter
+
+
+ run GS trasfer data: donor=structure; target=fluid
+
+
+
+659-transfer data: updatemesh = 0	 solver: 13	 transfer: 11
+ mpi stuff
+
+ target processing
+
+collecting target points
+CTransfer_StructuralDisplacements2 
+CTransfer_StructuralDisplacements2 
+CTransfer_StructuralDisplacements2 
+CTransfer_StructuralDisplacements2 
+CTransfer_StructuralDisplacements2 
+CTransfer_StructuralDisplacements2 
+CTransfer_StructuralDisplacements2 
+CTransfer_StructuralDisplacements2 
+CTransfer_StructuralDisplacements2 
+CTransfer_StructuralDisplacements2 
+CTransfer_StructuralDisplacements2 
+CTransfer_StructuralDisplacements2 
+CTransfer_StructuralDisplacements2 
+CTransfer_StructuralDisplacements2 
+CTransfer_StructuralDisplacements2 
+CTransfer_StructuralDisplacements2 
+CTransfer_StructuralDisplacements2 
+CTransfer_StructuralDisplacements2 
+CTransfer_StructuralDisplacements2 
+CTransfer_StructuralDisplacements2 
+CTransfer_StructuralDisplacements2 
+CTransfer_StructuralDisplacements2 
+CTransfer_StructuralDisplacements2 
+CTransfer_StructuralDisplacements2 
+CTransfer_StructuralDisplacements2 
+CTransfer_StructuralDisplacements2 
+CTransfer_StructuralDisplacements2 
+CTransfer_StructuralDisplacements2 
+CTransfer_StructuralDisplacements2 
+CTransfer_StructuralDisplacements2 
+CTransfer_StructuralDisplacements2 
+CTransfer_StructuralDisplacements2 
+CTransfer_StructuralDisplacements2 
+CTransfer_StructuralDisplacements2 
+CTransfer_StructuralDisplacements2 
+CTransfer_StructuralDisplacements2 
+CTransfer_StructuralDisplacements2 
+CTransfer_StructuralDisplacements2 
+CTransfer_StructuralDisplacements2 
+CTransfer_StructuralDisplacements2 
+CTransfer_StructuralDisplacements2 
+CTransfer_StructuralDisplacements2 
+CTransfer_StructuralDisplacements2 
+CTransfer_StructuralDisplacements2 
+CTransfer_StructuralDisplacements2 
+CTransfer_StructuralDisplacements2 
+CTransfer_StructuralDisplacements2 
+CTransfer_StructuralDisplacements2 
+CTransfer_StructuralDisplacements2 
+CTransfer_StructuralDisplacements2 
+CTransfer_StructuralDisplacements2 
+CTransfer_StructuralDisplacements2 
+CTransfer_StructuralDisplacements2 
+CTransfer_StructuralDisplacements2 
+CTransfer_StructuralDisplacements2 
+CTransfer_StructuralDisplacements2 
+CTransfer_StructuralDisplacements2 
+CTransfer_StructuralDisplacements2 
+CTransfer_StructuralDisplacements2 
+CTransfer_StructuralDisplacements2 
+CTransfer_StructuralDisplacements2 
+CTransfer_StructuralDisplacements2 
+CTransfer_StructuralDisplacements2 
+CTransfer_StructuralDisplacements2 
+CTransfer_StructuralDisplacements2 
+CTransfer_StructuralDisplacements2 
+CTransfer_StructuralDisplacements2 
+CTransfer_StructuralDisplacements2 
+CTransfer_StructuralDisplacements2 
+CTransfer_StructuralDisplacements2 
+CTransfer_StructuralDisplacements2 
+CTransfer_StructuralDisplacements2 
+CTransfer_StructuralDisplacements2 
+CTransfer_StructuralDisplacements2 
+
+
+done broadcast
+
+ mpi stuff
+
+ target processing
+
+collecting target points
+CTransfer_StructuralDisplacements2 
+CTransfer_StructuralDisplacements2 
+CTransfer_StructuralDisplacements2 
+CTransfer_StructuralDisplacements2 
+CTransfer_StructuralDisplacements2 
+CTransfer_StructuralDisplacements2 
+CTransfer_StructuralDisplacements2 
+CTransfer_StructuralDisplacements2 
+CTransfer_StructuralDisplacements2 
+CTransfer_StructuralDisplacements2 
+CTransfer_StructuralDisplacements2 
+CTransfer_StructuralDisplacements2 
+CTransfer_StructuralDisplacements2 
+CTransfer_StructuralDisplacements2 
+CTransfer_StructuralDisplacements2 
+CTransfer_StructuralDisplacements2 
+CTransfer_StructuralDisplacements2 
+CTransfer_StructuralDisplacements2 
+CTransfer_StructuralDisplacements2 
+CTransfer_StructuralDisplacements2 
+CTransfer_StructuralDisplacements2 
+CTransfer_StructuralDisplacements2 
+CTransfer_StructuralDisplacements2 
+CTransfer_StructuralDisplacements2 
+CTransfer_StructuralDisplacements2 
+CTransfer_StructuralDisplacements2 
+CTransfer_StructuralDisplacements2 
+CTransfer_StructuralDisplacements2 
+CTransfer_StructuralDisplacements2 
+CTransfer_StructuralDisplacements2 
+CTransfer_StructuralDisplacements2 
+CTransfer_StructuralDisplacements2 
+CTransfer_StructuralDisplacements2 
+CTransfer_StructuralDisplacements2 
+CTransfer_StructuralDisplacements2 
+CTransfer_StructuralDisplacements2 
+CTransfer_StructuralDisplacements2 
+CTransfer_StructuralDisplacements2 
+CTransfer_StructuralDisplacements2 
+CTransfer_StructuralDisplacements2 
+CTransfer_StructuralDisplacements2 
+CTransfer_StructuralDisplacements2 
+CTransfer_StructuralDisplacements2 
+CTransfer_StructuralDisplacements2 
+CTransfer_StructuralDisplacements2 
+CTransfer_StructuralDisplacements2 
+CTransfer_StructuralDisplacements2 
+CTransfer_StructuralDisplacements2 
+CTransfer_StructuralDisplacements2 
+CTransfer_StructuralDisplacements2 
+CTransfer_StructuralDisplacements2 
+CTransfer_StructuralDisplacements2 
+CTransfer_StructuralDisplacements2 
+CTransfer_StructuralDisplacements2 
+CTransfer_StructuralDisplacements2 
+CTransfer_StructuralDisplacements2 
+CTransfer_StructuralDisplacements2 
+CTransfer_StructuralDisplacements2 
+CTransfer_StructuralDisplacements2 
+CTransfer_StructuralDisplacements2 
+CTransfer_StructuralDisplacements2 
+CTransfer_StructuralDisplacements2 
+CTransfer_StructuralDisplacements2 
+CTransfer_StructuralDisplacements2 
+CTransfer_StructuralDisplacements2 
+CTransfer_StructuralDisplacements2 
+CTransfer_StructuralDisplacements2 
+CTransfer_StructuralDisplacements2 
+CTransfer_StructuralDisplacements2 
+CTransfer_StructuralDisplacements2 
+CTransfer_StructuralDisplacements2 
+CTransfer_StructuralDisplacements2 
+CTransfer_StructuralDisplacements2 
+CTransfer_StructuralDisplacements2 
+
+
+done broadcast
+
+finish data transfer
+
+
+ run GS dynupdatemesh --> 0 updatemesh= 1
+kind of grid movement: 14
+
+Deforming the grid for static Fluid-Structure Interaction applications.
+Deforming the volume grid.
+
+# CG residual history
+# Residual tolerance target = 1.000000e-06
+# Initial residual norm     = 6.189750e+00
+     0     1.000000e+00
+     10     6.036581e-03
+     20     1.687407e-03
+     30     6.587652e-04
+     40     3.307271e-04
+     50     1.763292e-04
+     60     1.054109e-04
+     70     6.655766e-05
+     80     5.722988e-05
+     90     2.977152e-05
+     100     2.411964e-05
+     110     1.993182e-05
+     120     1.089096e-05
+     130     9.836455e-06
+     140     5.669016e-06
+     150     5.123339e-06
+     160     3.011844e-06
+     170     1.697680e-06
+# Conjugate Gradient final (true) residual:
+# Iteration = 177: |res|/|res0| = 9.989802e-07.
+
+There is no grid velocity.
+dynamic mesh update 2 completed		
+
+ 307run GS iteration->solve --> 0
+(Fluid: zone 0; Structure: zone 1)
+
+fluid iterators 790
+
+fluid iterators 832
+
+fluid iterators 837
+
+fluid iterators 594
+
+fluid iterator 610
+
+fluid iterator 623
+integration time 79
+MG ITer 99
+
+MG ITer 113
+
+MG cycle 153
+MG cycle 167 RK: 0
+MG cycle 173 RK: 0
+MG cycle 180 RK: 0
+MG cycle 189
+
+space integration 72
+space integration 94
+MG cycle 193
+
+time integration 339
+integration structure - time integration euler implicit
+euler implicit integration
+euler implicit start
+end first loop
+solve or smooth lin. sys.
+linear solver finished
+euler implicit end
+MG cycle 197
+
+MG cycle 205
+
+MG ITer 119
+
+MG ITer 125
+
+MG ITer 131
+
+
+fluid iterator 625
+
+fluid iterator 662
+
+fluid iterators 842
+
+---------------------- Local Time Stepping Summary ----------------------
+MG level: 0 -> Min. DT: 3.346154e-07. Max. DT: 4.905085e-03. CFL: 1.000000e+01.
+CFL in zone 2: 1.000000e+01
+-------------------------------------------------------------------------
+
+----------------------- Residual Evolution Summary ----------------------
+log10[Maximum residual]: -9.679502e-01.
+Maximum residual point 138, located at (1.297931e-01, 4.126793e-04).
+-------------------------------------------------------------------------
+
+ Iter    Time(s)     Res[Rho]     Res[RhoE]      CL(Total)      CD(Total)
+    0   0.108568    -2.110566      3.363891       0.073361       0.063193
+
+fluid iterators 832
+
+fluid iterators 837
+
+fluid iterators 594
+
+fluid iterator 610
+
+fluid iterator 623
+integration time 79
+MG ITer 99
+
+MG ITer 113
+
+MG cycle 153
+MG cycle 167 RK: 0
+MG cycle 173 RK: 0
+MG cycle 180 RK: 0
+MG cycle 189
+
+space integration 72
+space integration 94
+MG cycle 193
+
+time integration 339
+integration structure - time integration euler implicit
+euler implicit integration
+euler implicit start
+end first loop
+solve or smooth lin. sys.
+linear solver finished
+euler implicit end
+MG cycle 197
+
+MG cycle 205
+
+MG ITer 119
+
+MG ITer 125
+
+MG ITer 131
+
+
+fluid iterator 625
+
+fluid iterator 662
+
+fluid iterators 842
+
+fluid iterators 832
+
+fluid iterators 837
+
+fluid iterators 594
+
+fluid iterator 610
+
+fluid iterator 623
+integration time 79
+MG ITer 99
+
+MG ITer 113
+
+MG cycle 153
+MG cycle 167 RK: 0
+MG cycle 173 RK: 0
+MG cycle 180 RK: 0
+MG cycle 189
+
+space integration 72
+space integration 94
+MG cycle 193
+
+time integration 339
+integration structure - time integration euler implicit
+euler implicit integration
+euler implicit start
+end first loop
+solve or smooth lin. sys.
+linear solver finished
+euler implicit end
+MG cycle 197
+
+MG cycle 205
+
+MG ITer 119
+
+MG ITer 125
+
+MG ITer 131
+
+
+fluid iterator 625
+
+fluid iterator 662
+
+fluid iterators 842
+
+fluid iterators 832
+
+fluid iterators 837
+
+fluid iterators 594
+
+fluid iterator 610
+
+fluid iterator 623
+integration time 79
+MG ITer 99
+
+MG ITer 113
+
+MG cycle 153
+MG cycle 167 RK: 0
+MG cycle 173 RK: 0
+MG cycle 180 RK: 0
+MG cycle 189
+
+space integration 72
+space integration 94
+MG cycle 193
+
+time integration 339
+integration structure - time integration euler implicit
+euler implicit integration
+euler implicit start
+end first loop
+solve or smooth lin. sys.
+linear solver finished
+euler implicit end
+MG cycle 197
+
+MG cycle 205
+
+MG ITer 119
+
+MG ITer 125
+
+MG ITer 131
+
+
+fluid iterator 625
+
+fluid iterator 662
+
+fluid iterators 842
+
+fluid iterators 832
+
+fluid iterators 837
+
+fluid iterators 594
+
+fluid iterator 610
+
+fluid iterator 623
+integration time 79
+MG ITer 99
+
+MG ITer 113
+
+MG cycle 153
+MG cycle 167 RK: 0
+MG cycle 173 RK: 0
+MG cycle 180 RK: 0
+MG cycle 189
+
+space integration 72
+space integration 94
+MG cycle 193
+
+time integration 339
+integration structure - time integration euler implicit
+euler implicit integration
+euler implicit start
+end first loop
+solve or smooth lin. sys.
+linear solver finished
+euler implicit end
+MG cycle 197
+
+MG cycle 205
+
+MG ITer 119
+
+MG ITer 125
+
+MG ITer 131
+
+
+fluid iterator 625
+
+fluid iterator 662
+
+fluid iterators 842
+
+
+309 completed iteration->solve
+
+
+ 283run GS: zone --> 1
+(Fluid: zone 0; Structure: zone 1)
+
+completed SetOuterIter
+
+
+ run GS trasfer data: donor=fluid; target=structure
+
+
+
+659-transfer data: updatemesh = 0	 solver: 1	 transfer: 10
+
+
+transfer data: fluid forces
+Physical_Constants[1]=	1
+Physical_Constants[1]=	1
+ mpi stuff
+
+ target processing
+
+collecting target points
+
+
+done broadcast
+
+ mpi stuff
+
+ target processing
+
+collecting target points
+
+
+done broadcast
+
+finish data transfer
+
+
+ run GS dynupdatemesh --> 1 updatemesh= 0
+
+
+ 307run GS iteration->solve --> 1
+(Fluid: zone 0; Structure: zone 1)
+
+ IntIter ExtIter     Res[UTOL]     Res[RTOL]     Res[ETOL]      VMS(Max)
+       0       0      0.000000      0.000000      0.000000    8.6122e+05
+      10       0     -3.597160     -0.609967     -7.015346    9.2910e+05
+      20       0     -7.892466     -4.873424    -15.517379    9.2909e+05
+      23       0     -9.178886     -6.151292    -18.066684    9.2909e+05
+
+
+309 completed iteration->solve
+
+monitor 314 MZ driver
+
+-------------------------------------------------------------------------
+
+Convergence summary for BGS iteration 1
+
+Iter[ID]    BGSRes[Rho]   BGSRes[RhoE]     BGSRes[Ux]     BGSRes[Uy]
+    1000      -1.375646       4.071190      -3.275062      -1.734074
+
+BGS_Iter        ExtIter     Relaxation      Res[ATOL]
+       1              0       0.700000      -1.756699               
+
+Simulation time: 0.000000. Time step: 0.000000.
+
+------------------------------------------------------------------------- 
+end convergence
+
+
+MZ driver update
+
+
+
+659-transfer data: updatemesh = 0	 solver: 13	 transfer: 11
+ mpi stuff
+
+ target processing
+
+collecting target points
+CTransfer_StructuralDisplacements2 
+CTransfer_StructuralDisplacements2 
+CTransfer_StructuralDisplacements2 
+CTransfer_StructuralDisplacements2 
+CTransfer_StructuralDisplacements2 
+CTransfer_StructuralDisplacements2 
+CTransfer_StructuralDisplacements2 
+CTransfer_StructuralDisplacements2 
+CTransfer_StructuralDisplacements2 
+CTransfer_StructuralDisplacements2 
+CTransfer_StructuralDisplacements2 
+CTransfer_StructuralDisplacements2 
+CTransfer_StructuralDisplacements2 
+CTransfer_StructuralDisplacements2 
+CTransfer_StructuralDisplacements2 
+CTransfer_StructuralDisplacements2 
+CTransfer_StructuralDisplacements2 
+CTransfer_StructuralDisplacements2 
+CTransfer_StructuralDisplacements2 
+CTransfer_StructuralDisplacements2 
+CTransfer_StructuralDisplacements2 
+CTransfer_StructuralDisplacements2 
+CTransfer_StructuralDisplacements2 
+CTransfer_StructuralDisplacements2 
+CTransfer_StructuralDisplacements2 
+CTransfer_StructuralDisplacements2 
+CTransfer_StructuralDisplacements2 
+CTransfer_StructuralDisplacements2 
+CTransfer_StructuralDisplacements2 
+CTransfer_StructuralDisplacements2 
+CTransfer_StructuralDisplacements2 
+CTransfer_StructuralDisplacements2 
+CTransfer_StructuralDisplacements2 
+CTransfer_StructuralDisplacements2 
+CTransfer_StructuralDisplacements2 
+CTransfer_StructuralDisplacements2 
+CTransfer_StructuralDisplacements2 
+CTransfer_StructuralDisplacements2 
+CTransfer_StructuralDisplacements2 
+CTransfer_StructuralDisplacements2 
+CTransfer_StructuralDisplacements2 
+CTransfer_StructuralDisplacements2 
+CTransfer_StructuralDisplacements2 
+CTransfer_StructuralDisplacements2 
+CTransfer_StructuralDisplacements2 
+CTransfer_StructuralDisplacements2 
+CTransfer_StructuralDisplacements2 
+CTransfer_StructuralDisplacements2 
+CTransfer_StructuralDisplacements2 
+CTransfer_StructuralDisplacements2 
+CTransfer_StructuralDisplacements2 
+CTransfer_StructuralDisplacements2 
+CTransfer_StructuralDisplacements2 
+CTransfer_StructuralDisplacements2 
+CTransfer_StructuralDisplacements2 
+CTransfer_StructuralDisplacements2 
+CTransfer_StructuralDisplacements2 
+CTransfer_StructuralDisplacements2 
+CTransfer_StructuralDisplacements2 
+CTransfer_StructuralDisplacements2 
+CTransfer_StructuralDisplacements2 
+CTransfer_StructuralDisplacements2 
+CTransfer_StructuralDisplacements2 
+CTransfer_StructuralDisplacements2 
+CTransfer_StructuralDisplacements2 
+CTransfer_StructuralDisplacements2 
+CTransfer_StructuralDisplacements2 
+CTransfer_StructuralDisplacements2 
+CTransfer_StructuralDisplacements2 
+CTransfer_StructuralDisplacements2 
+CTransfer_StructuralDisplacements2 
+CTransfer_StructuralDisplacements2 
+CTransfer_StructuralDisplacements2 
+CTransfer_StructuralDisplacements2 
+
+
+done broadcast
+
+ mpi stuff
+
+ target processing
+
+collecting target points
+CTransfer_StructuralDisplacements2 
+CTransfer_StructuralDisplacements2 
+CTransfer_StructuralDisplacements2 
+CTransfer_StructuralDisplacements2 
+CTransfer_StructuralDisplacements2 
+CTransfer_StructuralDisplacements2 
+CTransfer_StructuralDisplacements2 
+CTransfer_StructuralDisplacements2 
+CTransfer_StructuralDisplacements2 
+CTransfer_StructuralDisplacements2 
+CTransfer_StructuralDisplacements2 
+CTransfer_StructuralDisplacements2 
+CTransfer_StructuralDisplacements2 
+CTransfer_StructuralDisplacements2 
+CTransfer_StructuralDisplacements2 
+CTransfer_StructuralDisplacements2 
+CTransfer_StructuralDisplacements2 
+CTransfer_StructuralDisplacements2 
+CTransfer_StructuralDisplacements2 
+CTransfer_StructuralDisplacements2 
+CTransfer_StructuralDisplacements2 
+CTransfer_StructuralDisplacements2 
+CTransfer_StructuralDisplacements2 
+CTransfer_StructuralDisplacements2 
+CTransfer_StructuralDisplacements2 
+CTransfer_StructuralDisplacements2 
+CTransfer_StructuralDisplacements2 
+CTransfer_StructuralDisplacements2 
+CTransfer_StructuralDisplacements2 
+CTransfer_StructuralDisplacements2 
+CTransfer_StructuralDisplacements2 
+CTransfer_StructuralDisplacements2 
+CTransfer_StructuralDisplacements2 
+CTransfer_StructuralDisplacements2 
+CTransfer_StructuralDisplacements2 
+CTransfer_StructuralDisplacements2 
+CTransfer_StructuralDisplacements2 
+CTransfer_StructuralDisplacements2 
+CTransfer_StructuralDisplacements2 
+CTransfer_StructuralDisplacements2 
+CTransfer_StructuralDisplacements2 
+CTransfer_StructuralDisplacements2 
+CTransfer_StructuralDisplacements2 
+CTransfer_StructuralDisplacements2 
+CTransfer_StructuralDisplacements2 
+CTransfer_StructuralDisplacements2 
+CTransfer_StructuralDisplacements2 
+CTransfer_StructuralDisplacements2 
+CTransfer_StructuralDisplacements2 
+CTransfer_StructuralDisplacements2 
+CTransfer_StructuralDisplacements2 
+CTransfer_StructuralDisplacements2 
+CTransfer_StructuralDisplacements2 
+CTransfer_StructuralDisplacements2 
+CTransfer_StructuralDisplacements2 
+CTransfer_StructuralDisplacements2 
+CTransfer_StructuralDisplacements2 
+CTransfer_StructuralDisplacements2 
+CTransfer_StructuralDisplacements2 
+CTransfer_StructuralDisplacements2 
+CTransfer_StructuralDisplacements2 
+CTransfer_StructuralDisplacements2 
+CTransfer_StructuralDisplacements2 
+CTransfer_StructuralDisplacements2 
+CTransfer_StructuralDisplacements2 
+CTransfer_StructuralDisplacements2 
+CTransfer_StructuralDisplacements2 
+CTransfer_StructuralDisplacements2 
+CTransfer_StructuralDisplacements2 
+CTransfer_StructuralDisplacements2 
+CTransfer_StructuralDisplacements2 
+CTransfer_StructuralDisplacements2 
+CTransfer_StructuralDisplacements2 
+CTransfer_StructuralDisplacements2 
+
+
+done broadcast
+
+kind of grid movement: 14
+
+Deforming the grid for static Fluid-Structure Interaction applications.
+Deforming the volume grid.
+
+# CG residual history
+# Residual tolerance target = 1.000000e-06
+# Initial residual norm     = 6.635229e+00
+     0     1.000000e+00
+     10     6.181854e-03
+     20     1.727992e-03
+     30     6.758063e-04
+     40     3.403806e-04
+     50     1.815927e-04
+     60     1.086179e-04
+     70     6.843629e-05
+     80     5.893016e-05
+     90     3.014461e-05
+     100     2.498200e-05
+     110     2.082828e-05
+     120     1.193631e-05
+     130     9.309689e-06
+     140     5.779130e-06
+     150     5.400972e-06
+     160     2.848402e-06
+     170     1.962595e-06
+# Conjugate Gradient final (true) residual:
+# Iteration = 178: |res|/|res0| = 8.907030e-07.
+
+There is no grid velocity.
+dynamic mesh update 2 completed		
+
+659-transfer data: updatemesh = 0	 solver: 1	 transfer: 10
+
+
+transfer data: fluid forces
+Physical_Constants[1]=	1.000000e+00
+Physical_Constants[1]=	1.000000e+00
+ mpi stuff
+
+ target processing
+
+collecting target points
+
+
+done broadcast
+
+ mpi stuff
+
+ target processing
+
+collecting target points
+
+
+done broadcast
+
+MZ driver end update
+
+
+-------------------------- File Output Summary --------------------------
+driver MZ
+-------------------------------------------------------------------------
+
+
+------------------------- Solver Postprocessing -------------------------
+Deleted CNumerics container.
+Deleted CIntegration container.
+Deleted CSolver container.
+Deleted CIteration container.
+Deleted CInterpolator container.
+Deleted CTransfer container.
+Deleted CGeometry container.
+Deleted CFreeFormDefBox class.
+Deleted CSurfaceMovement class.
+Deleted CVolumetricMovement class.
+Deleted CConfig container.
+Deleted nInst container.
+Deleted COutput class.
+-------------------------------------------------------------------------
+
+------------------------- Exit Success (SU2_CFD) ------------------------
+

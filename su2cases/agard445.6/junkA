@@ -1,0 +1,1671 @@
+102 - SU2_CFD nzone=
+2
+
+-------------------------------------------------------------------------
+|    ___ _   _ ___                                                      |
+|   / __| | | |_  )   Release 6.2.0  "Falcon"                           |
+|   \__ \ |_| |/ /                                                      |
+|   |___/\___//___|   Suite (Computational Fluid Dynamics Code)         |
+|                                                                       |
+-------------------------------------------------------------------------
+| The current SU2 release has been coordinated by the                   |
+| SU2 International Developers Society <www.su2devsociety.org>          |
+| with selected contributions from the open-source community.           |
+-------------------------------------------------------------------------
+| The main research teams contributing to the current release are:      |
+| - Prof. Juan J. Alonso's group at Stanford University.                |
+| - Prof. Piero Colonna's group at Delft University of Technology.      |
+| - Prof. Nicolas R. Gauger's group at Kaiserslautern U. of Technology. |
+| - Prof. Alberto Guardone's group at Polytechnic University of Milan.  |
+| - Prof. Rafael Palacios' group at Imperial College London.            |
+| - Prof. Vincent Terrapon's group at the University of Liege.          |
+| - Prof. Edwin van der Weide's group at the University of Twente.      |
+| - Lab. of New Concepts in Aeronautics at Tech. Inst. of Aeronautics.  |
+-------------------------------------------------------------------------
+| Copyright 2012-2019, Francisco D. Palacios, Thomas D. Economon,       |
+|                      Tim Albring, and the SU2 contributors.           |
+|                                                                       |
+| SU2 is free software; you can redistribute it and/or                  |
+| modify it under the terms of the GNU Lesser General Public            |
+| License as published by the Free Software Foundation; either          |
+| version 2.1 of the License, or (at your option) any later version.    |
+|                                                                       |
+| SU2 is distributed in the hope that it will be useful,                |
+| but WITHOUT ANY WARRANTY; without even the implied warranty of        |
+| MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE. See the GNU      |
+| Lesser General Public License for more details.                       |
+|                                                                       |
+| You should have received a copy of the GNU Lesser General Public      |
+| License along with SU2. If not, see <http://www.gnu.org/licenses/>.   |
+-------------------------------------------------------------------------
+
+------------------------ Physical Case Definition -----------------------
+Compressible Euler equations.
+Mach number: 0.96.
+Angle of attack (AoA): 0 deg, and angle of sideslip (AoS): 0 deg.
+No restart solution, use the values at infinity (freestream).
+Non-Dimensional simulation (V=1.0, Rho=1.0, T=1.0 at the farfield).
+The reference area will be computed using y(2D) or z(3D) projection.
+The semi-span will be computed using the max y(3D) value.
+The reference length is 1 m.
+Reference origin for moment evaluation is (0.25, 0, 0).
+Surface(s) where the force coefficients are evaluated: WING3D.
+
+Surface(s) where the objective function is evaluated: WING3D.
+Surface(s) plotted in the output file: WING3D.
+Surface(s) affected by the design variables: WING3D.
+Input mesh file name: ../grids/agard445.6/wing_tetra.3.su2
+
+---------------------- Space Numerical Integration ----------------------
+Jameson-Schmidt-Turkel scheme (2nd order in space) for the flow inviscid terms.
+JST viscous coefficients (2nd & 4th): 0.5, 0.02.
+The method includes a grid stretching correction (p = 0.3).
+Gradient Computation using weighted Least-Squares method.
+
+---------------------- Time Numerical Integration -----------------------
+Local time stepping (steady state simulation).
+Euler implicit method for the flow equations.
+FGMRES is used for solving the linear system.
+Using a ILU(0) preconditioning.
+Convergence criteria of the linear solver: 1e-06.
+Max number of linear iterations: 4.
+CFL adaptation. Factor down: 15, factor up: 0.5,
+                lower limit: 10, upper limit: 100.
+Courant-Friedrichs-Lewy number:        5
+
+------------------------- Convergence Criteria --------------------------
+Maximum number of iterations: 2.
+Reduce the density residual 2 orders of magnitude.
+The minimum bound for the density residual is 10^(-4).
+Start convergence criteria at iteration 10.
+
+-------------------------- Output Information ---------------------------
+Writing a solution file every 100 iterations.
+Writing the convergence history every 1 iterations.
+The output file format is Paraview ASCII legacy (.vtk).
+Convergence history file name: history.
+Forces breakdown file name: forces_breakdown.dat.
+Surface flow coefficients file name: surface_flow.
+Flow variables file name: flow.
+Restart flow file name: restart_flow.dat.
+
+------------------- Config File Boundary Information --------------------
++-----------------------------------------+
+|         Marker Type|         Marker Name|
++-----------------------------------------+
+|          Euler wall|              WING3D|
++-----------------------------------------+
+|           Far-field|            FARFIELD|
++-----------------------------------------+
+|      Symmetry plane|            SYMMETRY|
++-----------------------------------------+
+
+-------------------- Interface Boundary Information ---------------------
+The interface markers are: WING3D.
+
+-------------------- Interface Boundary Information ---------------------
+The interface markers are: wing_s.
+
+---------------------- Read Grid File Information -----------------------
+Three dimensional problem.
+4301 points.
+3 surface markers.
++------------------------------------+
+| Index|        Marker|      Elements|
++------------------------------------+
+|     0|        WING3D|           480|
+|     1|      SYMMETRY|           768|
+|     2|      FARFIELD|           480|
++------------------------------------+
+23040 tetrahedra.
+modal call
+
+---------------------- Read Grid File Information -----------------------
+Three dimensional problem.
+120 points.
+1 surface markers.
++------------------------------------+
+| Index|        Marker|      Elements|
++------------------------------------+
+|     0|        wing_s|           200|
++------------------------------------+
+198 triangles.
+modal call
+
+------------------------- Geometry Preprocessing ------------------------
+
+drive structure 156
+
+Setting point connectivity.
+Renumbering points (Reverse Cuthill McKee Ordering).
+Recomputing point connectivity.
+Setting element connectivity.
+Checking the numerical grid orientation.
+Identifying edges and vertices.
+Computing centers of gravity.
+Setting the control volume structure.
+Volume of the computational grid: 2.06e+06.
+Finding max control volume width.
+Searching for the closest normal neighbors to the surfaces.
+Storing a mapping from global to local point index.
+Compute the surface curvature.
+Max K: 2.33e+04. Mean K: 207. Standard deviation K: 1.17e+03.
+Checking for periodicity.
+Setting point connectivity.
+Renumbering points (Reverse Cuthill McKee Ordering).
+Recomputing point connectivity.
+Setting element connectivity.
+Checking the numerical grid orientation.
+Identifying edges and vertices.
+Volume of the computational grid: 0.
+Searching for the closest normal neighbors to the surfaces.
+Storing a mapping from global to local point index.
+Max K: 586. Mean K: 56.2. Standard deviation K: 100.
+Checking for periodicity.
+Reference area = 1.14 m^2.
+Semi-span length = 1.38 m.
+Wetted area = 2.29 m^2.
+Area projection in the x-plane = 0.0422 m^2, y-plane = 0.029 m^2, z-plane = 1.14 m^2.
+Max. coordinate in the x-direction = 2.02 m, y-direction = 1.38 m, z-direction = 0.0196 m.
+Min coordinate in the x-direction = 0 m, y-direction = -0 m, z-direction = -0.0196 m.
+Semi-span length = -1e+10 m.
+Wetted area = 0 m^2.
+Area projection in the x-plane = 0 m^2, y-plane = 0 m^2, z-plane = 0 m^2.
+Max. coordinate in the x-direction = -1e+10 m, y-direction = -1e+10 m, z-direction = -1e+10 m.
+Min coordinate in the x-direction = 1e+10 m, y-direction = 1e+10 m, z-direction = 1e+10 m.
+
+------------------------- Driver information --------------------------
+2A Static Fluid-Structure Interaction driver has been instantiated.
+
+------------------------ Iteration Preprocessing ------------------------
+Zone 1: Euler/Navier-Stokes/RANS fluid iteration.
+
+------------------------- Solver Preprocessing --------------------------
+Inviscid flow: Computing density based on free-stream
+temperature and pressure using the ideal gas law.
+Force coefficients computed using free-stream values.
+
+-- Models:
++------------------------------------------------------------------------------+
+|          Viscosity Model|        Conductivity Model|              Fluid Model|
++------------------------------------------------------------------------------+
+|                        -|                         -|             STANDARD_AIR|
++------------------------------------------------------------------------------+
+-- Fluid properties:
++------------------------------------------------------------------------------+
+|                  Name|    Dim. value|    Ref. value|      Unit|Non-dim. value|
++------------------------------------------------------------------------------+
+|          Gas Constant|       287.058|       370.374|  N.m/kg.K|       0.77505|
+|      Spec. Heat Ratio|             -|             -|         -|           1.4|
++------------------------------------------------------------------------------+
+-- Initial and free-stream conditions:
++------------------------------------------------------------------------------+
+|                  Name|    Dim. value|    Ref. value|      Unit|Non-dim. value|
++------------------------------------------------------------------------------+
+|       Static Pressure|        101325|        130734|        Pa|       0.77505|
+|               Density|       1.22498|       1.22498|    kg/m^3|             1|
+|           Temperature|        288.15|        288.15|         K|             1|
+|          Total Energy|        260151|        106723|   m^2/s^2|       2.43762|
+|            Velocity-X|       326.685|       326.685|       m/s|             1|
+|            Velocity-Y|             0|       326.685|       m/s|             0|
+|            Velocity-Z|             0|       326.685|       m/s|             0|
+|    Velocity Magnitude|       326.685|       326.685|       m/s|             1|
++------------------------------------------------------------------------------+
+|           Mach Number|             -|             -|         -|          0.96|
++------------------------------------------------------------------------------+
+Initialize Jacobian structure (Euler). MG level: 0.
+
+----------------- Integration and Numerics Preprocessing ----------------
+Integration Preprocessing.
+
+
+CFD check - driver structure.cpp (2044): nVar_FLOW = 5
+
+
+FEM check - driver structure.cpp (2044): nVar_FEM = 0
+
+
+CSD check - driver structure.cpp (2044): nVar_CSD = 0	0
+Numerics Preprocessing.
+
+------------------------ Iteration Preprocessing ------------------------
+Zone 2: MODAL iteration.
+
+------------------------- Solver Preprocessing --------------------------
+
+
+initializing CSD solver
+
+
+
+CModalSolver here 5202
+
+modal solver initialized:3	3	120
+npoints/nModesPoints: 120	120
+N. of modes = 4
+N. of nodes in CSD mesh = 120
+5348Reference Length = 0.463
+Mode 1 Frequency:	 = 9.5992
+Mode 2 Frequency:	 = 38.165
+Mode 3 Frequency:	 = 50.7
+Mode 4 Frequency:	 = 98.5
+2-Mode 1 Frequency:	 = 9.5992
+2-Mode 2 Frequency:	 = 38.165
+2-Mode 3 Frequency:	 = 50.7
+2-Mode 4 Frequency:	 = 98.5
+
+----------------- Integration and Numerics Preprocessing ----------------
+Integration Preprocessing.
+
+
+CFD check - driver structure.cpp (2044): nVar_FLOW = 0
+
+
+FEM check - driver structure.cpp (2044): nVar_FEM = 0
+
+
+CSD check - driver structure.cpp (2044): nVar_CSD = 3	1
+Numerics Preprocessing.
+
+------------------- Multizone Interface Preprocessing -------------------
+From zone 1 to zone 0: Setting coupling using a radial basis function approach.
+Transferring structural displacements. 
+From zone 0 to zone 1: Setting coupling using a radial basis function approach.
+Transferring flow tractions. 
+Setting moving mesh structure for static FSI problems.
+
+---------------------- Python Interface Preprocessing ---------------------
+Setting customized boundary conditions for zone 0
+Setting customized boundary conditions for zone 1
+
+Opening FSI history file.
+
+------------------------------ Begin Solver -----------------------------
+
+Simulation Run using the Multizone Driver
+
+
+MZ driver timeiter loop -- preprocess
+
+
+mz solver; unsteady= 0
+
+
+mz preprocess: fsi= 1
+dynamic mesh update 1 active?			or no -- zone 0
+
+	or no -- zone 1
+
+
+
+ run gauss-seidel
+
+
+
+ run GS main outer iteration 0
+
+
+
+ 283run GS: zone --> 0
+(Fluid: zone 0; Structure: zone 1)
+
+completed SetOuterIter
+
+
+ run GS trasfer data: donor=structure; target=fluid
+
+
+
+659-transfer data: updatemesh = 0	 solver: 14	 transfer: 11
+
+
+transfer data: CSD structural displacements
+ mpi stuff
+
+ target processing
+
+collecting target points
+CTransfer_StructuralDisplacements2 
+CTransfer_StructuralDisplacements2 
+CTransfer_StructuralDisplacements2 
+CTransfer_StructuralDisplacements2 
+CTransfer_StructuralDisplacements2 
+CTransfer_StructuralDisplacements2 
+CTransfer_StructuralDisplacements2 
+CTransfer_StructuralDisplacements2 
+CTransfer_StructuralDisplacements2 
+CTransfer_StructuralDisplacements2 
+CTransfer_StructuralDisplacements2 
+CTransfer_StructuralDisplacements2 
+CTransfer_StructuralDisplacements2 
+CTransfer_StructuralDisplacements2 
+CTransfer_StructuralDisplacements2 
+CTransfer_StructuralDisplacements2 
+CTransfer_StructuralDisplacements2 
+CTransfer_StructuralDisplacements2 
+CTransfer_StructuralDisplacements2 
+CTransfer_StructuralDisplacements2 
+CTransfer_StructuralDisplacements2 
+CTransfer_StructuralDisplacements2 
+CTransfer_StructuralDisplacements2 
+CTransfer_StructuralDisplacements2 
+CTransfer_StructuralDisplacements2 
+CTransfer_StructuralDisplacements2 
+CTransfer_StructuralDisplacements2 
+CTransfer_StructuralDisplacements2 
+CTransfer_StructuralDisplacements2 
+CTransfer_StructuralDisplacements2 
+CTransfer_StructuralDisplacements2 
+CTransfer_StructuralDisplacements2 
+CTransfer_StructuralDisplacements2 
+CTransfer_StructuralDisplacements2 
+CTransfer_StructuralDisplacements2 
+CTransfer_StructuralDisplacements2 
+CTransfer_StructuralDisplacements2 
+CTransfer_StructuralDisplacements2 
+CTransfer_StructuralDisplacements2 
+CTransfer_StructuralDisplacements2 
+CTransfer_StructuralDisplacements2 
+CTransfer_StructuralDisplacements2 
+CTransfer_StructuralDisplacements2 
+CTransfer_StructuralDisplacements2 
+CTransfer_StructuralDisplacements2 
+CTransfer_StructuralDisplacements2 
+CTransfer_StructuralDisplacements2 
+CTransfer_StructuralDisplacements2 
+CTransfer_StructuralDisplacements2 
+CTransfer_StructuralDisplacements2 
+CTransfer_StructuralDisplacements2 
+CTransfer_StructuralDisplacements2 
+CTransfer_StructuralDisplacements2 
+CTransfer_StructuralDisplacements2 
+CTransfer_StructuralDisplacements2 
+CTransfer_StructuralDisplacements2 
+CTransfer_StructuralDisplacements2 
+CTransfer_StructuralDisplacements2 
+CTransfer_StructuralDisplacements2 
+CTransfer_StructuralDisplacements2 
+CTransfer_StructuralDisplacements2 
+CTransfer_StructuralDisplacements2 
+CTransfer_StructuralDisplacements2 
+CTransfer_StructuralDisplacements2 
+CTransfer_StructuralDisplacements2 
+CTransfer_StructuralDisplacements2 
+CTransfer_StructuralDisplacements2 
+CTransfer_StructuralDisplacements2 
+CTransfer_StructuralDisplacements2 
+CTransfer_StructuralDisplacements2 
+CTransfer_StructuralDisplacements2 
+CTransfer_StructuralDisplacements2 
+CTransfer_StructuralDisplacements2 
+CTransfer_StructuralDisplacements2 
+CTransfer_StructuralDisplacements2 
+CTransfer_StructuralDisplacements2 
+CTransfer_StructuralDisplacements2 
+CTransfer_StructuralDisplacements2 
+CTransfer_StructuralDisplacements2 
+CTransfer_StructuralDisplacements2 
+CTransfer_StructuralDisplacements2 
+CTransfer_StructuralDisplacements2 
+CTransfer_StructuralDisplacements2 
+CTransfer_StructuralDisplacements2 
+CTransfer_StructuralDisplacements2 
+CTransfer_StructuralDisplacements2 
+CTransfer_StructuralDisplacements2 
+CTransfer_StructuralDisplacements2 
+CTransfer_StructuralDisplacements2 
+CTransfer_StructuralDisplacements2 
+CTransfer_StructuralDisplacements2 
+CTransfer_StructuralDisplacements2 
+CTransfer_StructuralDisplacements2 
+CTransfer_StructuralDisplacements2 
+CTransfer_StructuralDisplacements2 
+CTransfer_StructuralDisplacements2 
+CTransfer_StructuralDisplacements2 
+CTransfer_StructuralDisplacements2 
+CTransfer_StructuralDisplacements2 
+CTransfer_StructuralDisplacements2 
+CTransfer_StructuralDisplacements2 
+CTransfer_StructuralDisplacements2 
+CTransfer_StructuralDisplacements2 
+CTransfer_StructuralDisplacements2 
+CTransfer_StructuralDisplacements2 
+CTransfer_StructuralDisplacements2 
+CTransfer_StructuralDisplacements2 
+CTransfer_StructuralDisplacements2 
+CTransfer_StructuralDisplacements2 
+CTransfer_StructuralDisplacements2 
+CTransfer_StructuralDisplacements2 
+CTransfer_StructuralDisplacements2 
+CTransfer_StructuralDisplacements2 
+CTransfer_StructuralDisplacements2 
+CTransfer_StructuralDisplacements2 
+CTransfer_StructuralDisplacements2 
+CTransfer_StructuralDisplacements2 
+CTransfer_StructuralDisplacements2 
+CTransfer_StructuralDisplacements2 
+CTransfer_StructuralDisplacements2 
+CTransfer_StructuralDisplacements2 
+CTransfer_StructuralDisplacements2 
+CTransfer_StructuralDisplacements2 
+CTransfer_StructuralDisplacements2 
+CTransfer_StructuralDisplacements2 
+CTransfer_StructuralDisplacements2 
+CTransfer_StructuralDisplacements2 
+CTransfer_StructuralDisplacements2 
+CTransfer_StructuralDisplacements2 
+CTransfer_StructuralDisplacements2 
+CTransfer_StructuralDisplacements2 
+CTransfer_StructuralDisplacements2 
+CTransfer_StructuralDisplacements2 
+CTransfer_StructuralDisplacements2 
+CTransfer_StructuralDisplacements2 
+CTransfer_StructuralDisplacements2 
+CTransfer_StructuralDisplacements2 
+CTransfer_StructuralDisplacements2 
+CTransfer_StructuralDisplacements2 
+CTransfer_StructuralDisplacements2 
+CTransfer_StructuralDisplacements2 
+CTransfer_StructuralDisplacements2 
+CTransfer_StructuralDisplacements2 
+CTransfer_StructuralDisplacements2 
+CTransfer_StructuralDisplacements2 
+CTransfer_StructuralDisplacements2 
+CTransfer_StructuralDisplacements2 
+CTransfer_StructuralDisplacements2 
+CTransfer_StructuralDisplacements2 
+CTransfer_StructuralDisplacements2 
+CTransfer_StructuralDisplacements2 
+CTransfer_StructuralDisplacements2 
+CTransfer_StructuralDisplacements2 
+CTransfer_StructuralDisplacements2 
+CTransfer_StructuralDisplacements2 
+CTransfer_StructuralDisplacements2 
+CTransfer_StructuralDisplacements2 
+CTransfer_StructuralDisplacements2 
+CTransfer_StructuralDisplacements2 
+CTransfer_StructuralDisplacements2 
+CTransfer_StructuralDisplacements2 
+CTransfer_StructuralDisplacements2 
+CTransfer_StructuralDisplacements2 
+CTransfer_StructuralDisplacements2 
+CTransfer_StructuralDisplacements2 
+CTransfer_StructuralDisplacements2 
+CTransfer_StructuralDisplacements2 
+CTransfer_StructuralDisplacements2 
+CTransfer_StructuralDisplacements2 
+CTransfer_StructuralDisplacements2 
+CTransfer_StructuralDisplacements2 
+CTransfer_StructuralDisplacements2 
+CTransfer_StructuralDisplacements2 
+CTransfer_StructuralDisplacements2 
+CTransfer_StructuralDisplacements2 
+CTransfer_StructuralDisplacements2 
+CTransfer_StructuralDisplacements2 
+CTransfer_StructuralDisplacements2 
+CTransfer_StructuralDisplacements2 
+CTransfer_StructuralDisplacements2 
+CTransfer_StructuralDisplacements2 
+CTransfer_StructuralDisplacements2 
+CTransfer_StructuralDisplacements2 
+CTransfer_StructuralDisplacements2 
+CTransfer_StructuralDisplacements2 
+CTransfer_StructuralDisplacements2 
+CTransfer_StructuralDisplacements2 
+CTransfer_StructuralDisplacements2 
+CTransfer_StructuralDisplacements2 
+CTransfer_StructuralDisplacements2 
+CTransfer_StructuralDisplacements2 
+CTransfer_StructuralDisplacements2 
+CTransfer_StructuralDisplacements2 
+CTransfer_StructuralDisplacements2 
+CTransfer_StructuralDisplacements2 
+CTransfer_StructuralDisplacements2 
+CTransfer_StructuralDisplacements2 
+CTransfer_StructuralDisplacements2 
+CTransfer_StructuralDisplacements2 
+CTransfer_StructuralDisplacements2 
+CTransfer_StructuralDisplacements2 
+CTransfer_StructuralDisplacements2 
+CTransfer_StructuralDisplacements2 
+CTransfer_StructuralDisplacements2 
+CTransfer_StructuralDisplacements2 
+CTransfer_StructuralDisplacements2 
+CTransfer_StructuralDisplacements2 
+CTransfer_StructuralDisplacements2 
+CTransfer_StructuralDisplacements2 
+CTransfer_StructuralDisplacements2 
+CTransfer_StructuralDisplacements2 
+CTransfer_StructuralDisplacements2 
+CTransfer_StructuralDisplacements2 
+CTransfer_StructuralDisplacements2 
+CTransfer_StructuralDisplacements2 
+CTransfer_StructuralDisplacements2 
+CTransfer_StructuralDisplacements2 
+CTransfer_StructuralDisplacements2 
+CTransfer_StructuralDisplacements2 
+CTransfer_StructuralDisplacements2 
+CTransfer_StructuralDisplacements2 
+CTransfer_StructuralDisplacements2 
+CTransfer_StructuralDisplacements2 
+CTransfer_StructuralDisplacements2 
+CTransfer_StructuralDisplacements2 
+CTransfer_StructuralDisplacements2 
+CTransfer_StructuralDisplacements2 
+CTransfer_StructuralDisplacements2 
+CTransfer_StructuralDisplacements2 
+CTransfer_StructuralDisplacements2 
+CTransfer_StructuralDisplacements2 
+CTransfer_StructuralDisplacements2 
+CTransfer_StructuralDisplacements2 
+CTransfer_StructuralDisplacements2 
+CTransfer_StructuralDisplacements2 
+CTransfer_StructuralDisplacements2 
+CTransfer_StructuralDisplacements2 
+CTransfer_StructuralDisplacements2 
+CTransfer_StructuralDisplacements2 
+CTransfer_StructuralDisplacements2 
+CTransfer_StructuralDisplacements2 
+CTransfer_StructuralDisplacements2 
+CTransfer_StructuralDisplacements2 
+CTransfer_StructuralDisplacements2 
+CTransfer_StructuralDisplacements2 
+CTransfer_StructuralDisplacements2 
+CTransfer_StructuralDisplacements2 
+CTransfer_StructuralDisplacements2 
+CTransfer_StructuralDisplacements2 
+CTransfer_StructuralDisplacements2 
+CTransfer_StructuralDisplacements2 
+CTransfer_StructuralDisplacements2 
+CTransfer_StructuralDisplacements2 
+
+
+done broadcast
+
+finish data transfer
+
+
+ run GS dynupdatemesh --> 0 updatemesh= 1
+kind of grid movement: 14
+
+Deforming the grid for static Fluid-Structure Interaction applications.
+Deforming the volume grid.
+CSysSolve::FGMRES(): system solved by initial guess.
+There is no grid velocity.
+dynamic mesh update 2 completed		
+
+ 307run GS iteration->solve --> 0
+(Fluid: zone 0; Structure: zone 1)
+
+fluid iterators 790
+
+fluid iterators 832
+
+fluid iterators 837
+
+fluid iterators 594
+
+fluid iterator 610
+
+fluid iterator 623
+integration time 79
+MG ITer 99
+
+MG ITer 113
+
+MG cycle 153
+MG cycle 167 RK: 0
+MG cycle 173 RK: 0
+MG cycle 180 RK: 0
+MG cycle 189
+
+space integration 72
+space integration 94
+MG cycle 193
+
+time integration 339
+integration structure - time integration euler implicit
+euler implicit integration
+euler implicit start
+end first loop
+solve or smooth lin. sys.
+linear solver finished
+euler implicit end
+MG cycle 197
+
+MG cycle 205
+
+MG ITer 119
+
+MG ITer 125
+
+MG ITer 131
+
+
+fluid iterator 625
+
+fluid iterator 662
+
+fluid iterators 842
+
+---------------------- Local Time Stepping Summary ----------------------
+MG level: 0 -> Min. DT: 0.00141948. Max. DT: 9.66066. CFL: 5.
+CFL in zone 2: 1.25
+-------------------------------------------------------------------------
+
+----------------------- Residual Evolution Summary ----------------------
+log10[Maximum residual]: -2.4581.
+Maximum residual point 225, located at (1.34067, 0.708675, -0.00920924).
+-------------------------------------------------------------------------
+
+ Iter    Time(s)     Res[Rho]     Res[RhoE]      CL(Total)      CD(Total)
+    0   0.098701    -3.777017     -3.270150      -0.002313       0.009735
+
+fluid iterators 832
+
+fluid iterators 837
+
+fluid iterators 594
+
+fluid iterator 610
+
+fluid iterator 623
+integration time 79
+MG ITer 99
+
+MG ITer 113
+
+MG cycle 153
+MG cycle 167 RK: 0
+MG cycle 173 RK: 0
+MG cycle 180 RK: 0
+MG cycle 189
+
+space integration 72
+space integration 94
+MG cycle 193
+
+time integration 339
+integration structure - time integration euler implicit
+euler implicit integration
+euler implicit start
+end first loop
+solve or smooth lin. sys.
+linear solver finished
+euler implicit end
+MG cycle 197
+
+MG cycle 205
+
+MG ITer 119
+
+MG ITer 125
+
+MG ITer 131
+
+
+fluid iterator 625
+
+fluid iterator 662
+
+fluid iterators 842
+    1   0.098846    -4.013226     -3.506803      -0.000396       0.013142
+
+fluid iterators 832
+
+fluid iterators 837
+
+fluid iterators 594
+
+fluid iterator 610
+
+fluid iterator 623
+integration time 79
+MG ITer 99
+
+MG ITer 113
+
+MG cycle 153
+MG cycle 167 RK: 0
+MG cycle 173 RK: 0
+MG cycle 180 RK: 0
+MG cycle 189
+
+space integration 72
+space integration 94
+MG cycle 193
+
+time integration 339
+integration structure - time integration euler implicit
+euler implicit integration
+euler implicit start
+end first loop
+solve or smooth lin. sys.
+linear solver finished
+euler implicit end
+MG cycle 197
+
+MG cycle 205
+
+MG ITer 119
+
+MG ITer 125
+
+MG ITer 131
+
+
+fluid iterator 625
+
+fluid iterator 662
+
+fluid iterators 842
+    2   0.098587    -4.145098     -3.641278       0.001192       0.012949
+
+fluid iterators 832
+
+fluid iterators 837
+
+fluid iterators 594
+
+fluid iterator 610
+
+fluid iterator 623
+integration time 79
+MG ITer 99
+
+MG ITer 113
+
+MG cycle 153
+MG cycle 167 RK: 0
+MG cycle 173 RK: 0
+MG cycle 180 RK: 0
+MG cycle 189
+
+space integration 72
+space integration 94
+MG cycle 193
+
+time integration 339
+integration structure - time integration euler implicit
+euler implicit integration
+euler implicit start
+end first loop
+solve or smooth lin. sys.
+linear solver finished
+euler implicit end
+MG cycle 197
+
+MG cycle 205
+
+MG ITer 119
+
+MG ITer 125
+
+MG ITer 131
+
+
+fluid iterator 625
+
+fluid iterator 662
+
+fluid iterators 842
+    3   0.098488    -4.161047     -3.665432       0.001047       0.011555
+
+fluid iterators 832
+
+fluid iterators 837
+
+fluid iterators 594
+
+fluid iterator 610
+
+fluid iterator 623
+integration time 79
+MG ITer 99
+
+MG ITer 113
+
+MG cycle 153
+MG cycle 167 RK: 0
+MG cycle 173 RK: 0
+MG cycle 180 RK: 0
+MG cycle 189
+
+space integration 72
+space integration 94
+MG cycle 193
+
+time integration 339
+integration structure - time integration euler implicit
+euler implicit integration
+euler implicit start
+end first loop
+solve or smooth lin. sys.
+linear solver finished
+euler implicit end
+MG cycle 197
+
+MG cycle 205
+
+MG ITer 119
+
+MG ITer 125
+
+MG ITer 131
+
+
+fluid iterator 625
+
+fluid iterator 662
+
+fluid iterators 842
+    4   0.098506    -4.189564     -3.708644      -0.000060       0.010107
+
+fluid iterators 832
+
+fluid iterators 837
+
+fluid iterators 594
+
+fluid iterator 610
+
+fluid iterator 623
+integration time 79
+MG ITer 99
+
+MG ITer 113
+
+MG cycle 153
+MG cycle 167 RK: 0
+MG cycle 173 RK: 0
+MG cycle 180 RK: 0
+MG cycle 189
+
+space integration 72
+space integration 94
+MG cycle 193
+
+time integration 339
+integration structure - time integration euler implicit
+euler implicit integration
+euler implicit start
+end first loop
+solve or smooth lin. sys.
+linear solver finished
+euler implicit end
+MG cycle 197
+
+MG cycle 205
+
+MG ITer 119
+
+MG ITer 125
+
+MG ITer 131
+
+
+fluid iterator 625
+
+fluid iterator 662
+
+fluid iterators 842
+    5   0.098543    -4.213265     -3.752966      -0.001156       0.008940
+
+fluid iterators 832
+
+fluid iterators 837
+
+fluid iterators 594
+
+fluid iterator 610
+
+fluid iterator 623
+integration time 79
+MG ITer 99
+
+MG ITer 113
+
+MG cycle 153
+MG cycle 167 RK: 0
+MG cycle 173 RK: 0
+MG cycle 180 RK: 0
+MG cycle 189
+
+space integration 72
+space integration 94
+MG cycle 193
+
+time integration 339
+integration structure - time integration euler implicit
+euler implicit integration
+euler implicit start
+end first loop
+solve or smooth lin. sys.
+linear solver finished
+euler implicit end
+MG cycle 197
+
+MG cycle 205
+
+MG ITer 119
+
+MG ITer 125
+
+MG ITer 131
+
+
+fluid iterator 625
+
+fluid iterator 662
+
+fluid iterators 842
+    6   0.098693    -4.225101     -3.787480      -0.001823       0.008081
+
+fluid iterators 832
+
+fluid iterators 837
+
+fluid iterators 594
+
+fluid iterator 610
+
+fluid iterator 623
+integration time 79
+MG ITer 99
+
+MG ITer 113
+
+MG cycle 153
+MG cycle 167 RK: 0
+MG cycle 173 RK: 0
+MG cycle 180 RK: 0
+MG cycle 189
+
+space integration 72
+space integration 94
+MG cycle 193
+
+time integration 339
+integration structure - time integration euler implicit
+euler implicit integration
+euler implicit start
+end first loop
+solve or smooth lin. sys.
+linear solver finished
+euler implicit end
+MG cycle 197
+
+MG cycle 205
+
+MG ITer 119
+
+MG ITer 125
+
+MG ITer 131
+
+
+fluid iterator 625
+
+fluid iterator 662
+
+fluid iterators 842
+    7   0.098688    -4.223355     -3.804581      -0.002057       0.007480
+
+fluid iterators 832
+
+fluid iterators 837
+
+fluid iterators 594
+
+fluid iterator 610
+
+fluid iterator 623
+integration time 79
+MG ITer 99
+
+MG ITer 113
+
+MG cycle 153
+MG cycle 167 RK: 0
+MG cycle 173 RK: 0
+MG cycle 180 RK: 0
+MG cycle 189
+
+space integration 72
+space integration 94
+MG cycle 193
+
+time integration 339
+integration structure - time integration euler implicit
+euler implicit integration
+euler implicit start
+end first loop
+solve or smooth lin. sys.
+linear solver finished
+euler implicit end
+MG cycle 197
+
+MG cycle 205
+
+MG ITer 119
+
+MG ITer 125
+
+MG ITer 131
+
+
+fluid iterator 625
+
+fluid iterator 662
+
+fluid iterators 842
+    8   0.098594    -4.209132     -3.800371      -0.002015       0.007080
+
+fluid iterators 832
+
+fluid iterators 837
+
+fluid iterators 594
+
+fluid iterator 610
+
+fluid iterator 623
+integration time 79
+MG ITer 99
+
+MG ITer 113
+
+MG cycle 153
+MG cycle 167 RK: 0
+MG cycle 173 RK: 0
+MG cycle 180 RK: 0
+MG cycle 189
+
+space integration 72
+space integration 94
+MG cycle 193
+
+time integration 339
+integration structure - time integration euler implicit
+euler implicit integration
+euler implicit start
+end first loop
+solve or smooth lin. sys.
+linear solver finished
+euler implicit end
+MG cycle 197
+
+MG cycle 205
+
+MG ITer 119
+
+MG ITer 125
+
+MG ITer 131
+
+
+fluid iterator 625
+
+fluid iterator 662
+
+fluid iterators 842
+    9   0.098586    -4.189163     -3.781997      -0.001825       0.006823
+
+
+309 completed iteration->solve
+
+
+ 283run GS: zone --> 1
+(Fluid: zone 0; Structure: zone 1)
+
+completed SetOuterIter
+
+
+ run GS trasfer data: donor=fluid; target=structure
+
+
+
+659-transfer data: updatemesh = 0	 solver: 1	 transfer: 10
+
+
+transfer data: fluid forces
+ mpi stuff
+
+ target processing
+
+collecting target points
+
+
+done broadcast
+
+finish data transfer
+
+
+ run GS dynupdatemesh --> 1 updatemesh= 0
+
+
+ 307run GS iteration->solve --> 1
+(Fluid: zone 0; Structure: zone 1)
+calling iterate
+
+
+cmodal iteration - calling integration_container 1433
+
+ modal iteration preprocessing
+modal solver Preprocessing completed
+ modal iteration time integration
+time integration modal solver type: 4
+solving structural equations of motion using two-stage RK method 
+getting fluid force
+list points from elements
+disp[0]=	0	0	0	
+disp[1]=	0	0	0	
+disp[2]=	0	0	0	
+disp[3]=	0	0	0	
+disp[4]=	0	0	0	
+disp[5]=	0	0	0	
+disp[6]=	0	0	0	
+disp[7]=	7.33687e-321	6.1363e-321	-2.28449e-315	
+disp[8]=	1.01728e-320	1.01778e-320	-7.34861e-315	
+disp[9]=	-1.38832e-321	-1.34386e-321	8.36065e-316	
+disp[10]=	-1.17588e-321	-9.38725e-322	1.98496e-315	
+disp[11]=	-8.49793e-322	-1.2154e-321	3.0183e-315	
+disp[12]=	-3.0138e-322	-1.31916e-321	3.97722e-315	
+disp[13]=	3.80431e-322	-1.30433e-321	4.76849e-315	
+disp[14]=	1.16105e-321	-1.04742e-321	5.32603e-315	
+disp[15]=	2.17883e-321	-3.50787e-322	5.64071e-315	
+disp[16]=	3.25095e-321	9.38725e-322	5.52581e-315	
+disp[17]=	5.14322e-321	4.31319e-321	4.53477e-315	
+disp[18]=	6.54143e-321	9.39713e-321	2.23015e-315	
+disp[19]=	8.78943e-321	1.55334e-320	-2.00297e-315	
+disp[20]=	-1.73911e-321	-2.02567e-321	9.36463e-315	
+disp[21]=	-1.56619e-321	-2.71736e-321	1.23573e-314	
+disp[22]=	-1.082e-321	-3.19166e-321	1.49662e-314	
+disp[23]=	-4.24896e-322	-3.10767e-321	1.6977e-314	
+disp[24]=	5.97819e-322	-2.37646e-321	1.83506e-314	
+disp[25]=	1.56619e-321	-8.74496e-322	1.90374e-314	
+disp[26]=	2.48021e-321	1.43773e-321	1.89852e-314	
+disp[27]=	3.66103e-321	5.48413e-321	1.82318e-314	
+disp[28]=	4.83196e-321	1.08349e-320	1.66218e-314	
+disp[29]=	6.26475e-321	1.73615e-320	1.41279e-314	
+disp[30]=	7.57403e-321	2.48021e-320	1.0041e-314	
+disp[31]=	-3.00392e-321	-4.51576e-321	2.8718e-314	
+disp[32]=	-3.13732e-321	-5.03453e-321	3.21338e-314	
+disp[33]=	-2.87052e-321	-4.82208e-321	3.4693e-314	
+disp[34]=	-2.35175e-321	-3.54739e-321	3.61163e-314	
+disp[35]=	-1.69959e-321	-1.18082e-321	3.64949e-314	
+disp[36]=	-1.17588e-321	2.34681e-321	3.6064e-314	
+disp[37]=	-5.2371e-322	7.05032e-321	3.50063e-314	
+disp[38]=	1.38338e-322	1.33101e-320	3.32998e-314	
+disp[39]=	1.04742e-321	2.10176e-320	3.11414e-314	
+disp[40]=	1.83298e-321	3.05481e-320	2.87781e-314	
+disp[41]=	2.87546e-321	4.04689e-320	2.49654e-314	
+disp[42]=	-7.30723e-321	-6.76376e-321	5.44355e-314	
+disp[43]=	-7.9594e-321	-6.05724e-321	5.59371e-314	
+disp[44]=	-8.22125e-321	-4.05134e-321	5.62766e-314	
+disp[45]=	-8.34971e-321	-9.14021e-322	5.56237e-314	
+disp[46]=	-8.22125e-321	3.913e-321	5.4096e-314	
+disp[47]=	-8.21631e-321	1.00493e-320	5.19677e-314	
+disp[48]=	-8.0928e-321	1.70996e-320	4.9761e-314	
+disp[49]=	-7.9594e-321	2.63683e-320	4.72483e-314	
+disp[50]=	-7.6926e-321	3.56419e-320	4.48776e-314	
+disp[51]=	-7.30229e-321	4.71289e-320	4.28536e-314	
+disp[52]=	-6.91692e-321	6.08392e-320	3.96939e-314	
+disp[53]=	-1.69662e-320	-6.59578e-321	7.82127e-314	
+disp[54]=	-1.8147e-320	-3.52269e-321	7.63455e-314	
+disp[55]=	-1.85373e-320	7.80624e-322	7.35774e-314	
+disp[56]=	-1.98417e-320	6.65506e-321	7.04698e-314	
+disp[57]=	-2.00986e-320	1.39672e-320	6.71141e-314	
+disp[58]=	-2.0232e-320	2.35027e-320	6.35232e-314	
+disp[59]=	-2.10225e-320	3.1724e-320	6.07683e-314	
+disp[60]=	-2.19316e-320	4.34778e-320	5.83005e-314	
+disp[61]=	-2.19316e-320	5.50982e-320	5.64595e-314	
+disp[62]=	-2.24553e-320	6.90605e-320	5.53626e-314	
+disp[63]=	-2.206e-320	8.43419e-320	5.45789e-314	
+disp[64]=	-3.34186e-320	-1.96144e-321	9.25613e-314	
+disp[65]=	-3.3552e-320	3.90806e-321	8.74312e-314	
+disp[66]=	-3.48613e-320	1.12252e-320	8.24693e-314	
+disp[67]=	-3.58988e-320	1.98466e-320	7.78864e-314	
+disp[68]=	-3.69462e-320	2.91103e-320	7.37733e-314	
+disp[69]=	-3.91646e-320	4.2297e-320	6.99606e-314	
+disp[70]=	-3.95549e-320	5.20943e-320	6.8198e-314	
+disp[71]=	-4.09976e-320	6.48856e-320	6.66831e-314	
+disp[72]=	-4.15163e-320	7.88578e-320	6.67354e-314	
+disp[73]=	-4.24304e-320	9.45197e-320	6.81848e-314	
+disp[74]=	-4.21685e-320	1.09801e-319	7.16447e-314	
+disp[75]=	-5.43126e-320	8.87342e-321	9.43123e-314	
+disp[76]=	-5.64025e-320	1.76184e-320	8.79012e-314	
+disp[77]=	-5.71832e-320	2.75392e-320	8.23113e-314	
+disp[78]=	-5.88778e-320	3.8384e-320	7.78602e-314	
+disp[79]=	-6.05724e-320	5.06566e-320	7.51182e-314	
+disp[80]=	-6.24054e-320	6.48906e-320	7.33685e-314	
+disp[81]=	-6.31861e-320	7.54586e-320	7.29114e-314	
+disp[82]=	-6.38333e-320	8.95642e-320	7.42824e-314	
+disp[83]=	-6.48856e-320	1.04836e-319	7.78078e-314	
+disp[84]=	-6.59281e-320	1.20374e-319	8.32529e-314	
+disp[85]=	-6.57997e-320	1.35137e-319	9.19228e-314	
+disp[86]=	-8.15999e-320	2.5978e-320	8.54335e-314	
+disp[87]=	-8.34279e-320	3.70796e-320	8.02367e-314	
+disp[88]=	-8.39467e-320	4.9871e-320	7.64238e-314	
+disp[89]=	-8.44704e-320	6.14914e-320	7.45436e-314	
+disp[90]=	-8.76028e-320	7.48114e-320	7.43217e-314	
+disp[91]=	-8.82549e-320	9.08735e-320	7.5848e-314	
+disp[92]=	-9.0083e-320	1.02227e-319	7.86658e-314	
+disp[93]=	-9.04782e-320	1.16328e-319	8.3514e-314	
+disp[94]=	-9.20444e-320	1.30824e-319	9.07868e-314	
+disp[95]=	-9.23063e-320	1.45576e-319	1.00488e-313	
+disp[96]=	-9.24347e-320	1.60463e-319	1.14929e-313	
+disp[97]=	-1.11891e-319	4.96091e-320	7.19454e-314	
+disp[98]=	-1.13714e-319	6.34529e-320	7.01171e-314	
+disp[99]=	-1.12934e-319	7.59824e-320	7.02477e-314	
+disp[100]=	-1.14767e-319	8.81265e-320	7.18669e-314	
+disp[101]=	-1.15414e-319	1.02099e-319	7.52226e-314	
+disp[102]=	-1.17375e-319	1.1868e-319	8.14246e-314	
+disp[103]=	-1.19065e-319	1.29129e-319	8.67e-314	
+disp[104]=	-1.18156e-319	1.42311e-319	9.52916e-314	
+disp[105]=	-1.19855e-319	1.57068e-319	1.06704e-313	
+disp[106]=	-1.19984e-319	1.7195e-319	1.21079e-313	
+disp[107]=	-1.20117e-319	1.86969e-319	1.41018e-313	
+disp[108]=	-1.40092e-319	7.75485e-320	6.18913e-314	
+disp[109]=	-1.41792e-319	9.13873e-320	6.41109e-314	
+disp[110]=	-1.42311e-319	1.02879e-319	6.77668e-314	
+disp[111]=	-1.44272e-319	1.15681e-319	7.27024e-314	
+disp[112]=	-1.4362e-319	1.29905e-319	7.86697e-314	
+disp[113]=	-1.4571e-319	1.45576e-319	8.9664e-314	
+disp[114]=	-1.47538e-319	1.5485e-319	9.71457e-314	
+disp[115]=	-1.46624e-319	1.68299e-319	1.10203e-313	
+disp[116]=	-1.48319e-319	1.83051e-319	1.25872e-313	
+disp[117]=	-1.4858e-319	1.95452e-319	1.46633e-313	
+disp[118]=	-1.4858e-319	2.08506e-319	1.3697e-313	
+disp[119]=	5.96337e-320	-5.43719e-320	8.1114e-314	
+max. displacement/refLength = 1.46633e-313/0.463
+	Gen. Displacement	Gen. Velocity
+Mode 1	6.94623e-310			-0.711555
+Mode 2	6.94623e-310			-0.23938
+Mode 3	6.94623e-310			-0.382497
+Mode 4	6.94623e-310			-0.222315
+
+
+309 completed iteration->solve
+
+monitor 314 MZ driver
+end convergence
+
+
+ run GS main outer iteration 1
+
+
+
+ 283run GS: zone --> 0
+(Fluid: zone 0; Structure: zone 1)
+
+completed SetOuterIter
+
+
+ run GS trasfer data: donor=structure; target=fluid
+
+
+
+659-transfer data: updatemesh = 0	 solver: 14	 transfer: 11
+
+
+transfer data: CSD structural displacements
+ mpi stuff
+
+ target processing
+
+collecting target points
+CTransfer_StructuralDisplacements2 
+CTransfer_StructuralDisplacements2 
+CTransfer_StructuralDisplacements2 
+CTransfer_StructuralDisplacements2 
+CTransfer_StructuralDisplacements2 
+CTransfer_StructuralDisplacements2 
+CTransfer_StructuralDisplacements2 
+CTransfer_StructuralDisplacements2 
+CTransfer_StructuralDisplacements2 
+CTransfer_StructuralDisplacements2 
+CTransfer_StructuralDisplacements2 
+CTransfer_StructuralDisplacements2 
+CTransfer_StructuralDisplacements2 
+CTransfer_StructuralDisplacements2 
+CTransfer_StructuralDisplacements2 
+CTransfer_StructuralDisplacements2 
+CTransfer_StructuralDisplacements2 
+CTransfer_StructuralDisplacements2 
+CTransfer_StructuralDisplacements2 
+CTransfer_StructuralDisplacements2 
+CTransfer_StructuralDisplacements2 
+CTransfer_StructuralDisplacements2 
+CTransfer_StructuralDisplacements2 
+CTransfer_StructuralDisplacements2 
+CTransfer_StructuralDisplacements2 
+CTransfer_StructuralDisplacements2 
+CTransfer_StructuralDisplacements2 
+CTransfer_StructuralDisplacements2 
+CTransfer_StructuralDisplacements2 
+CTransfer_StructuralDisplacements2 
+CTransfer_StructuralDisplacements2 
+CTransfer_StructuralDisplacements2 
+CTransfer_StructuralDisplacements2 
+CTransfer_StructuralDisplacements2 
+CTransfer_StructuralDisplacements2 
+CTransfer_StructuralDisplacements2 
+CTransfer_StructuralDisplacements2 
+CTransfer_StructuralDisplacements2 
+CTransfer_StructuralDisplacements2 
+CTransfer_StructuralDisplacements2 
+CTransfer_StructuralDisplacements2 
+CTransfer_StructuralDisplacements2 
+CTransfer_StructuralDisplacements2 
+CTransfer_StructuralDisplacements2 
+CTransfer_StructuralDisplacements2 
+CTransfer_StructuralDisplacements2 
+CTransfer_StructuralDisplacements2 
+CTransfer_StructuralDisplacements2 
+CTransfer_StructuralDisplacements2 
+CTransfer_StructuralDisplacements2 
+CTransfer_StructuralDisplacements2 
+CTransfer_StructuralDisplacements2 
+CTransfer_StructuralDisplacements2 
+CTransfer_StructuralDisplacements2 
+CTransfer_StructuralDisplacements2 
+CTransfer_StructuralDisplacements2 
+CTransfer_StructuralDisplacements2 
+CTransfer_StructuralDisplacements2 
+CTransfer_StructuralDisplacements2 
+CTransfer_StructuralDisplacements2 
+CTransfer_StructuralDisplacements2 
+CTransfer_StructuralDisplacements2 
+CTransfer_StructuralDisplacements2 
+CTransfer_StructuralDisplacements2 
+CTransfer_StructuralDisplacements2 
+CTransfer_StructuralDisplacements2 
+CTransfer_StructuralDisplacements2 
+CTransfer_StructuralDisplacements2 
+CTransfer_StructuralDisplacements2 
+CTransfer_StructuralDisplacements2 
+CTransfer_StructuralDisplacements2 
+CTransfer_StructuralDisplacements2 
+CTransfer_StructuralDisplacements2 
+CTransfer_StructuralDisplacements2 
+CTransfer_StructuralDisplacements2 
+CTransfer_StructuralDisplacements2 
+CTransfer_StructuralDisplacements2 
+CTransfer_StructuralDisplacements2 
+CTransfer_StructuralDisplacements2 
+CTransfer_StructuralDisplacements2 
+CTransfer_StructuralDisplacements2 
+CTransfer_StructuralDisplacements2 
+CTransfer_StructuralDisplacements2 
+CTransfer_StructuralDisplacements2 
+CTransfer_StructuralDisplacements2 
+CTransfer_StructuralDisplacements2 
+CTransfer_StructuralDisplacements2 
+CTransfer_StructuralDisplacements2 
+CTransfer_StructuralDisplacements2 
+CTransfer_StructuralDisplacements2 
+CTransfer_StructuralDisplacements2 
+CTransfer_StructuralDisplacements2 
+CTransfer_StructuralDisplacements2 
+CTransfer_StructuralDisplacements2 
+CTransfer_StructuralDisplacements2 
+CTransfer_StructuralDisplacements2 
+CTransfer_StructuralDisplacements2 
+CTransfer_StructuralDisplacements2 
+CTransfer_StructuralDisplacements2 
+CTransfer_StructuralDisplacements2 
+CTransfer_StructuralDisplacements2 
+CTransfer_StructuralDisplacements2 
+CTransfer_StructuralDisplacements2 
+CTransfer_StructuralDisplacements2 
+CTransfer_StructuralDisplacements2 
+CTransfer_StructuralDisplacements2 
+CTransfer_StructuralDisplacements2 
+CTransfer_StructuralDisplacements2 
+CTransfer_StructuralDisplacements2 
+CTransfer_StructuralDisplacements2 
+CTransfer_StructuralDisplacements2 
+CTransfer_StructuralDisplacements2 
+CTransfer_StructuralDisplacements2 
+CTransfer_StructuralDisplacements2 
+CTransfer_StructuralDisplacements2 
+CTransfer_StructuralDisplacements2 
+CTransfer_StructuralDisplacements2 
+CTransfer_StructuralDisplacements2 
+CTransfer_StructuralDisplacements2 
+CTransfer_StructuralDisplacements2 
+CTransfer_StructuralDisplacements2 
+CTransfer_StructuralDisplacements2 
+CTransfer_StructuralDisplacements2 
+CTransfer_StructuralDisplacements2 
+CTransfer_StructuralDisplacements2 
+CTransfer_StructuralDisplacements2 
+CTransfer_StructuralDisplacements2 
+CTransfer_StructuralDisplacements2 
+CTransfer_StructuralDisplacements2 
+CTransfer_StructuralDisplacements2 
+CTransfer_StructuralDisplacements2 
+CTransfer_StructuralDisplacements2 
+CTransfer_StructuralDisplacements2 
+CTransfer_StructuralDisplacements2 
+CTransfer_StructuralDisplacements2 
+CTransfer_StructuralDisplacements2 
+CTransfer_StructuralDisplacements2 
+CTransfer_StructuralDisplacements2 
+CTransfer_StructuralDisplacements2 
+CTransfer_StructuralDisplacements2 
+CTransfer_StructuralDisplacements2 
+CTransfer_StructuralDisplacements2 
+CTransfer_StructuralDisplacements2 
+CTransfer_StructuralDisplacements2 
+CTransfer_StructuralDisplacements2 
+CTransfer_StructuralDisplacements2 
+CTransfer_StructuralDisplacements2 
+CTransfer_StructuralDisplacements2 
+CTransfer_StructuralDisplacements2 
+CTransfer_StructuralDisplacements2 
+CTransfer_StructuralDisplacements2 
+CTransfer_StructuralDisplacements2 
+CTransfer_StructuralDisplacements2 
+CTransfer_StructuralDisplacements2 
+CTransfer_StructuralDisplacements2 
+CTransfer_StructuralDisplacements2 
+CTransfer_StructuralDisplacements2 
+CTransfer_StructuralDisplacements2 
+CTransfer_StructuralDisplacements2 
+CTransfer_StructuralDisplacements2 
+CTransfer_StructuralDisplacements2 
+CTransfer_StructuralDisplacements2 
+CTransfer_StructuralDisplacements2 
+CTransfer_StructuralDisplacements2 
+CTransfer_StructuralDisplacements2 
+CTransfer_StructuralDisplacements2 
+CTransfer_StructuralDisplacements2 
+CTransfer_StructuralDisplacements2 
+CTransfer_StructuralDisplacements2 
+CTransfer_StructuralDisplacements2 
+CTransfer_StructuralDisplacements2 
+CTransfer_StructuralDisplacements2 
+CTransfer_StructuralDisplacements2 
+CTransfer_StructuralDisplacements2 
+CTransfer_StructuralDisplacements2 
+CTransfer_StructuralDisplacements2 
+CTransfer_StructuralDisplacements2 
+CTransfer_StructuralDisplacements2 
+CTransfer_StructuralDisplacements2 
+CTransfer_StructuralDisplacements2 
+CTransfer_StructuralDisplacements2 
+CTransfer_StructuralDisplacements2 
+CTransfer_StructuralDisplacements2 
+CTransfer_StructuralDisplacements2 
+CTransfer_StructuralDisplacements2 
+CTransfer_StructuralDisplacements2 
+CTransfer_StructuralDisplacements2 
+CTransfer_StructuralDisplacements2 
+CTransfer_StructuralDisplacements2 
+CTransfer_StructuralDisplacements2 
+CTransfer_StructuralDisplacements2 
+CTransfer_StructuralDisplacements2 
+CTransfer_StructuralDisplacements2 
+CTransfer_StructuralDisplacements2 
+CTransfer_StructuralDisplacements2 
+CTransfer_StructuralDisplacements2 
+CTransfer_StructuralDisplacements2 
+CTransfer_StructuralDisplacements2 
+CTransfer_StructuralDisplacements2 
+CTransfer_StructuralDisplacements2 
+CTransfer_StructuralDisplacements2 
+CTransfer_StructuralDisplacements2 
+CTransfer_StructuralDisplacements2 
+CTransfer_StructuralDisplacements2 
+CTransfer_StructuralDisplacements2 
+CTransfer_StructuralDisplacements2 
+CTransfer_StructuralDisplacements2 
+CTransfer_StructuralDisplacements2 
+CTransfer_StructuralDisplacements2 
+CTransfer_StructuralDisplacements2 
+CTransfer_StructuralDisplacements2 
+CTransfer_StructuralDisplacements2 
+CTransfer_StructuralDisplacements2 
+CTransfer_StructuralDisplacements2 
+CTransfer_StructuralDisplacements2 
+CTransfer_StructuralDisplacements2 
+CTransfer_StructuralDisplacements2 
+CTransfer_StructuralDisplacements2 
+CTransfer_StructuralDisplacements2 
+CTransfer_StructuralDisplacements2 
+CTransfer_StructuralDisplacements2 
+CTransfer_StructuralDisplacements2 
+CTransfer_StructuralDisplacements2 
+CTransfer_StructuralDisplacements2 
+CTransfer_StructuralDisplacements2 
+CTransfer_StructuralDisplacements2 
+CTransfer_StructuralDisplacements2 
+CTransfer_StructuralDisplacements2 
+CTransfer_StructuralDisplacements2 
+CTransfer_StructuralDisplacements2 
+CTransfer_StructuralDisplacements2 
+CTransfer_StructuralDisplacements2 
+CTransfer_StructuralDisplacements2 
+CTransfer_StructuralDisplacements2 
+CTransfer_StructuralDisplacements2 
+CTransfer_StructuralDisplacements2 
+CTransfer_StructuralDisplacements2 
+CTransfer_StructuralDisplacements2 
+CTransfer_StructuralDisplacements2 
+CTransfer_StructuralDisplacements2 
+CTransfer_StructuralDisplacements2 
+CTransfer_StructuralDisplacements2 
+CTransfer_StructuralDisplacements2 
+CTransfer_StructuralDisplacements2 
+CTransfer_StructuralDisplacements2 
+CTransfer_StructuralDisplacements2 
+CTransfer_StructuralDisplacements2 
+CTransfer_StructuralDisplacements2 
+CTransfer_StructuralDisplacements2 
+CTransfer_StructuralDisplacements2 
+CTransfer_StructuralDisplacements2 
+CTransfer_StructuralDisplacements2 
+CTransfer_StructuralDisplacements2 
+
+
+done broadcast
+
+finish data transfer
+
+
+ run GS dynupdatemesh --> 0 updatemesh= 1
+kind of grid movement: 14
+
+Deforming the grid for static Fluid-Structure Interaction applications.
+Deforming the volume grid.
+CSysSolve::FGMRES(): system solved by initial guess.
+There is no grid velocity.
+dynamic mesh update 2 completed		
+
+ 307run GS iteration->solve --> 0
+(Fluid: zone 0; Structure: zone 1)
+
+fluid iterators 790
+
+fluid iterators 832
+
+fluid iterators 837
+
+fluid iterators 594
+
+fluid iterator 610
+
+fluid iterator 623
+integration time 79
+MG ITer 99
+
+MG ITer 113
+
+MG cycle 153
+MG cycle 167 RK: 0
+MG cycle 173 RK: 0
+MG cycle 180 RK: 0
+MG cycle 189
+
+space integration 72
+space integration 94
+MG cycle 193
+
+time integration 339
+integration structure - time integration euler implicit
+euler implicit integration
+euler implicit start
+end first loop
+solve or smooth lin. sys.
+linear solver finished
+euler implicit end
+MG cycle 197
+
+MG cycle 205
+
+MG ITer 119
+
+MG ITer 125
+
+MG ITer 131
+
+
+fluid iterator 625
+
+fluid iterator 662
+
+fluid iterators 842
+
+---------------------- Local Time Stepping Summary ----------------------
+MG level: 0 -> Min. DT: 2.876711e-03. Max. DT: 1.934064e+01. CFL: 1.001000e+01.
+CFL in zone 2: 1.250000e+00
+-------------------------------------------------------------------------
+
+----------------------- Residual Evolution Summary ----------------------
+log10[Maximum residual]: -3.175933e+00.
+Maximum residual point 3858, located at (1.403383e+00, 7.397432e-01, -2.556250e-01).
+-------------------------------------------------------------------------
+
+ Iter    Time(s)     Res[Rho]     Res[RhoE]      CL(Total)      CD(Total)
+    0   0.097654    -4.171167     -3.760755      -0.001148       0.006520
+
+fluid iterators 832
+
+fluid iterators 837
+
+fluid iterators 594
+
+fluid iterator 610
+
+fluid iterator 623
+integration time 79
+MG ITer 99
+
+MG ITer 113
+
+MG cycle 153
+MG cycle 167 RK: 0
+MG cycle 173 RK: 0
+MG cycle 180 RK: 0

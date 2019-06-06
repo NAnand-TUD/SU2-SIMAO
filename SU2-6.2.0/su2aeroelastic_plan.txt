@@ -1,0 +1,39 @@
+1. CPhysicalGeometry::Read_SU2_Format_Parallel_FEM --> lets make the fe mesh 
+for the aeroelastic problems follow the FEM format, use markers to facilitate postprocessing
+but Read_SU2_Format_Parallel_FEM setups up arrays for FEM solver, its excessive
+--> set up similar routine to read CSD mesh and mode shapes
+    - check Geometrical_Preprocessing();
+
+Solver sequence
+    1. read config
+    2. get ndim from mesh
+    3. initiate fluidDriver
+    4. driver->StartSolver();
+
+============================
+
+Develop multizone solver, with second zone for CSD, exploit current RBF implementation.
+1. Set up config files 	-> grid movement option = FLUID_STRUCTURE_INTERACTION
+			-> physical problem = MULTIZONE, RANS/EULER/ETC., MODAL
+			(as long as FE problem is set to modal, should call aeroelastic solver)
+
+2. sequence of calls
+	2.1 Driver_structure.cpp-> 1. Geometry_preprocessing
+				-> 2. Set FSI problem (need to ensure this is true for above type of options)
+				-> 3. loop over zones and set
+					-> 3.1 iteration preprocess -> selects "CModalIteration" - does nothing at this stage???
+					-> 3.2 solver preprocessing -> sets up solver for each zone/instance/mesh level/solution level
+					-> 3.3 integration preprocessing -> sets up space and time integration but seems redundant for modal eq.
+					-> 3.4 numerics preprocessing -> seems redundant
+                
+                -> 4. start solution with fluid zone (does it matter?)
+                    -> CModalIteration::Solve()->Iterate()
+                    -> iteration_structure->Iterate()->integration_container->modal_iteration()
+                    -> integraion_time->Modal_iteration()->Time_Integration_Modal() (includes pre and post/ process)
+					
+
+GetPhysical_Constants-> set physical_constant[1] which allows a ramp up of the actual load on the structure, from 0 to actual value (currently hardwired to be bypassed)
+SetTarget_Variable->RBF
+
+
+

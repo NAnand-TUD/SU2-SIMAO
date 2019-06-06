@@ -314,10 +314,10 @@ void CIteration::SetGrid_Movement(CGeometry ****geometry_container,
       /*--- Deform the volume grid around the new boundary locations ---*/
 
       if (rank == MASTER_NODE)
-        cout << "Deforming the volume grid." << endl;
+        cout << "Deforming the volume grid. Iteration_Strucutre 317" << endl;
       grid_movement[val_iZone][val_iInst]->SetVolume_Deformation(geometry_container[val_iZone][val_iInst][MESH_0],
                                            config_container[val_iZone], true);
-
+        cout<<" After Volumetric grid movement. Iteraiton Strucutre 320\n";
       nIterMesh = grid_movement[val_iZone][val_iInst]->Get_nIterMesh();
       stat_mesh = (nIterMesh == 0);
 

@@ -9335,6 +9335,7 @@ void CElasticityMovement::SetBoundaryDisplacements(CGeometry *geometry, CConfig 
 
   for (iMarker = 0; iMarker < config->GetnMarker_All(); iMarker++) {
     if ((config->GetMarker_All_ZoneInterface(iMarker) != 0) && (Kind_SU2 == SU2_CFD)) {
+        cout<<"Set Boundary Dispalcement - 9333. grid_movement_structure.cpp\n";
       SetMoving_Boundary(geometry, config, iMarker);
     }
   }
@@ -9453,6 +9454,9 @@ void CElasticityMovement::SetMoving_Boundary(CGeometry *geometry, CConfig *confi
 
     for (iDim = 0; iDim < nDim; iDim++)
        VarCoord = geometry->vertex[val_marker][iVertex]->GetVarCoord();
+    cout<<"Var Coord Dim[0] :: "<<VarCoord[0]<<endl;
+    cout<<"Var Coord Dim[1] :: "<<VarCoord[1]<<endl;
+    cout<<"Var Coord Dim[2] :: "<<VarCoord[2]<<endl;
 
     if (geometry->node[iNode]->GetDomain()) {
 

@@ -253,7 +253,7 @@ void CTransfer_StructuralDisplacements::GetDonor_Variable(CSolver *struct_soluti
 void CTransfer_StructuralDisplacements::SetTarget_Variable(CSolver *flow_solution, CGeometry *flow_geometry,
                                CConfig *flow_config, unsigned long Marker_Flow,
                                unsigned long Vertex_Flow, unsigned long Point_Flow) {
-    
+    cout<<"@ transfer_physics.cpp L 256 \n Target Variable is : "<< Target_Variable[0]<<endl;
     flow_geometry->vertex[Marker_Flow][Vertex_Flow]->SetVarCoord(Target_Variable);
 }
 

@@ -5216,10 +5216,10 @@ CModalSolver::CModalSolver(CGeometry *geometry, CConfig *config) : CSolver() {
     
     nElement= geometry->GetnElem();
     nDim    = geometry->GetnDim();
-    nVar    = 2*nModes;                 // n. of vars for state-space calculation
+    nVar    = 2*4;                 // n. of vars for state-space calculation
     nMarker = geometry->GetnMarker();
     nPoints = geometry->GetnPoint();
-
+    cout<< "nModes here is "<< nModes<<endl;
     cout << "modal solver initialized:" << nDim << "\t" << nVar << "\t" << nPoints << endl;
     
     // CModalVariable contains displacements in cartesian coordinates (solution variable)
@@ -5747,13 +5747,16 @@ void CModalSolver::ComputeResidual_Multizone(CGeometry *geometry, CConfig *confi
 
     /*--- Set the residuals ---*/ 
     /*--- compute residual for each modal variable ---*/
+
+    // TODO:: AddRes_Max_BGS is just a hack at the moment more accurate implementation should come in soon.
     for (iMode = 0; iMode < nModes; iMode++){
             residual = generalizedDisplacement[iMode][0] - generalizedDisplacement[iMode][1];
-            AddRes_BGS(iMode,residual*residual);
-            AddRes_Max_BGS(2*iMode,fabs(residual),2*iMode,0);
+            AddRes_BGS(2*iMode,residual*residual);
+            AddRes_Max_BGS(2*iMode,fabs(residual),2*iMode,geometry->node[0]->GetCoord());
+
             residual = generalizedVelocity[iMode][0] - generalizedVelocity[iMode][1];
-            AddRes_BGS(iMode+1,residual*residual);
-            AddRes_Max_BGS(2*iMode+1,fabs(residual),2*iMode+1,0);
+            AddRes_BGS(2*iMode+1,residual*residual);
+            AddRes_Max_BGS(2*iMode+1,fabs(residual),2*iMode+1,geometry->node[0]->GetCoord());
     }
 
     SetResidual_BGS(geometry, config);

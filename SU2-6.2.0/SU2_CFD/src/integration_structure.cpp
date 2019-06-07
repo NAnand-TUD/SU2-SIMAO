@@ -453,50 +453,9 @@ void CIntegration::Time_Integration_Modal(CGeometry *geometry, CSolver **solver_
     cout << "time integration modal solver type: " << config->GetKind_TimeIntScheme_FEA() << "\n";
     solver_container[MainSolver]->RK2(geometry, solver_container, config);
 
-  /*--- Apply ESSENTIAL BOUNDARY CONDITIONS ---*/
-    //WARNING: clamped BC irrelevant as already reflected by mode shapes!
-//     for (iMarker = 0; iMarker < config->GetnMarker_All(); iMarker++)
-//       switch (config->GetMarker_All_KindBC(iMarker)) {
-//         case CLAMPED_BOUNDARY:
-//           solver_container[MainSolver]->BC_Clamped(geometry, solver_container, numerics[FEA_TERM], config, iMarker);
-//           break;
-//         case DISP_DIR_BOUNDARY:
-//                 SU2_MPI::Error("BC not implemented yet!.... leaving", CURRENT_FUNCTION);
-//           break;
-//         case DISPLACEMENT_BOUNDARY:
-//                 SU2_MPI::Error("BC not implemented yet!.... leaving", CURRENT_FUNCTION);
-//           break;
-//       }
-
-  /*--- Solver system ---*/
-
-//     solver_container[MainSolver]->Solve_System(geometry, solver_container, config);
-
-  /*--- Update solution ---*/
-//     switch (config->GetKind_TimeIntScheme_FEA()) {
-//       case (CD_EXPLICIT):
-//         solver_container[MainSolver]->ImplicitNewmark_Update(geometry, solver_container, config);
-//         break;
-//       case (NEWMARK_IMPLICIT):
-//         solver_container[MainSolver]->ImplicitNewmark_Update(geometry, solver_container, config);
-//         break;
-//       case (GENERALIZED_ALPHA):
-//         solver_container[MainSolver]->GeneralizedAlpha_UpdateDisp(geometry, solver_container, config);
-//         break;
-//       }
-
-  /*--- Reinforce ESSENTIAL BOUNDARY CONDITIONS: avoids accumulation of numerical error ---*/
-
-//     for (iMarker = 0; iMarker < config->GetnMarker_All(); iMarker++)
-//     switch (config->GetMarker_All_KindBC(iMarker)) {
-//       case CLAMPED_BOUNDARY:
-//       solver_container[MainSolver]->BC_Clamped_Post(geometry, solver_container, numerics[FEA_TERM], config, iMarker);
-//       break;
-// //      case DISPLACEMENT_BOUNDARY:
-// //      solver_container[MainSolver]->BC_Normal_Displacement(geometry, solver_container, numerics[CONV_BOUND_TERM], config, iMarker);
-// //      break;
-//     }
-
+    cout<<"Before Newmark \n";
+    solver_container[MainSolver]->ImplicitNewmark_Update(geometry, solver_container, config);
+    cout<<"After Newmark \n";
     /*--- Perform the MPI communication of the solution ---*/
     solver_container[MainSolver]->Set_MPI_Solution(geometry, config); //TODO: check this function for modal
 

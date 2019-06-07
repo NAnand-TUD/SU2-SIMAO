@@ -720,7 +720,7 @@ void CFEASolver::Set_MPI_Solution_Old(CGeometry *geometry, CConfig *config) {
 
 void CFEASolver::Set_MPI_Solution_DispOnly(CGeometry *geometry, CConfig *config) {
   
-  
+
   unsigned short iVar, iMarker, MarkerS, MarkerR;
   unsigned long iVertex, iPoint, nVertexS, nVertexR, nBufferS_Vector, nBufferR_Vector;
   su2double *Buffer_Receive_U = NULL, *Buffer_Send_U = NULL;
@@ -802,7 +802,7 @@ void CFEASolver::Set_MPI_Solution_DispOnly(CGeometry *geometry, CConfig *config)
 
 void CFEASolver::Set_MPI_Solution_Pred(CGeometry *geometry, CConfig *config) {
   
-  
+
   unsigned short iVar, iMarker, MarkerS, MarkerR;
   unsigned long iVertex, iPoint, nVertexS, nVertexR, nBufferS_Vector, nBufferR_Vector;
   su2double *Buffer_Receive_U = NULL, *Buffer_Send_U = NULL;
@@ -4249,7 +4249,7 @@ void CFEASolver::PredictStruct_Displacement(CGeometry **fea_geometry,
   su2double Delta_t = fea_config->GetDelta_DynTime();
   unsigned long iPoint, iDim;
   su2double *solDisp, *solVel, *solVel_tn, *valPred;
-  
+
   //To nPointDomain: we need to communicate the predicted solution after setting it
   for (iPoint=0; iPoint < nPointDomain; iPoint++) {
     if (predOrder==0) fea_solution[MESH_0][FEA_SOL]->node[iPoint]->SetSolution_Pred();
@@ -5460,7 +5460,7 @@ void CModalSolver::RK2(CGeometry *geometry, CSolver **solver_container, CConfig 
 };
 
 void CModalSolver::UpdateStructuralNodes(){
-    
+//    cout<<"Update Strucutral Node being called \n 5463 solverdiectelas \n";
     unsigned long iPoint;
     unsigned short iDim, iMode;
     su2double delta, solutionValue;
@@ -5485,13 +5485,15 @@ void CModalSolver::UpdateStructuralNodes(){
         for(iPoint = 0; iPoint < nPoints; ++iPoint) {
             for(iDim = 0; iDim < nDim; ++iDim){
                 solutionValue = delta*node[iPoint]->GetModeVector(iMode,iDim);
+//                cout<<solutionValue<<"SOLUION VALUES\n";
+                node[iPoint]->SetSolution(iDim,delta*node[iPoint]->GetModeVector(0,iDim));
                 node[iPoint]->Add_DeltaVelSolution(iDim,solutionValue);
             }
 
         }
     }
     
-};
+}
 
 void CModalSolver::ComputeModalFluidForces(CGeometry *geometry, CConfig *config) {
 
@@ -5785,3 +5787,136 @@ void CModalSolver::ComputeResidual_Multizone(CGeometry *geometry, CConfig *confi
 // 
 // 	 mode=mode->next;
 //   }
+
+void CModalSolver::Set_MPI_Solution(CGeometry *geometry, CConfig *config){
+    unsigned short iVar, iMarker, MarkerS, MarkerR;
+    unsigned long iVertex, iPoint, nVertexS, nVertexR, nBufferS_Vector, nBufferR_Vector;
+    su2double *Buffer_Receive_U = NULL, *Buffer_Send_U = NULL;
+
+    bool dynamic = (config->GetDynamic_Analysis() == DYNAMIC);              // Dynamic simulations.
+
+    unsigned short nSolVar;
+
+    nSolVar = nVar;
+
+#ifdef HAVE_MPI
+    int send_to, receive_from;
+  SU2_MPI::Status status;
+#endif
+
+    for (iMarker = 0; iMarker < nMarker; iMarker++) {
+
+        if ((config->GetMarker_All_KindBC(iMarker) == SEND_RECEIVE) &&
+            (config->GetMarker_All_SendRecv(iMarker) > 0)) {
+
+            MarkerS = iMarker;  MarkerR = iMarker+1;
+
+#ifdef HAVE_MPI
+            send_to = config->GetMarker_All_SendRecv(MarkerS)-1;
+      receive_from = abs(config->GetMarker_All_SendRecv(MarkerR))-1;
+#endif
+
+            nVertexS = geometry->nVertex[MarkerS];  nVertexR = geometry->nVertex[MarkerR];
+            nBufferS_Vector = nVertexS*nSolVar;     nBufferR_Vector = nVertexR*nSolVar;
+
+            /*--- Allocate Receive and send buffers  ---*/
+            Buffer_Receive_U = new su2double [nBufferR_Vector];
+            Buffer_Send_U = new su2double[nBufferS_Vector];
+
+            /*--- Copy the solution that should be sent ---*/
+            for (iVertex = 0; iVertex < nVertexS; iVertex++) {
+                iPoint = geometry->vertex[MarkerS][iVertex]->GetNode();
+                for (iVar = 0; iVar < nVar; iVar++)
+                    Buffer_Send_U[iVar*nVertexS+iVertex] = node[iPoint]->GetSolution(iVar);
+                if (dynamic) {
+                    for (iVar = 0; iVar < nVar; iVar++) {
+                        Buffer_Send_U[(iVar+nVar)*nVertexS+iVertex] = node[iPoint]->GetSolution_Vel(iVar);
+                        Buffer_Send_U[(iVar+2*nVar)*nVertexS+iVertex] = node[iPoint]->GetSolution_Accel(iVar);
+                    }
+                }
+            }
+
+#ifdef HAVE_MPI
+
+            /*--- Send/Receive information using Sendrecv ---*/
+      SU2_MPI::Sendrecv(Buffer_Send_U, nBufferS_Vector, MPI_DOUBLE, send_to, 0,
+                        Buffer_Receive_U, nBufferR_Vector, MPI_DOUBLE, receive_from, 0, MPI_COMM_WORLD, &status);
+
+#else
+
+            /*--- Receive information without MPI ---*/
+            for (iVertex = 0; iVertex < nVertexR; iVertex++) {
+                for (iVar = 0; iVar < nVar; iVar++)
+                    Buffer_Receive_U[iVar*nVertexR+iVertex] = Buffer_Send_U[iVar*nVertexR+iVertex];
+                if (dynamic) {
+                    for (iVar = nVar; iVar < 3*nVar; iVar++)
+                        Buffer_Receive_U[iVar*nVertexR+iVertex] = Buffer_Send_U[iVar*nVertexR+iVertex];
+                }
+            }
+
+#endif
+
+            /*--- Deallocate send buffer ---*/
+            delete [] Buffer_Send_U;
+
+            /*--- Do the coordinate transformation ---*/
+            for (iVertex = 0; iVertex < nVertexR; iVertex++) {
+
+                /*--- Find point and its type of transformation ---*/
+                iPoint = geometry->vertex[MarkerR][iVertex]->GetNode();
+
+                /*--- Copy solution variables. ---*/
+                for (iVar = 0; iVar < nSolVar; iVar++)
+                    SolRest[iVar] = Buffer_Receive_U[iVar*nVertexR+iVertex];
+
+                cout<<"SolRest[iVar] 5871 "<<SolRest[iVar]<<endl;
+                /*--- Store received values back into the variable. ---*/
+                for (iVar = 0; iVar < nVar; iVar++)
+                    node[iPoint]->SetSolution(iVar, SolRest[iVar]);
+
+                }
+
+            }
+
+            /*--- Deallocate receive buffer ---*/
+            delete [] Buffer_Receive_U;
+
+        }
+
+    }
+
+void CModalSolver::ImplicitNewmark_Update(CGeometry *geometry, CSolver **solver_container, CConfig *config) {
+    cout<<" MODAL ImplicitNewmark_Update\n";
+    unsigned short iVar;
+    unsigned long iPoint;
+    su2double nVar    = 2*4;
+    su2double nPoint = geometry->GetnPoint();
+    su2double nPointDomain  = geometry->GetnPointDomain();
+    su2double *valSolutionPred;
+    bool dynamic = (config->GetDynamic_Analysis() == DYNAMIC);
+
+    bool fsi = config->GetFSI_Simulation();         // Fluid-Structure Interaction problems
+
+    if (1) {
+        for (iPoint = 0; iPoint < nPointDomain; iPoint++) {
+
+            valSolutionPred = node[iPoint]->GetSolution_Pred();
+            node[iPoint]->SetSolution_Pred_Old(valSolutionPred);
+            node[iPoint]->SetSolution_Pred(node[iPoint]->GetSolution());
+        }
+
+        /*--- Perform the MPI communication of the solution ---*/
+
+        Set_MPI_Solution(geometry, config);
+
+        /*--- After the solution has been communicated, set the 'old' predicted solution as the solution ---*/
+        /*--- Loop over n points (as we have already communicated everything ---*/
+
+//        for (iPoint = 0; iPoint < nPoint; iPoint++) {
+//            for (iVar = 0; iVar < nVar; iVar++) {
+//                node[iPoint]->SetSolution_Pred_Old(iVar, node[iPoint]->GetSolution(iVar));
+//            }
+//        }
+    }
+
+}

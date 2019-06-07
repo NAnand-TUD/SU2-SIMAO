@@ -246,7 +246,7 @@ void CTransfer_StructuralDisplacements::GetDonor_Variable(CSolver *struct_soluti
   DisplacementDonor = struct_solution->node[Point_Struct]->GetSolution_Pred();
   
   DisplacementDonor_Prev = struct_solution->node[Point_Struct]->GetSolution_Pred_Old();
-
+cout<<"trasnfer physics.cpp 249 : Diff in DonorDisplacement "<< DisplacementDonor[iVar] << '-' << DisplacementDonor_Prev[iVar]<<" = "<<DisplacementDonor[iVar] - DisplacementDonor_Prev[iVar]<<endl;
   for (iVar = 0; iVar < nVar; iVar++) Donor_Variable[iVar] = DisplacementDonor[iVar] - DisplacementDonor_Prev[iVar];
 }
 

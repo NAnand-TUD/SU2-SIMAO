@@ -15915,7 +15915,7 @@ public:
    */
   virtual ~CModalSolver(void);
         /* ----- WARNING: no MPI for CSD problem at this stage ------- */
-//   void Set_MPI_Solution(CGeometry *geometry, CConfig *config);
+   void Set_MPI_Solution(CGeometry *geometry, CConfig *config);
 //   void Set_MPI_Solution_Old(CGeometry *geometry, CConfig *config);
 //   void Set_MPI_Solution_DispOnly(CGeometry *geometry, CConfig *config);
 //   void Set_MPI_Solution_Pred(CGeometry *geometry, CConfig *config);
@@ -16161,6 +16161,8 @@ public:
    * \param[in] iMesh - Index of the mesh in multigrid computations.
    */
   void Postprocessing(CGeometry *geometry, CSolver **solver_container, CConfig *config,  CNumerics **numerics, unsigned short iMesh);
+
+  void ImplicitNewmark_Update(CGeometry *geometry, CSolver **solver_container, CConfig *config);
   
   /*!
    * \brief Routine to solve the Jacobian-Residual linearized system.

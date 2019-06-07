@@ -882,8 +882,20 @@ public:
              CSurfaceMovement **surface_movement,
              CVolumetricMovement ***grid_movement,CFreeFormDefBox*** FFDBox,
              unsigned short val_iZone,unsigned short val_iInst);
-};
 
+
+void Update(COutput *output,
+            CIntegration ****integration_container,
+            CGeometry ****geometry_container,
+            CSolver *****solver_container,
+            CNumerics ******numerics_container,
+            CConfig **config_container,
+            CSurfaceMovement **surface_movement,
+            CVolumetricMovement ***grid_movement,
+            CFreeFormDefBox*** FFDBox,
+            unsigned short val_iZone,
+            unsigned short val_iInst);
+};
 /*!
  * \class CFEAIteration
  * \brief Class for driving an iteration of structural analysis.

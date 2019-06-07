@@ -1421,7 +1421,7 @@ void CModalIteration::Iterate(COutput *output,
     config_container[val_iZone]->SetGlobalParam(FEM_MODAL, RUNTIME_MODAL_SYS, ExtIter); //TODO: Check
     /*--- Run the iteration ---*/
     integration_container[val_iZone][val_iInst][MODAL_SOL]->Modal_Iteration(geometry_container, solver_container, numerics_container,config_container, RUNTIME_MODAL_SYS, IntIter, val_iZone, val_iInst);
-};
+}
 
 void CModalIteration::Solve(COutput *output,
                                 CIntegration ****integration_container,
@@ -1448,6 +1448,51 @@ void CModalIteration::Solve(COutput *output,
 
   /*--- Set the structural convergence to false (to make sure outer subiterations converge) ---*/
   integration_container[val_iZone][INST_0][MODAL_SOL]->SetConvergence(false);
+
+}
+
+void CModalIteration::Update(COutput *output,
+                           CIntegration ****integration_container,
+                           CGeometry ****geometry_container,
+                           CSolver *****solver_container,
+                           CNumerics ******numerics_container,
+                           CConfig **config_container,
+                           CSurfaceMovement **surface_movement,
+                           CVolumetricMovement ***grid_movement,
+                           CFreeFormDefBox*** FFDBox,
+                           unsigned short val_iZone,
+                           unsigned short val_iInst) {
+    cout<<" MODAL Update was called :: Ieraion Sucure 1465\n";
+    unsigned short iVar;
+    unsigned long iPoint;
+    su2double nVar    = 2*4;
+    su2double nPoint = geometry_container[val_iZone][val_iInst][MESH_0]->GetnPoint();
+    su2double nPointDomain  = geometry_container[val_iZone][val_iInst][MESH_0]->GetnPointDomain();
+    su2double *valSolutionPred;
+    bool dynamic = (config_container[val_iZone]->GetDynamic_Analysis() == DYNAMIC);
+
+    bool fsi = config_container[val_iZone]->GetFSI_Simulation();         // Fluid-Structure Interaction problems
+    if (fsi) {
+        for (iPoint = 0; iPoint < nPointDomain; iPoint++) {
+
+            valSolutionPred = solver_container[val_iZone][val_iInst][MESH_0][MODAL_SOL]->node[iPoint]->GetSolution_Pred();
+
+            solver_container[val_iZone][val_iInst][MESH_0][MODAL_SOL]->node[iPoint]->SetSolution(valSolutionPred);
+        }
+
+        /*--- Perform the MPI communication of the solution ---*/
+
+        solver_container[val_iZone][val_iInst][MESH_0][MODAL_SOL]->Set_MPI_Solution(geometry_container[val_iZone][val_iInst][MESH_0], config_container[val_iZone]);
+
+        /*--- After the solution has been communicated, set the 'old' predicted solution as the solution ---*/
+        /*--- Loop over n points (as we have already communicated everything ---*/
+
+        for (iPoint = 0; iPoint < nPoint; iPoint++) {
+            for (iVar = 0; iVar < nVar; iVar++) {
+                solver_container[val_iZone][val_iInst][MESH_0][MODAL_SOL]->node[iPoint]->SetSolution_Pred_Old(iVar, solver_container[val_iZone][val_iInst][MESH_0][MODAL_SOL]->node[iPoint]->GetSolution(iVar));
+            }
+        }
+    }
 
 }
 
@@ -1779,8 +1824,10 @@ void CFEAIteration::Update(COutput *output,
 
     /*--- For FSI problems, output the relaxed result, which is the one transferred into the fluid domain (for restart purposes) ---*/
     switch (config_container[val_iZone]->GetKind_TimeIntScheme_FEA()) {
-    case (NEWMARK_IMPLICIT):
+    case (NEWMARK_IMPLICIT):{
         solver_container[val_iZone][val_iInst][MESH_0][FEA_SOL]->ImplicitNewmark_Relaxation(geometry_container[val_iZone][val_iInst][MESH_0], solver_container[val_iZone][val_iInst][MESH_0], config_container[val_iZone]);
+//        cout<<" I was calle NEWMARK_IMPLICIT in UPDATE \n";
+    }
     break;
 
     }

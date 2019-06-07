@@ -1170,12 +1170,13 @@ inline void CFEAVariable::SetSolution_Accel_time_n(su2double *val_solution_accel
   for (unsigned short iVar = 0; iVar < nVar; iVar++)  Solution_Accel_time_n[iVar] = val_solution_accel_time_n[iVar];
 }
 
-inline void CFEAVariable::SetSolution_Pred(unsigned short val_var, su2double val_solution_pred) { Solution_Pred[val_var] = val_solution_pred;  }
+inline void CFEAVariable::SetSolution_Pred(unsigned short val_var, su2double val_solution_pred) { Solution_Pred[val_var] = val_solution_pred; }
 
 inline void CFEAVariable::SetSolution_Pred(su2double *val_solution_pred) { Solution_Pred = val_solution_pred;  }
 
 inline void CFEAVariable::SetSolution_Pred(void) {
   for (unsigned short iVar = 0; iVar < nVar; iVar++) Solution_Pred[iVar] = Solution[iVar];
+
 }
 
 inline void CFEAVariable::SetSolution_Pred_Old(unsigned short val_var, su2double val_solution_pred_old) { Solution_Pred_Old[val_var] = val_solution_pred_old;  }

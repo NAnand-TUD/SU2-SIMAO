@@ -204,18 +204,20 @@ int main(int argc, char *argv[]) {
   if (driver != NULL) delete driver;
   driver = NULL;
   
+  cout << "main 0" << endl;
   /*---Finalize libxsmm, if supported. ---*/
 #ifdef HAVE_LIBXSMM
   libxsmm_finalize();
 #endif
-
+    cout << "main 1" << endl;
   /*--- Finalize MPI parallelization ---*/
 #ifdef HAVE_MPI
   SU2_MPI::Buffer_detach(&buffptr, &buffsize);
   free(buffptr);
   SU2_MPI::Finalize();
 #endif
-  
+  cout << "main 2" << endl;
+  exit(0);
   return EXIT_SUCCESS;
   
 }

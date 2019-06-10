@@ -244,10 +244,13 @@ void CTransfer_StructuralDisplacements::GetDonor_Variable(CSolver *struct_soluti
 
   /*--- The displacements come from the predicted solution ---*/
   DisplacementDonor = struct_solution->node[Point_Struct]->GetSolution_Pred();
-  
   DisplacementDonor_Prev = struct_solution->node[Point_Struct]->GetSolution_Pred_Old();
-cout<<"trasnfer physics.cpp 249 : Diff in DonorDisplacement "<< DisplacementDonor[iVar] << '-' << DisplacementDonor_Prev[iVar]<<" = "<<DisplacementDonor[iVar] - DisplacementDonor_Prev[iVar]<<endl;
-  for (iVar = 0; iVar < nVar; iVar++) Donor_Variable[iVar] = DisplacementDonor[iVar] - DisplacementDonor_Prev[iVar];
+  
+  cout<<"trasnfer physics.cpp 249 : Diff in DonorDisplacement " << nVar;
+  for (iVar = 0; iVar < struct_geometry->GetnDim(); iVar++){
+    Donor_Variable[iVar] = DisplacementDonor[iVar] - DisplacementDonor_Prev[iVar];
+  }
+    
 }
 
 void CTransfer_StructuralDisplacements::SetTarget_Variable(CSolver *flow_solution, CGeometry *flow_geometry,

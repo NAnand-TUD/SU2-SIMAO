@@ -457,7 +457,7 @@ void CIntegration::Time_Integration_Modal(CGeometry *geometry, CSolver **solver_
     solver_container[MainSolver]->ImplicitNewmark_Update(geometry, solver_container, config);
     cout<<"After Newmark \n";
     /*--- Perform the MPI communication of the solution ---*/
-    solver_container[MainSolver]->Set_MPI_Solution(geometry, config); //TODO: check this function for modal
+//    solver_container[MainSolver]->Set_MPI_Solution(geometry, config); //TODO: check this function for modal
 
 }
 

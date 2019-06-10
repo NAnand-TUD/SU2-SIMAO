@@ -240,15 +240,15 @@ void CTransfer_StructuralDisplacements::GetPhysical_Constants(CSolver *struct_so
 void CTransfer_StructuralDisplacements::GetDonor_Variable(CSolver *struct_solution, CGeometry *struct_geometry, CConfig *struct_config,unsigned long Marker_Struct, unsigned long Vertex_Struct, unsigned long Point_Struct) {
 
   su2double *DisplacementDonor, *DisplacementDonor_Prev;
-  unsigned short iVar;
+  unsigned short iDim;
 
   /*--- The displacements come from the predicted solution ---*/
   DisplacementDonor = struct_solution->node[Point_Struct]->GetSolution_Pred();
   DisplacementDonor_Prev = struct_solution->node[Point_Struct]->GetSolution_Pred_Old();
   
-  cout<<"trasnfer physics.cpp 249 : Diff in DonorDisplacement " << nVar;
-  for (iVar = 0; iVar < struct_geometry->GetnDim(); iVar++){
-    Donor_Variable[iVar] = DisplacementDonor[iVar] - DisplacementDonor_Prev[iVar];
+//  cout<<"trasnfer physics.cpp 249 : Diff in DonorDisplacement " << DisplacementDonor[2]-DisplacementDonor_Prev[2]<<endl;
+  for (iDim = 0; iDim < struct_geometry->GetnDim(); iDim++){
+    Donor_Variable[iDim] = DisplacementDonor[iDim] - DisplacementDonor_Prev[iDim];
   }
     
 }
@@ -256,7 +256,7 @@ void CTransfer_StructuralDisplacements::GetDonor_Variable(CSolver *struct_soluti
 void CTransfer_StructuralDisplacements::SetTarget_Variable(CSolver *flow_solution, CGeometry *flow_geometry,
                                CConfig *flow_config, unsigned long Marker_Flow,
                                unsigned long Vertex_Flow, unsigned long Point_Flow) {
-    cout<<"@ transfer_physics.cpp L 256 \n Target Variable is : "<< Target_Variable[0]<<endl;
+//    cout<<"@ transfer_physics.cpp L 256 \n Target Variable is : "<< Target_Variable[0]<<endl;
     flow_geometry->vertex[Marker_Flow][Vertex_Flow]->SetVarCoord(Target_Variable);
 }
 

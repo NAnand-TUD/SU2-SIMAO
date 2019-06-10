@@ -5893,16 +5893,20 @@ void CModalSolver::ImplicitNewmark_Update(CGeometry *geometry, CSolver **solver_
     su2double nPoint = geometry->GetnPoint();
     su2double nPointDomain  = geometry->GetnPointDomain();
     su2double *valSolutionPred;
+    su2double *valSolution;
     bool dynamic = (config->GetDynamic_Analysis() == DYNAMIC);
 
     bool fsi = config->GetFSI_Simulation();         // Fluid-Structure Interaction problems
-
     if (1) {
         for (iPoint = 0; iPoint < nPointDomain; iPoint++) {
 
             valSolutionPred = node[iPoint]->GetSolution_Pred();
-            node[iPoint]->SetSolution_Pred_Old(valSolutionPred);
-            node[iPoint]->SetSolution_Pred(node[iPoint]->GetSolution());
+            valSolution = node[iPoint]->GetSolution();
+            for (unsigned short iDim = 0; iDim<3; iDim++) {
+                node[iPoint]->SetSolution_Pred_Old(iDim, valSolutionPred[iDim]);
+                node[iPoint]->SetSolution_Pred(iDim, valSolution[iDim]);
+            }
+
         }
 
         /*--- Perform the MPI communication of the solution ---*/
@@ -5918,5 +5922,6 @@ void CModalSolver::ImplicitNewmark_Update(CGeometry *geometry, CSolver **solver_
 //            }
 //        }
     }
+
 
 }

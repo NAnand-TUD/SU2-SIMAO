@@ -5351,16 +5351,16 @@ void CModalSolver::ReadCSD_Mesh(CConfig *config){
 	}
 
 	getline(mode_file, line);
-	number_of_modes = stoi(line);
+	number_of_modes = atoi(line.c_str());
 	nModes = number_of_modes;
 
 	getline(mode_file, line);
-	nModesPoints = stoi(line);
+	nModesPoints = atoi(line.c_str());
     cout << "npoints/nModesPoints: " << nPoints << "\t" << nModesPoints << endl;
     assert(nModesPoints == nPoints);
     
 	getline(mode_file, line);
-	refLength = stof(line);
+	refLength = atof(line.c_str());
 
 	cout << "N. of modes = " << nModes << "\n";
     cout << "N. of nodes in CSD mesh = "<< nPoints << "\n";

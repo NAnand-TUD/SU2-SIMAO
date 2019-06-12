@@ -724,7 +724,6 @@ void CDriver::Postprocessing() {
 
   if (rank == MASTER_NODE) cout << "-------------------------------------------------------------------------" << endl;
 
-
   /*--- Stop the timer and output the final performance summary. ---*/
   
 #ifndef HAVE_MPI
@@ -1697,8 +1696,7 @@ void CDriver::Solver_Postprocessing(CSolver ****solver_container, CGeometry **ge
                                     CConfig *config, unsigned short val_iInst) {
   unsigned short iMGlevel;
   bool euler, ns, turbulent,
-  adj_euler, adj_ns, adj_turb,
-  heat_fvm, fem,
+  adj_euler, adj_ns, adj_turb,heat_fvm, fem, csd,
   spalart_allmaras, neg_spalart_allmaras, menter_sst, transition,
   template_solver, disc_adj, disc_adj_turb, disc_adj_fem, disc_adj_heat,
   e_spalart_allmaras, comp_spalart_allmaras, e_comp_spalart_allmaras;
@@ -1711,13 +1709,14 @@ void CDriver::Solver_Postprocessing(CSolver ****solver_container, CGeometry **ge
   neg_spalart_allmaras = false;
   disc_adj        = false;
   fem              = false;  disc_adj_fem    = false;
+  csd           = false;
   heat_fvm        = false;   disc_adj_heat   = false;
   transition       = false;
   template_solver  = false;
   e_spalart_allmaras = false; comp_spalart_allmaras = false; e_comp_spalart_allmaras = false;
 
   /*--- Assign booleans ---*/
-  
+
   switch (config->GetKind_Solver()) {
     case TEMPLATE_SOLVER: template_solver = true; break;
     case EULER : euler = true; break;
@@ -1740,6 +1739,7 @@ void CDriver::Solver_Postprocessing(CSolver ****solver_container, CGeometry **ge
     case DISC_ADJ_FEM_RANS: ns = true; turbulent = true; disc_adj = true; disc_adj_turb = (!config->GetFrozen_Visc_Disc()); break;
     case DISC_ADJ_FEM: fem = true; disc_adj_fem = true; break;
     case DISC_ADJ_HEAT: heat_fvm = true; disc_adj_heat = true; break;
+    case FEM_MODAL: csd = true; break;
   }
   
   /*--- Assign turbulence model booleans ---*/
@@ -1803,6 +1803,9 @@ void CDriver::Solver_Postprocessing(CSolver ****solver_container, CGeometry **ge
     }
     if (disc_adj_fem) {
       delete solver_container[val_iInst][iMGlevel][ADJFEA_SOL];
+    }
+    if (csd) {
+      delete solver_container[val_iInst][iMGlevel][MODAL_SOL];
     }
     
     delete [] solver_container[val_iInst][iMGlevel];

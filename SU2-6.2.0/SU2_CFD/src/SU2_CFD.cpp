@@ -100,7 +100,7 @@ int main(int argc, char *argv[]) {
   periodic = CConfig::GetPeriodic(config->GetMesh_FileName(), config->GetMesh_FileFormat(), config);
   zone_specific = config->GetBoolZoneSpecific();
 
-  cout << "102 - SU2_CFD nzone=\n" << nZone << endl;
+  cout << "SU2_CFD nzone=\n" << nZone << endl;
   /*--- First, given the basic information about the number of zones and the
    solver types from the config, instantiate the appropriate driver for the problem
    and perform all the preprocessing. ---*/
@@ -204,18 +204,20 @@ int main(int argc, char *argv[]) {
   if (driver != NULL) delete driver;
   driver = NULL;
   
+  cout << "main 0" << endl;
   /*---Finalize libxsmm, if supported. ---*/
 #ifdef HAVE_LIBXSMM
   libxsmm_finalize();
 #endif
-
+    cout << "main 1" << endl;
   /*--- Finalize MPI parallelization ---*/
 #ifdef HAVE_MPI
   SU2_MPI::Buffer_detach(&buffptr, &buffsize);
   free(buffptr);
   SU2_MPI::Finalize();
 #endif
-  
+  cout << "main 2" << endl;
+  exit(0);
   return EXIT_SUCCESS;
   
 }

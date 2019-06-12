@@ -14665,13 +14665,6 @@ void COutput::LoadLocalData_Modal(CConfig *config, CGeometry *geometry, CSolver 
 
     }
 
-    cout<<"Value of variable :: "<<Variable_Names[0]<<endl;
-    cout<<"Value of variable :: "<<Variable_Names[1]<<endl;
-    cout<<"Value of variable :: "<<Variable_Names[2]<<endl;
-    cout<<"Value of variable :: "<<Variable_Names[3]<<endl;
-    cout<<"Value of variable :: "<<Variable_Names[4]<<endl;
-    cout<<"Value of variable :: "<<Variable_Names[5]<<endl;
-
     /*--- Allocate the local data structure now that we know how many
      variables are in the output. ---*/
 

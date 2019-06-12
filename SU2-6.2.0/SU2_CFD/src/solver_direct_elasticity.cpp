@@ -5225,7 +5225,6 @@ CModalSolver::CModalSolver(CGeometry *geometry, CConfig *config) : CSolver() {
     // CModalVariable contains displacements in cartesian coordinates (solution variable)
     // TODO: check if these need to be absolute positions or are added.
     node    = new CVariable*[nPoints];
-    
     // restart solution, i.e. generalized displacements for now???
     SolRest = new su2double[nVar];
 
@@ -5435,7 +5434,7 @@ void CModalSolver::RK2(CGeometry *geometry, CSolver **solver_container, CConfig 
     // generalizedXXX contains solution from state-space modal problem
     
     ComputeModalFluidForces(geometry, config);
-    cout<< " This was ok \n L5348\n";
+
     for( iMode = 0; iMode < nModes; ++iMode){
         dy[0] = generalizedVelocity[iMode][1];
         dy[1] = modalForceLast[iMode] - omega[iMode]*omega[iMode]*generalizedDisplacement[iMode][1];
@@ -5453,9 +5452,9 @@ void CModalSolver::RK2(CGeometry *geometry, CSolver **solver_container, CConfig 
         generalizedDisplacement[iMode][0]   = qsol[2*iMode];
         generalizedVelocity[iMode][0]       = qsol[2*iMode+1];
     }
-    cout<< " This was ok \n L5456\n";
+
     UpdateStructuralNodes();
-    cout<< " This was ok \n L5458\n";
+
     delete [] qsol;
 }
 
@@ -5889,20 +5888,17 @@ void CModalSolver::ImplicitNewmark_Update(CGeometry *geometry, CSolver **solver_
     cout<<" MODAL ImplicitNewmark_Update\n";
     unsigned short iVar;
     unsigned long iPoint;
-    su2double nVar    = 2*4;
-    su2double nPoint = geometry->GetnPoint();
-    su2double nPointDomain  = geometry->GetnPointDomain();
+    unsigned long nPointDomain = geometry->GetnPointDomain();
+    unsigned long nPoint = geometry->GetnPoint();
     su2double *valSolutionPred;
     su2double *valSolution;
-    bool dynamic = (config->GetDynamic_Analysis() == DYNAMIC);
-
-    bool fsi = config->GetFSI_Simulation();         // Fluid-Structure Interaction problems
+    cout<<"nPointDomain :: "<<nPointDomain<<endl;
     if (1) {
         for (iPoint = 0; iPoint < nPointDomain; iPoint++) {
 
             valSolutionPred = node[iPoint]->GetSolution_Pred();
             valSolution = node[iPoint]->GetSolution();
-            for (unsigned short iDim = 0; iDim<3; iDim++) {
+            for (unsigned short iDim = 0; iDim<nDim; iDim++) {
                 node[iPoint]->SetSolution_Pred_Old(iDim, valSolutionPred[iDim]);
                 node[iPoint]->SetSolution_Pred(iDim, valSolution[iDim]);
             }
@@ -5916,11 +5912,6 @@ void CModalSolver::ImplicitNewmark_Update(CGeometry *geometry, CSolver **solver_
         /*--- After the solution has been communicated, set the 'old' predicted solution as the solution ---*/
         /*--- Loop over n points (as we have already communicated everything ---*/
 
-//        for (iPoint = 0; iPoint < nPoint; iPoint++) {
-//            for (iVar = 0; iVar < nVar; iVar++) {
-//                node[iPoint]->SetSolution_Pred_Old(iVar, node[iPoint]->GetSolution(iVar));
-//            }
-//        }
     }
 
 

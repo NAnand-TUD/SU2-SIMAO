@@ -105,7 +105,9 @@ CSolver::~CSolver(void) {
   }
 
   if (node != NULL) {
+      cout<<"npoint"<<nPoint<<endl;
     for (iPoint = 0; iPoint < nPoint; iPoint++) {
+        cout<< "iPoint :: "<<iPoint<<endl;
       delete node[iPoint];
     }
     delete [] node;

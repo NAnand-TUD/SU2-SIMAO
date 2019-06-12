@@ -1990,7 +1990,7 @@ void COutput::WriteParaViewASCII_Parallel(CConfig *config, CGeometry *geometry, 
       filename = config->GetFlow_FileName();
   }
 
-  if (Kind_Solver == FEM_ELASTICITY) {
+  if (Kind_Solver == FEM_ELASTICITY || Kind_Solver == FEM_MODAL) {
     if (surf_sol)
       filename = config->GetSurfStructure_FileName().c_str();
     else

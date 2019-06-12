@@ -928,6 +928,14 @@ public:
    */
   void LoadLocalData_FEM(CConfig *config, CGeometry *geometry, CSolver **solver, unsigned short val_iZone);
 
+    /*!
+   * \brief Load the desired solution data into a structure used for parallel reordering and output file writing for elasticity problems.
+   * \param[in] config - Definition of the particular problem.
+   * \param[in] geometry - Geometrical definition of the problem.
+   * \param[in] solution - Flow, adjoint or linearized solution.
+   * \param[in] val_nZone - iZone index.
+   */
+    void LoadLocalData_Modal(CConfig *config, CGeometry *geometry, CSolver **solver, unsigned short val_iZone);
   /*!
    * \brief Prepare the number of points and offsets for linear partitioning that are needed for output.
    * \param[in] config - Definition of the particular problem.

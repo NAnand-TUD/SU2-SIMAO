@@ -427,10 +427,10 @@ bool CMultizoneDriver::OuterConvergence(unsigned long OuterIter) {
         /*--- Loop over all the variables in the solver ---*/
         for (iRes = 0; iRes < nVarSol; iRes++){
           /*--- Store the log10 of the residual value ---*/
-          cout<< "iZone" << iZone << "iVar" << iVar <<"iRes"<<iRes<<endl;
-          cout<<log10(solver_container[iZone][INST_0][MESH_0][iSol]->GetRes_BGS(0))<<endl;
-          cout<<log10(solver_container[iZone][INST_0][MESH_0][iSol]->GetRes_BGS(1))<<endl;
-          cout<<log10(solver_container[iZone][INST_0][MESH_0][iSol]->GetRes_BGS(2))<<endl;
+//          cout<< "iZone" << iZone << "iVar" << iVar <<"iRes"<<iRes<<endl;
+//          cout<<log10(solver_container[iZone][INST_0][MESH_0][iSol]->GetRes_BGS(0))<<endl;
+//          cout<<log10(solver_container[iZone][INST_0][MESH_0][iSol]->GetRes_BGS(1))<<endl;
+//          cout<<log10(solver_container[iZone][INST_0][MESH_0][iSol]->GetRes_BGS(2))<<endl;
           residual[iZone][iVar] = log10(solver_container[iZone][INST_0][MESH_0][iSol]->GetRes_BGS(iRes));
 
           /*--- If it is the first iteration, the init_res is the current residual ---*/
@@ -613,7 +613,7 @@ void CMultizoneDriver::Output(unsigned long TimeIter) {
     /*--- Execute the routine for writing restart, volume solution,
      surface solution, and surface comma-separated value files. ---*/
     cout << "driver MZ" << endl;
-//     output->SetResult_Files_Parallel(solver_container, geometry_container, config_container, TimeIter, nZone);
+     output->SetResult_Files_Parallel(solver_container, geometry_container, config_container, TimeIter, nZone);
 
 
     /*--- Execute the routine for writing special output. ---*/

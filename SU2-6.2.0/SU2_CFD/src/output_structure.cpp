@@ -12392,9 +12392,13 @@ void COutput::SetResult_Files_Parallel(CSolver *****solver_container,
       case DISC_ADJ_EULER: case DISC_ADJ_NAVIER_STOKES: case DISC_ADJ_RANS:
         LoadLocalData_AdjFlow(config[iZone], geometry[iZone][iInst][MESH_0], solver_container[iZone][iInst][MESH_0], iZone);
         break;
-      case FEM_ELASTICITY : case DISC_ADJ_FEM : case FEM_MODAL :
+      case FEM_ELASTICITY : case DISC_ADJ_FEM :
           cout << "loading local data: FEM_ELASTICITY\n";
         LoadLocalData_Elasticity(config[iZone], geometry[iZone][iInst][MESH_0], solver_container[iZone][iInst][MESH_0], iZone);
+        break;
+      case FEM_MODAL :
+        cout << "loading local data: FEM_MODAL\n";
+        LoadLocalData_Modal(config[iZone], geometry[iZone][iInst][MESH_0], solver_container[iZone][iInst][MESH_0], iZone);
         break;
       case HEAT_EQUATION_FVM:
         LoadLocalData_Base(config[iZone], geometry[iZone][iInst][MESH_0], solver_container[iZone][iInst][MESH_0], iZone);
@@ -12625,7 +12629,9 @@ void COutput::SetResult_Files_Parallel(CSolver *****solver_container,
       }
 
       /*--- Deallocate the nodal data needed for writing restarts. ---*/
-      DeallocateData_Parallel(config[iZone], geometry[iZone][iInst][MESH_0]);
+      // TODO there is segmentaion faut here - Looks like something was not initialized and is now getting freed
+      // By commenting the bottom like I am looking for a quick fix to the segmentation fault.
+//      DeallocateData_Parallel(config[iZone], geometry[iZone][iInst][MESH_0]);
 
       /*--- Clear the variable names list. ---*/
       Variable_Names.clear();
@@ -14107,19 +14113,17 @@ void COutput::LoadLocalData_Elasticity(CConfig *config, CGeometry *geometry, CSo
   unsigned long iPoint, jPoint, FirstIndex = NONE, iMarker, iVertex;
   unsigned long nVar_First = 0, nVar_Consv_Par = 0;
   
-  su2double *Node_Vel = NULL, *Node_Accel = NULL, *Stress = NULL;
+//  su2double *Node_Vel = NULL, *Node_Accel = NULL, *Stress = NULL;
 
-  bool Wrt_Halo   = config->GetWrt_Halo(), isPeriodic;
-  int *Local_Halo = NULL;
+//  bool Wrt_Halo   = config->GetWrt_Halo(), isPeriodic;
+//  int *Local_Halo = NULL;
   
   stringstream varname;
   
   /*--- Use a switch statement to decide how many solver containers we have
    in this zone for output. ---*/
   switch (config->GetKind_Solver()) {
-    case FEM_ELASTICITY: FirstIndex = FEA_SOL; break;
-    case DISC_ADJ_FEM: FirstIndex = ADJFEA_SOL; break;
-    case FEM_MODAL: FirstIndex = MODAL_SOL; break;
+    case FEM_MODAL: FirstIndex = FEA_SOL; break;
   }
   
   nVar_First = solver[FirstIndex]->GetnVar();
@@ -14159,64 +14163,64 @@ void COutput::LoadLocalData_Elasticity(CConfig *config, CGeometry *geometry, CSo
   /*--- If requested, register the limiter and residuals for all of the
    equations in the current flow problem. ---*/
   
-  if (!config->GetLow_MemoryOutput()) {
-    
-    /*--- Add the residuals ---*/
-    
-    if (config->GetWrt_Residuals() && ( config->GetKind_Solver()!=FEM_MODAL ) ) {
-      nVar_Par += nVar_Consv_Par;
-      Variable_Names.push_back("Residual_Displacement_x");
-      Variable_Names.push_back("Residual_Displacement_y");
-      if (geometry->GetnDim() == 3)
-        Variable_Names.push_back("Residual_Displacement_z");
-    }
-    
-    /*--- If the analysis is dynamic... ---*/
-    if (config->GetDynamic_Analysis() == DYNAMIC) {
-      
-      /*--- Velocities ---*/
-      nVar_Par += 2;
-      Variable_Names.push_back("Velocity_x");
-      Variable_Names.push_back("Velocity_y");
-      if (geometry->GetnDim() == 3) {
-        nVar_Par += 1;
-        Variable_Names.push_back("Velocity_z");
-      }
-      
-      /*--- Accelerations ---*/
-      nVar_Par += 2;
-      Variable_Names.push_back("Acceleration_x");
-      Variable_Names.push_back("Acceleration_y");
-      if (geometry->GetnDim() == 3) {
-        nVar_Par += 1;
-        Variable_Names.push_back("Acceleration_z");
-      }
-    }
-    if (!(config->GetDiscrete_Adjoint()) && ( config->GetKind_Solver() != FEM_MODAL ) ) {
-
-      /*--- Add the stresses. ---*/
-    
-      nVar_Par += 3;
-      Variable_Names.push_back("Sxx");
-      Variable_Names.push_back("Syy");
-      Variable_Names.push_back("Sxy");
-      if (geometry->GetnDim() == 3) {
-        nVar_Par += 3;
-        Variable_Names.push_back("Szz");
-        Variable_Names.push_back("Sxz");
-        Variable_Names.push_back("Syz");
-      }
-
-      /*--- Add the Von Mises Stress. ---*/
-    
-      nVar_Par += 1;
-      Variable_Names.push_back("Von_Mises_Stress");
-    
-    }
-    
-    /*--- New variables get registered here before the end of the loop. ---*/
-    
-  }
+//  if (!config->GetLow_MemoryOutput()) {
+//
+//    /*--- Add the residuals ---*/
+//
+//    if (config->GetWrt_Residuals() && ( config->GetKind_Solver()!=FEM_MODAL ) ) {
+//      nVar_Par += nVar_Consv_Par;
+//      Variable_Names.push_back("Residual_Displacement_x");
+//      Variable_Names.push_back("Residual_Displacement_y");
+//      if (geometry->GetnDim() == 3)
+//        Variable_Names.push_back("Residual_Displacement_z");
+//    }
+//
+//    /*--- If the analysis is dynamic... ---*/
+//    if (config->GetDynamic_Analysis() == DYNAMIC) {
+//
+//      /*--- Velocities ---*/
+//      nVar_Par += 2;
+//      Variable_Names.push_back("Velocity_x");
+//      Variable_Names.push_back("Velocity_y");
+//      if (geometry->GetnDim() == 3) {
+//        nVar_Par += 1;
+//        Variable_Names.push_back("Velocity_z");
+//      }
+//
+//      /*--- Accelerations ---*/
+//      nVar_Par += 2;
+//      Variable_Names.push_back("Acceleration_x");
+//      Variable_Names.push_back("Acceleration_y");
+//      if (geometry->GetnDim() == 3) {
+//        nVar_Par += 1;
+//        Variable_Names.push_back("Acceleration_z");
+//      }
+//    }
+//    if (!(config->GetDiscrete_Adjoint()) && ( config->GetKind_Solver() != FEM_MODAL ) ) {
+//
+//      /*--- Add the stresses. ---*/
+//
+//      nVar_Par += 3;
+//      Variable_Names.push_back("Sxx");
+//      Variable_Names.push_back("Syy");
+//      Variable_Names.push_back("Sxy");
+//      if (geometry->GetnDim() == 3) {
+//        nVar_Par += 3;
+//        Variable_Names.push_back("Szz");
+//        Variable_Names.push_back("Sxz");
+//        Variable_Names.push_back("Syz");
+//      }
+//
+//      /*--- Add the Von Mises Stress. ---*/
+//
+//      nVar_Par += 1;
+//      Variable_Names.push_back("Von_Mises_Stress");
+//
+//    }
+//
+//    /*--- New variables get registered here before the end of the loop. ---*/
+//
+//  }
   /*--- Allocate the local data structure now that we know how many
    variables are in the output. ---*/
   
@@ -14225,29 +14229,29 @@ void COutput::LoadLocalData_Elasticity(CConfig *config, CGeometry *geometry, CSo
     Local_Data[iPoint] = new su2double[nVar_Par];
   }
   
-  Local_Halo = new int[geometry->GetnPoint()];
-  for (iPoint = 0; iPoint < geometry->GetnPoint(); iPoint++)
-    Local_Halo[iPoint] = !geometry->node[iPoint]->GetDomain();
-  
-  /*--- Search all send/recv boundaries on this partition for any periodic
-   nodes that were part of the original domain. We want to recover these
-   for visualization purposes. ---*/
-  if (!Wrt_Halo) {
-    for (iMarker = 0; iMarker < config->GetnMarker_All(); iMarker++) {
-      if (config->GetMarker_All_KindBC(iMarker) == SEND_RECEIVE) {
-        
-        /*--- Checking for less than or equal to the rank, because there may
-         be some periodic halo nodes that send info to the same rank. ---*/
-        
-        for (iVertex = 0; iVertex < geometry->nVertex[iMarker]; iVertex++) {
-          iPoint = geometry->vertex[iMarker][iVertex]->GetNode();
-          isPeriodic = ((geometry->vertex[iMarker][iVertex]->GetRotation_Type() > 0) &&
-                        (geometry->vertex[iMarker][iVertex]->GetRotation_Type() % 2 == 1));
-          if (isPeriodic) Local_Halo[iPoint] = false;
-        }
-      }
-    }
-  }
+//  Local_Halo = new int[geometry->GetnPoint()];
+//  for (iPoint = 0; iPoint < geometry->GetnPoint(); iPoint++)
+//    Local_Halo[iPoint] = !geometry->node[iPoint]->GetDomain();
+//
+//  /*--- Search all send/recv boundaries on this partition for any periodic
+//   nodes that were part of the original domain. We want to recover these
+//   for visualization purposes. ---*/
+//  if (!Wrt_Halo) {
+//    for (iMarker = 0; iMarker < config->GetnMarker_All(); iMarker++) {
+//      if (config->GetMarker_All_KindBC(iMarker) == SEND_RECEIVE) {
+//
+//        /*--- Checking for less than or equal to the rank, because there may
+//         be some periodic halo nodes that send info to the same rank. ---*/
+//
+//        for (iVertex = 0; iVertex < geometry->nVertex[iMarker]; iVertex++) {
+//          iPoint = geometry->vertex[iMarker][iVertex]->GetNode();
+//          isPeriodic = ((geometry->vertex[iMarker][iVertex]->GetRotation_Type() > 0) &&
+//                        (geometry->vertex[iMarker][iVertex]->GetRotation_Type() % 2 == 1));
+//          if (isPeriodic) Local_Halo[iPoint] = false;
+//        }
+//      }
+//    }
+//  }
 
   /*--------------------------------------------------------------------------*/
   /*--- Step 2: Loop over all grid nodes and load up the desired data for  ---*/
@@ -14267,7 +14271,7 @@ void COutput::LoadLocalData_Elasticity(CConfig *config, CGeometry *geometry, CSo
     
     /*--- Check for halos & write only if requested ---*/
     
-    if (!Local_Halo[iPoint] || Wrt_Halo) {
+    if (1) {
       
       /*--- Restart the column index with each new point. ---*/
       
@@ -14290,73 +14294,73 @@ void COutput::LoadLocalData_Elasticity(CConfig *config, CGeometry *geometry, CSo
         iVar++;
       }
 
-      if (!config->GetLow_MemoryOutput()) {
-        if (config->GetWrt_Residuals()) {
-          for (jVar = 0; jVar < nVar_First; jVar++) {
-            Local_Data[jPoint][iVar] = solver[FirstIndex]->LinSysRes.GetBlock(iPoint, jVar);
-            iVar++;
-          }
-        }
-      }
+//      if (!config->GetLow_MemoryOutput()) {
+//        if (config->GetWrt_Residuals()) {
+//          for (jVar = 0; jVar < nVar_First; jVar++) {
+//            Local_Data[jPoint][iVar] = solver[FirstIndex]->LinSysRes.GetBlock(iPoint, jVar);
+//            iVar++;
+//          }
+//        }
+//      }
 
       if (!config->GetLow_MemoryOutput()) {
         
         /*--- Load the velocities and accelerations (dynamic calculations). ---*/
         
-        if (config->GetDynamic_Analysis() == DYNAMIC) {
-          
-          /*--- Velocities ---*/
-          
-          Node_Vel = solver[FEA_SOL]->node[iPoint]->GetSolution_Vel();
-          Local_Data[jPoint][iVar] = Node_Vel[0]; iVar++;
-          Local_Data[jPoint][iVar] = Node_Vel[1]; iVar++;
-          if (geometry->GetnDim() == 3) {
-            Local_Data[jPoint][iVar] = Node_Vel[2];
-            iVar++;
-          }
-          
-          /*--- Accelerations ---*/
-          
-          Node_Accel = solver[FEA_SOL]->node[iPoint]->GetSolution_Accel();
-          Local_Data[jPoint][iVar] = Node_Accel[0]; iVar++;
-          Local_Data[jPoint][iVar] = Node_Accel[1]; iVar++;
-          if (geometry->GetnDim() == 3) {
-            Local_Data[jPoint][iVar] = Node_Accel[2];
-            iVar++;
-          }
-        }
+//        if (config->GetDynamic_Analysis() == DYNAMIC) {
+//
+//          /*--- Velocities ---*/
+//
+//          Node_Vel = solver[MODAL_SOL]->node[iPoint]->GetSolution_Vel();
+//          Local_Data[jPoint][iVar] = Node_Vel[0]; iVar++;
+//          Local_Data[jPoint][iVar] = Node_Vel[1]; iVar++;
+//          if (geometry->GetnDim() == 3) {
+//            Local_Data[jPoint][iVar] = Node_Vel[2];
+//            iVar++;
+//          }
+//
+//          /*--- Accelerations ---*/
+//
+//          Node_Accel = solver[MODAL_SOL]->node[iPoint]->GetSolution_Accel();
+//          Local_Data[jPoint][iVar] = Node_Accel[0]; iVar++;
+//          Local_Data[jPoint][iVar] = Node_Accel[1]; iVar++;
+//          if (geometry->GetnDim() == 3) {
+//            Local_Data[jPoint][iVar] = Node_Accel[2];
+//            iVar++;
+//          }
+//        }
 
-        if (!(config->GetDiscrete_Adjoint()) && ( config->GetKind_Solver()!=FEM_MODAL )) {
-
-          /*--- Add the stresses. ---*/
-        
-          Stress = solver[FEA_SOL]->node[iPoint]->GetStress_FEM();
-        
-          /*--- Sigma xx ---*/
-          Local_Data[jPoint][iVar] = Stress[0]; iVar++;
-          /*--- Sigma yy ---*/
-          Local_Data[jPoint][iVar] = Stress[1]; iVar++;
-          /*--- Sigma xy ---*/
-          Local_Data[jPoint][iVar] = Stress[2]; iVar++;
-        
-          if (geometry->GetnDim() == 3) {
-            /*--- Sigma zz ---*/
-            Local_Data[jPoint][iVar] = Stress[3]; iVar++;
-            /*--- Sigma xz ---*/
-            Local_Data[jPoint][iVar] = Stress[4]; iVar++;
-            /*--- Sigma yz ---*/
-            Local_Data[jPoint][iVar] = Stress[5]; iVar++;
-          }
-        
-          /*--- Add the Von Mises Stress. ---*/
-        
-          Local_Data[iPoint][iVar] = solver[FEA_SOL]->node[iPoint]->GetVonMises_Stress(); iVar++;
-        
-        
-          /*--- New variables can be loaded to the Local_Data structure here,
-           assuming they were registered above correctly. ---*/
-
-        }
+//        if (!(config->GetDiscrete_Adjoint()) && ( config->GetKind_Solver()!=FEM_MODAL )) {
+//
+//          /*--- Add the stresses. ---*/
+//
+//          Stress = solver[FEA_SOL]->node[iPoint]->GetStress_FEM();
+//
+//          /*--- Sigma xx ---*/
+//          Local_Data[jPoint][iVar] = Stress[0]; iVar++;
+//          /*--- Sigma yy ---*/
+//          Local_Data[jPoint][iVar] = Stress[1]; iVar++;
+//          /*--- Sigma xy ---*/
+//          Local_Data[jPoint][iVar] = Stress[2]; iVar++;
+//
+//          if (geometry->GetnDim() == 3) {
+//            /*--- Sigma zz ---*/
+//            Local_Data[jPoint][iVar] = Stress[3]; iVar++;
+//            /*--- Sigma xz ---*/
+//            Local_Data[jPoint][iVar] = Stress[4]; iVar++;
+//            /*--- Sigma yz ---*/
+//            Local_Data[jPoint][iVar] = Stress[5]; iVar++;
+//          }
+//
+//          /*--- Add the Von Mises Stress. ---*/
+//
+//          Local_Data[iPoint][iVar] = solver[FEA_SOL]->node[iPoint]->GetVonMises_Stress(); iVar++;
+//
+//
+//          /*--- New variables can be loaded to the Local_Data structure here,
+//           assuming they were registered above correctly. ---*/
+//
+//        }
 
       }
 
@@ -14369,7 +14373,7 @@ void COutput::LoadLocalData_Elasticity(CConfig *config, CGeometry *geometry, CSo
   
   /*--- Free memory for auxiliary vectors. ---*/
   
-  delete [] Local_Halo;
+//  delete [] Local_Halo;
   cout << "finished loading FEM data\n";
 }
 
@@ -14543,6 +14547,216 @@ void COutput::LoadLocalData_Base(CConfig *config, CGeometry *geometry, CSolver *
   
   delete [] Local_Halo;
   
+}
+
+void COutput::LoadLocalData_Modal(CConfig *config, CGeometry *geometry, CSolver **solver, unsigned short val_iZone) {
+    unsigned short iDim;
+
+    unsigned long iVar, jVar;
+    unsigned long iPoint, jPoint, FirstIndex = NONE, iMarker, iVertex;
+    unsigned long nVar_First = 0, nVar_Consv_Par = 0;
+
+    su2double *Node_Vel = NULL, *Node_Accel = NULL, *Stress = NULL;
+
+    bool Wrt_Halo   = config->GetWrt_Halo(), isPeriodic;
+    int *Local_Halo = NULL;
+
+    stringstream varname;
+
+    /*--- Use a switch statement to decide how many solver containers we have
+     in this zone for output. ---*/
+    switch (config->GetKind_Solver()) {
+        case FEM_MODAL: FirstIndex = MODAL_SOL; break;
+    }
+
+    nVar_First = solver[FirstIndex]->GetnVar();
+    nVar_Consv_Par = nVar_First;
+
+    /*--------------------------------------------------------------------------*/
+    /*--- Step 1: Register the variables that will be output. To register a  ---*/
+    /*---         variable, two things are required. First, increment the    ---*/
+    /*---         counter for the number of variables (nVar_Par), which      ---*/
+    /*---         controls the size of the data structure allocation, i.e.,  ---*/
+    /*---         the number of columns in an nPoint x nVar structure.       ---*/
+    /*---         Second, add a name for the variable to the vector that     ---*/
+    /*---         holds the string names.                                    ---*/
+    /*--------------------------------------------------------------------------*/
+
+    /*--- All output files first need the grid coordinates. ---*/
+    nVar_Par  = 1; Variable_Names.push_back("x");
+    nVar_Par += 1; Variable_Names.push_back("y");
+    if (geometry->GetnDim() == 3) {
+        nVar_Par += 1; Variable_Names.push_back("z");
+    }
+
+    /*--- At a mininum, the restarts and visualization files need the
+     conservative variables, so these follow next. ---*/
+
+    nVar_Par += nVar_Consv_Par;
+
+    /*--- For now, leave the names as "Conservative_", etc., in order
+     to avoid confusion with the serial version, which still prints these
+     names. Names can be set alternatively by using the commented code
+     below. ---*/
+
+    Variable_Names.push_back("Displacement_x");
+    Variable_Names.push_back("Displacement_y");
+    if (geometry->GetnDim() == 3)
+        Variable_Names.push_back("Displacement_z");
+    /*--- If requested, register the limiter and residuals for all of the
+     equations in the current flow problem. ---*/
+
+    if (!config->GetLow_MemoryOutput()) {
+
+        /*--- Add the residuals ---*/
+
+        if (config->GetWrt_Residuals() && ( config->GetKind_Solver()!=FEM_MODAL ) ) {
+            nVar_Par += nVar_Consv_Par;
+            Variable_Names.push_back("Residual_Displacement_x");
+            Variable_Names.push_back("Residual_Displacement_y");
+            if (geometry->GetnDim() == 3)
+                Variable_Names.push_back("Residual_Displacement_z");
+        }
+
+        /*--- If the analysis is dynamic... ---*/
+        if (config->GetDynamic_Analysis() == DYNAMIC) {
+
+            /*--- Velocities ---*/
+            nVar_Par += 2;
+            Variable_Names.push_back("Velocity_x");
+            Variable_Names.push_back("Velocity_y");
+            if (geometry->GetnDim() == 3) {
+                nVar_Par += 1;
+                Variable_Names.push_back("Velocity_z");
+            }
+
+            /*--- Accelerations ---*/
+            nVar_Par += 2;
+            Variable_Names.push_back("Acceleration_x");
+            Variable_Names.push_back("Acceleration_y");
+            if (geometry->GetnDim() == 3) {
+                nVar_Par += 1;
+                Variable_Names.push_back("Acceleration_z");
+            }
+        }
+        if (!(config->GetDiscrete_Adjoint()) && ( config->GetKind_Solver() != FEM_MODAL ) ) {
+
+            /*--- Add the stresses. ---*/
+
+            nVar_Par += 3;
+            Variable_Names.push_back("Sxx");
+            Variable_Names.push_back("Syy");
+            Variable_Names.push_back("Sxy");
+            if (geometry->GetnDim() == 3) {
+                nVar_Par += 3;
+                Variable_Names.push_back("Szz");
+                Variable_Names.push_back("Sxz");
+                Variable_Names.push_back("Syz");
+            }
+
+            /*--- Add the Von Mises Stress. ---*/
+
+            nVar_Par += 1;
+            Variable_Names.push_back("Von_Mises_Stress");
+
+        }
+
+        /*--- New variables get registered here before the end of the loop. ---*/
+
+    }
+    /*--- Allocate the local data structure now that we know how many
+     variables are in the output. ---*/
+
+    Local_Data = new su2double*[geometry->GetnPoint()];
+    for (iPoint = 0; iPoint < geometry->GetnPoint(); iPoint++) {
+        Local_Data[iPoint] = new su2double[nVar_Par];
+    }
+
+    Local_Halo = new int[geometry->GetnPoint()];
+    for (iPoint = 0; iPoint < geometry->GetnPoint(); iPoint++)
+        Local_Halo[iPoint] = !geometry->node[iPoint]->GetDomain();
+
+    /*--- Search all send/recv boundaries on this partition for any periodic
+     nodes that were part of the original domain. We want to recover these
+     for visualization purposes. ---*/
+    if (!Wrt_Halo) {
+        for (iMarker = 0; iMarker < config->GetnMarker_All(); iMarker++) {
+            if (config->GetMarker_All_KindBC(iMarker) == SEND_RECEIVE) {
+
+                /*--- Checking for less than or equal to the rank, because there may
+                 be some periodic halo nodes that send info to the same rank. ---*/
+
+                for (iVertex = 0; iVertex < geometry->nVertex[iMarker]; iVertex++) {
+                    iPoint = geometry->vertex[iMarker][iVertex]->GetNode();
+                    isPeriodic = ((geometry->vertex[iMarker][iVertex]->GetRotation_Type() > 0) &&
+                                  (geometry->vertex[iMarker][iVertex]->GetRotation_Type() % 2 == 1));
+                    if (isPeriodic) Local_Halo[iPoint] = false;
+                }
+            }
+        }
+    }
+
+    /*--------------------------------------------------------------------------*/
+    /*--- Step 2: Loop over all grid nodes and load up the desired data for  ---*/
+    /*---         the restart and vizualization files. Note that we need to  ---*/
+    /*---         increment the iVar variable after each variable load.      ---*/
+    /*---         The idea is that we're filling up the columns of field     ---*/
+    /*---         data for each iPoint (row) of the data structure. This     ---*/
+    /*---         This data will then be sorted, communicated, and written   ---*/
+    /*---         to files automatically after this routine. Note that the   ---*/
+    /*---         ordering of the data loading MUST match the order of the   ---*/
+    /*---         variable registration above for the files to be correct.   ---*/
+    /*--------------------------------------------------------------------------*/
+
+    jPoint = 0;
+
+    for (iPoint = 0; iPoint < geometry->GetnPoint(); iPoint++) {
+
+        /*--- Check for halos & write only if requested ---*/
+
+        if (!Local_Halo[iPoint] || Wrt_Halo) {
+
+            /*--- Restart the column index with each new point. ---*/
+
+            iVar = 0;
+
+            /*--- Load the grid node coordinate values. ---*/
+
+            for (iDim = 0; iDim < geometry->GetnDim(); iDim++) {
+                Local_Data[jPoint][iVar] = geometry->node[iPoint]->GetCoord(iDim);
+                if (config->GetSystemMeasurements() == US)
+                    Local_Data[jPoint][iVar] *= 12.0;
+                iVar++;
+            }
+
+            /*--- Load the conservative variable states for the mean flow variables.
+             If requested, load the limiters and residuals as well. ---*/
+
+            for (jVar = 0; jVar < nVar_First; jVar++) {
+                Local_Data[jPoint][iVar] = solver[FirstIndex]->node[iPoint]->GetSolution(jVar);
+                iVar++;
+            }
+
+            if (!config->GetLow_MemoryOutput()) {
+                if (config->GetWrt_Residuals()) {
+                    for (jVar = 0; jVar < nVar_First; jVar++) {
+                        Local_Data[jPoint][iVar] = solver[FirstIndex]->LinSysRes.GetBlock(iPoint, jVar);
+                        iVar++;
+                    }
+                }
+            }
+
+            /*--- Increment the point counter, as there may have been halos we
+             skipped over during the data loading. ---*/
+
+            jPoint++;
+        }
+    }
+
+    /*--- Free memory for auxiliary vectors. ---*/
+
+    delete [] Local_Halo;
+    cout << "finished loading FEM data\n";
 }
 
 void COutput::SortConnectivity(CConfig *config, CGeometry *geometry, unsigned short val_iZone) {
@@ -16191,7 +16405,7 @@ void COutput::SortOutputData(CConfig *config, CGeometry *geometry) {
   delete [] Local_Data;
   
   delete [] Local_Halo;
-  delete [] npoint_procs;
+//  delete [] npoint_procs;
   delete [] starting_node;
   delete [] ending_node;
   delete [] nPoint_Linear;

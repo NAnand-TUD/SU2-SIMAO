@@ -5427,7 +5427,7 @@ void CModalSolver::RK2(CGeometry *geometry, CSolver **solver_container, CConfig 
     su2double dy[4] = {0.0, 0.0, 0.0, 0.0};
     
     su2double dt = 0.005;
-    qsol = new su2double(2*nModes);
+    qsol = new su2double[2*nModes];
     
     cout << "solving structural equations of motion using two-stage RK method "<< endl;
     // solution array includes X, Y, Z displacements, obtained from gen. vars;
@@ -5435,7 +5435,7 @@ void CModalSolver::RK2(CGeometry *geometry, CSolver **solver_container, CConfig 
     // generalizedXXX contains solution from state-space modal problem
     
     ComputeModalFluidForces(geometry, config);
-    
+    cout<< " This was ok \n L5348\n";
     for( iMode = 0; iMode < nModes; ++iMode){
         dy[0] = generalizedVelocity[iMode][1];
         dy[1] = modalForceLast[iMode] - omega[iMode]*omega[iMode]*generalizedDisplacement[iMode][1];
@@ -5453,11 +5453,11 @@ void CModalSolver::RK2(CGeometry *geometry, CSolver **solver_container, CConfig 
         generalizedDisplacement[iMode][0]   = qsol[2*iMode];
         generalizedVelocity[iMode][0]       = qsol[2*iMode+1];
     }
-    
+    cout<< " This was ok \n L5456\n";
     UpdateStructuralNodes();
-    
+    cout<< " This was ok \n L5458\n";
     delete [] qsol;
-};
+}
 
 void CModalSolver::UpdateStructuralNodes(){
 //    cout<<"Update Strucutral Node being called \n 5463 solverdiectelas \n";

@@ -452,10 +452,8 @@ void CIntegration::Time_Integration_Modal(CGeometry *geometry, CSolver **solver_
   /*--- Set the Jacobian according to the different time integration methods ---*/
     cout << "time integration modal solver type: " << config->GetKind_TimeIntScheme_FEA() << "\n";
     solver_container[MainSolver]->RK2(geometry, solver_container, config);
-
-    cout<<"Before Newmark \n";
+    cout<< "After RK";
     solver_container[MainSolver]->ImplicitNewmark_Update(geometry, solver_container, config);
-    cout<<"After Newmark \n";
     /*--- Perform the MPI communication of the solution ---*/
 //    solver_container[MainSolver]->Set_MPI_Solution(geometry, config); //TODO: check this function for modal
 

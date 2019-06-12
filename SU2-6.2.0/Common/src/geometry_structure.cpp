@@ -20795,14 +20795,14 @@ void CPhysicalGeometry::ReadCSD_Mesh(CConfig *config){
 	}
 
 	getline(mode_file, line);
-	number_of_modes = stoi(line);
+	number_of_modes = atoi(line.c_str());
 	nModes = number_of_modes;
 
 	getline(mode_file, line);
-	nCSDPoints = stoi(line);
+	nCSDPoints = atoi(line.c_str());
 
 	getline(mode_file, line);
-	refLength = stof(line);
+	refLength = atof(text_line.c_str());
 
 	cout << "N. of modes = " << nModes << "\n";
     cout << "N. of nodes in CSD mesh = "<< nCSDPoints << "\n";

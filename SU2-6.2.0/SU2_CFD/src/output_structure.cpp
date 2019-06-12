@@ -12631,7 +12631,7 @@ void COutput::SetResult_Files_Parallel(CSolver *****solver_container,
       /*--- Deallocate the nodal data needed for writing restarts. ---*/
       // TODO there is segmentaion faut here - Looks like something was not initialized and is now getting freed
       // By commenting the bottom like I am looking for a quick fix to the segmentation fault.
-//      DeallocateData_Parallel(config[iZone], geometry[iZone][iInst][MESH_0]);
+      DeallocateData_Parallel(config[iZone], geometry[iZone][iInst][MESH_0]);
 
       /*--- Clear the variable names list. ---*/
       Variable_Names.clear();
@@ -14664,6 +14664,14 @@ void COutput::LoadLocalData_Modal(CConfig *config, CGeometry *geometry, CSolver 
         /*--- New variables get registered here before the end of the loop. ---*/
 
     }
+
+    cout<<"Value of variable :: "<<Variable_Names[0]<<endl;
+    cout<<"Value of variable :: "<<Variable_Names[1]<<endl;
+    cout<<"Value of variable :: "<<Variable_Names[2]<<endl;
+    cout<<"Value of variable :: "<<Variable_Names[3]<<endl;
+    cout<<"Value of variable :: "<<Variable_Names[4]<<endl;
+    cout<<"Value of variable :: "<<Variable_Names[5]<<endl;
+
     /*--- Allocate the local data structure now that we know how many
      variables are in the output. ---*/
 
@@ -14754,7 +14762,12 @@ void COutput::LoadLocalData_Modal(CConfig *config, CGeometry *geometry, CSolver 
     }
 
     /*--- Free memory for auxiliary vectors. ---*/
-
+    cout<<"Value of variable :: "<<Variable_Names[0]<<endl;
+    cout<<"Value of variable :: "<<Variable_Names[1]<<endl;
+    cout<<"Value of variable :: "<<Variable_Names[2]<<endl;
+    cout<<"Value of variable :: "<<Variable_Names[3]<<endl;
+    cout<<"Value of variable :: "<<Variable_Names[4]<<endl;
+    cout<<"Value of variable :: "<<Variable_Names[5]<<endl;
     delete [] Local_Halo;
     cout << "finished loading FEM data\n";
 }
@@ -16000,7 +16013,7 @@ void COutput::SortOutputData(CConfig *config, CGeometry *geometry) {
   
   int VARS_PER_POINT = nVar_Par;
   int *Local_Halo = NULL;
-  
+
   unsigned long *npoint_procs  = NULL;
   unsigned long *starting_node = NULL;
   unsigned long *ending_node   = NULL;

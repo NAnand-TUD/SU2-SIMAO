@@ -2349,7 +2349,7 @@ found = Variable_Names[iField].find("_z");
           } else {
             for (iPoint = 0; iPoint < nParallel_Poin; iPoint++) {
               Paraview_File << scientific << Parallel_Data[VarCounter+0][iPoint] << "\t" << Parallel_Data[VarCounter+1][iPoint] << "\t";
-              if (nDim == 3) Paraview_File << scientific << Parallel_Data[VarCounter+2][iPoint] << "\t";
+              if (nDim == 3) Paraview_File << scientific << "0.0" << "\t";//<< Parallel_Data[VarCounter+2][iPoint] << "\t";
               if (nDim == 2) Paraview_File << scientific << "0.0" << "\t";
             }
           }

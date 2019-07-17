@@ -15943,6 +15943,13 @@ public:
     void ComputeModalFluidForces(CGeometry *geometry, CConfig *config);
     
     /*!
+    * \brief Step to map fluid forces and project them onto structural mode shapes.
+    * \param[in] geometry - Geometrical definition of the problem.
+    * \param[in] config - Definition of the particular problem.
+    */
+    void ComputeModalFluidDamp(CGeometry *geometry, CConfig *config);
+
+    /*!
     * \brief updates cartesian displacements associated with each structural node
     * \param[in] qsol - solution of modal equations of motion
     */

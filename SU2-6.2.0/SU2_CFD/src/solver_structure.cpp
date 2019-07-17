@@ -97,9 +97,6 @@ CSolver::~CSolver(void) {
 
   unsigned short iVar, iDim;
   unsigned long iPoint;
-  cout<<"npoint"<<nPoint<<endl;
-  cout<<"NPoint is hard coded as 120. Here L101 solver_strucutre.cpp\n";
-  nPoint=120;
 
   /*--- Public variables, may be accessible outside ---*/
 
@@ -110,7 +107,6 @@ CSolver::~CSolver(void) {
   if (node != NULL) {
 
     for (iPoint = 0; iPoint < nPoint; iPoint++) {
-        cout<< "iPoint :: "<<iPoint<<endl;
       delete node[iPoint];
     }
     delete [] node;

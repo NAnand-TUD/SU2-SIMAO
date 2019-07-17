@@ -818,7 +818,7 @@ void COutput::WriteTecplotASCII_Parallel(CConfig *config, CGeometry *geometry, C
     else filename = config->GetFlow_FileName();
   }
   
-  if (Kind_Solver == FEM_ELASTICITY) {
+  if (Kind_Solver == FEM_ELASTICITY || Kind_Solver == FEM_MODAL) {
     if (surf_sol) filename = config->GetSurfStructure_FileName().c_str();
     else filename = config->GetStructure_FileName().c_str();
   }
@@ -840,7 +840,7 @@ void COutput::WriteTecplotASCII_Parallel(CConfig *config, CGeometry *geometry, C
     strcat(cstr, buffer);
   }
   
-  if (config->GetUnsteady_Simulation() && config->GetWrt_Unsteady() && config->GetUnsteady_Simulation() != HARMONIC_BALANCE) {
+  if ((config->GetUnsteady_Simulation() && config->GetWrt_Unsteady() && config->GetUnsteady_Simulation() != HARMONIC_BALANCE)|| Kind_Solver==FEM_MODAL) {
     if (SU2_TYPE::Int(iExtIter) < 10) SPRINTF (buffer, "_0000%d.dat", SU2_TYPE::Int(iExtIter));
     if ((SU2_TYPE::Int(iExtIter) >= 10) && (SU2_TYPE::Int(iExtIter) < 100)) SPRINTF (buffer, "_000%d.dat", SU2_TYPE::Int(iExtIter));
     if ((SU2_TYPE::Int(iExtIter) >= 100) && (SU2_TYPE::Int(iExtIter) < 1000)) SPRINTF (buffer, "_00%d.dat", SU2_TYPE::Int(iExtIter));

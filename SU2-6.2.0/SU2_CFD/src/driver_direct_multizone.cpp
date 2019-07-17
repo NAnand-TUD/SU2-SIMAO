@@ -186,8 +186,8 @@ void CMultizoneDriver::StartSolver() {
     Monitor(TimeIter);
 
     /*--- Output the solution in files. ---*/
-
-    Output(TimeIter);
+    /* COmmented Out temp*/
+//    Output(TimeIter);
 
     /*--- If the convergence criteria has been met, terminate the simulation. ---*/
 
@@ -301,6 +301,7 @@ void CMultizoneDriver::Run_GaussSeidel() {
       /*--- If a mesh update is required due to the transfer of data ---*/
     cout << "\n\n run GS dynupdatemesh --> " << iZone <<" updatemesh= " << UpdateMesh <<"\n";
       if (UpdateMesh > 0) DynamicMeshUpdate(iZone, ExtIter);
+
 
       /*--- Iterate the zone as a block, either to convergence or to a max number of iterations ---*/
     cout << "\n\n run GS iteration->solve --> " << iZone <<"\n(Fluid: zone 0; Structure: zone 1)\n";

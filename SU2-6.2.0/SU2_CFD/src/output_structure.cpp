@@ -14755,14 +14755,8 @@ void COutput::LoadLocalData_Modal(CConfig *config, CGeometry *geometry, CSolver 
     }
 
     /*--- Free memory for auxiliary vectors. ---*/
-    cout<<"Value of variable :: "<<Variable_Names[0]<<endl;
-    cout<<"Value of variable :: "<<Variable_Names[1]<<endl;
-    cout<<"Value of variable :: "<<Variable_Names[2]<<endl;
-    cout<<"Value of variable :: "<<Variable_Names[3]<<endl;
-    cout<<"Value of variable :: "<<Variable_Names[4]<<endl;
-    cout<<"Value of variable :: "<<Variable_Names[5]<<endl;
     delete [] Local_Halo;
-    cout << "finished loading FEM data\n";
+    cout << "finished loading MODAL data\n";
 }
 
 void COutput::SortConnectivity(CConfig *config, CGeometry *geometry, unsigned short val_iZone) {

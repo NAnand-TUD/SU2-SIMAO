@@ -9347,7 +9347,8 @@ void CElasticityMovement::SetBoundaryDisplacements(CGeometry *geometry, CConfig 
   /*--- As initialization, set to zero displacements of all the surfaces except the symmetry
    plane, the receive boundaries and periodic boundaries. ---*/
   for (iMarker = 0; iMarker < config->GetnMarker_All(); iMarker++) {
-    if (((config->GetMarker_All_KindBC(iMarker) != SYMMETRY_PLANE) &&
+    if ((
+//         (config->GetMarker_All_KindBC(iMarker) != SYMMETRY_PLANE) &&
          (config->GetMarker_All_KindBC(iMarker) != SEND_RECEIVE) &&
          (config->GetMarker_All_KindBC(iMarker) != PERIODIC_BOUNDARY))) {
 

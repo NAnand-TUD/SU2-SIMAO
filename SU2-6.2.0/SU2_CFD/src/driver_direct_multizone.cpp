@@ -187,7 +187,7 @@ void CMultizoneDriver::StartSolver() {
 
     /*--- Output the solution in files. ---*/
     /* COmmented Out temp*/
-//    Output(TimeIter);
+    Output(TimeIter);
 
     /*--- If the convergence criteria has been met, terminate the simulation. ---*/
 
@@ -315,6 +315,8 @@ void CMultizoneDriver::Run_GaussSeidel() {
     /*--- This is temporary. Each zone has to be monitored independently. Right now, fixes CHT output. ---*/
 
     Monitor(iOuter_Iter);
+
+    Output(iOuter_Iter);
 
     Convergence = OuterConvergence(iOuter_Iter);
     cout << "convergence: " << Convergence << endl;
@@ -551,7 +553,6 @@ void CMultizoneDriver::Output(unsigned long TimeIter) {
 
   /*--- Determine whether a solution needs to be written
    after the current iteration ---*/
-
   if (
 
       /*--- General if statements to print output statements ---*/

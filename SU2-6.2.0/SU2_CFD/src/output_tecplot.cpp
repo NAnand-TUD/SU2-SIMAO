@@ -796,7 +796,8 @@ void COutput::WriteTecplotASCII_Parallel(CConfig *config, CGeometry *geometry, C
   unsigned short Kind_Solver = config->GetKind_Solver();
   
   unsigned long iPoint, iElem, iNode;
-  unsigned long iExtIter = config->GetExtIter();
+//  unsigned long iExtIter = config->GetExtIter();
+  unsigned long iExtIter = config->GetOuterIter();
   
   bool adjoint = config->GetContinuous_Adjoint() || config->GetDiscrete_Adjoint();
   
@@ -839,7 +840,7 @@ void COutput::WriteTecplotASCII_Parallel(CConfig *config, CGeometry *geometry, C
     SPRINTF (buffer, "_%d", SU2_TYPE::Int(val_iZone));
     strcat(cstr, buffer);
   }
-  
+  cout<< "I was called finalle -- output_tecplot.cpp \n";
   if ((config->GetUnsteady_Simulation() && config->GetWrt_Unsteady() && config->GetUnsteady_Simulation() != HARMONIC_BALANCE)|| Kind_Solver==FEM_MODAL) {
     if (SU2_TYPE::Int(iExtIter) < 10) SPRINTF (buffer, "_0000%d.dat", SU2_TYPE::Int(iExtIter));
     if ((SU2_TYPE::Int(iExtIter) >= 10) && (SU2_TYPE::Int(iExtIter) < 100)) SPRINTF (buffer, "_000%d.dat", SU2_TYPE::Int(iExtIter));

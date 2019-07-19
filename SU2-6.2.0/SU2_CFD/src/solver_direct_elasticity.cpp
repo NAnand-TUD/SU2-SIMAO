@@ -5178,17 +5178,17 @@ void CFEASolver::FilterElementDensities(CGeometry *geometry, CConfig *config)
 
 CModalSolver::CModalSolver(void) : CSolver() {
   
-    nElement        = 0;
-    nDim            = 0;
-    nVar            = 0;
-    nMarker         = 0;
-    nPoint         = 0;
-	nModes	        = 0;
-	omega 	        = NULL;
-	damping	        = NULL;
-    modalForceLast  = NULL;
-    modalForce      = NULL;
-    SolRest         = NULL;
+    nElement                = 0;
+    nDim                    = 0;
+    nVar                    = 0;
+    nMarker                 = 0;
+    nPoint                  = 0;
+	nModes	                = 0;
+	omega 	                = NULL;
+	damping	                = NULL;
+    modalForceLast          = NULL;
+    modalForce              = NULL;
+    SolRest                 = NULL;
     generalizedDisplacement = NULL;
     generalizedVelocity     = NULL;
 }
@@ -5204,11 +5204,11 @@ CModalSolver::CModalSolver(CGeometry *geometry, CConfig *config) : CSolver() {
     
 //     element_based = false;          // A priori we don't have an element-based input file (most of the applications will be like this)
 
-	omega 	        = NULL;
-	damping	        = NULL;
-    modalForceLast  = NULL;
-    modalForce      = NULL;
-    SolRest         = NULL;
+	omega 	                = NULL;
+	damping	                = NULL;
+    modalForceLast          = NULL;
+    modalForce              = NULL;
+    SolRest                 = NULL;
     generalizedDisplacement = NULL;
     generalizedVelocity     = NULL;
     
@@ -5370,20 +5370,21 @@ void CModalSolver::ReadCSD_Mesh(CConfig *config){
     omega           = new su2double [nModes];
     modalForce      = new su2double [nModes];
     modalForceLast  = new su2double [nModes];
-    XV = new su2double [nPoint];
-    YV = new su2double [nPoint];
-    ZV = new su2double [nPoint];
+    XV              = new su2double [nPoint];
+    YV              = new su2double [nPoint];
+    ZV              = new su2double [nPoint];
     
     generalizedDisplacement   = new su2double *[nModes];
     generalizedVelocity       = new su2double *[nModes];
     
-    for (iMode=0; iMode < nModes; ++iMode) generalizedDisplacement[iMode] = new su2double [3];
-    for (iMode=0; iMode < nModes; ++iMode) generalizedVelocity[iMode] = new su2double [3];
+    for (iMode=0; iMode < nModes; ++iMode) generalizedDisplacement[iMode]   = new su2double [3];
+    for (iMode=0; iMode < nModes; ++iMode) generalizedVelocity[iMode]       = new su2double [3];
+
     for (ipoint = 0; ipoint < nPoint; ipoint++) {
         node[ipoint] = new CModalVariable(SolRest, nDim, nVar, nModes, config);
     }
     
-	for (iMode=0; iMode < nModes; ++iMode){
+	for (iMode=0; iMode < nModes; ++iMode) {
 		getline(mode_file, line);
 		istringstream iss(line); 
 		iss >> frequency;
@@ -5391,7 +5392,7 @@ void CModalSolver::ReadCSD_Mesh(CConfig *config){
 		iss.clear();
 	}
 
-	for (iMode=0; iMode < nModes; ++iMode){
+	for (iMode=0; iMode < nModes; ++iMode) {
 		for (ipoint = 0 ; ipoint < nPoint; ipoint++) {
 			getline(mode_file, line);
 			istringstream iss(line); 
@@ -5432,10 +5433,11 @@ void CModalSolver::RK2(CGeometry *geometry, CSolver **solver_container, CConfig 
     // solution array includes X, Y, Z displacements, obtained from gen. vars;
     // and must be parsed to node variable
     // generalizedXXX contains solution from state-space modal problem
-    
+
+    // Get the modal forces from the interpolation
     ComputeModalFluidForces(geometry, config);
 
-    for( iMode = 0; iMode < nModes; ++iMode){
+    for( iMode = 0; iMode < nModes; ++iMode) {
         dy[0] = generalizedVelocity[iMode][1];
         dy[1] = modalForceLast[iMode] - omega[iMode]*omega[iMode]*generalizedDisplacement[iMode][1];
 
@@ -5446,6 +5448,7 @@ void CModalSolver::RK2(CGeometry *geometry, CSolver **solver_container, CConfig 
         qsol[2*iMode+1] = generalizedVelocity[iMode][1] + ONE2*dt*(dy[3] + dy[1]);
     }
 
+    // Update old and new solution
     for( iMode = 0; iMode < nModes; ++iMode) {
         generalizedDisplacement[iMode][1]   = generalizedDisplacement[iMode][0];
         generalizedVelocity[iMode][1]       = generalizedVelocity[iMode][0];
@@ -5458,23 +5461,25 @@ void CModalSolver::RK2(CGeometry *geometry, CSolver **solver_container, CConfig 
     delete [] qsol;
 }
 
-void CModalSolver::UpdateStructuralNodes(){
+void CModalSolver::UpdateStructuralNodes() {
 
     unsigned long iPoint;
     unsigned short iDim, iMode;
     su2double delta, solutionValue;
-    
+
+    // Initialization of the Solution variables
     for(iPoint = 0; iPoint < nPoint; ++iPoint) node[iPoint]->SetSolution_time_n();
     for(iPoint = 0; iPoint < nPoint; ++iPoint) node[iPoint]->SetSolution_Vel_time_n();
     for(iPoint = 0; iPoint < nPoint; ++iPoint)
         for(iDim = 0; iDim < nDim; ++iDim) node[iPoint]->SetSolution(iDim,0.0);
     for(iPoint = 0; iPoint < nPoint; ++iPoint)
         for(iDim = 0; iDim < nDim; ++iDim) node[iPoint]->SetSolution_Vel(iDim,0.0);
-    
-    for(iMode = 0; iMode < nModes; ++iMode){
+
+    // Loop over nodes to calculate the Gen. Disp. and Gen. Vel.
+    for(iMode = 0; iMode < nModes; ++iMode) {
         delta = generalizedDisplacement[iMode][0] - generalizedDisplacement[iMode][1];
         for(iPoint = 0; iPoint < nPoint; ++iPoint) {
-            for(iDim = 0; iDim < nDim; ++iDim){
+            for(iDim = 0; iDim < nDim; ++iDim) {
                 solutionValue = delta*node[iPoint]->GetModeVector(iMode,iDim);
                 node[iPoint]->Add_DeltaSolution(iDim,solutionValue);
             }
@@ -5482,14 +5487,12 @@ void CModalSolver::UpdateStructuralNodes(){
         // repeat to update velocities
         delta = generalizedVelocity[iMode][0] - generalizedVelocity[iMode][1];
         for(iPoint = 0; iPoint < nPoint; ++iPoint) {
-            for(iDim = 0; iDim < nDim; ++iDim){
+            for(iDim = 0; iDim < nDim; ++iDim) {
                 solutionValue = delta*node[iPoint]->GetModeVector(iMode,iDim);
                 node[iPoint]->Add_DeltaVelSolution(iDim,solutionValue);
             }
-
         }
     }
-    
 }
 
 void CModalSolver::ComputeModalFluidForces(CGeometry *geometry, CConfig *config) {
@@ -5525,10 +5528,10 @@ void CModalSolver::ComputeModalFluidForces(CGeometry *geometry, CConfig *config)
       nNode = quad? 4 : nDim;
 
       for (iNode = 0; iNode < nNode; ++iNode) {
-          //getting pointer to stored node variable
+        // getting pointer to stored node variable
         nodes[iNode] = geometry->bound[iMarker][iElem]->GetNode(iNode);
-        //current location?
-        for (iDim = 0; iDim < nDim; ++iDim){
+        // current location?
+        for (iDim = 0; iDim < nDim; ++iDim) {
             coords[iNode][iDim] = geometry->node[nodes[iNode]]->GetCoord(iDim)+
                                 node[nodes[iNode]]->GetSolution(iDim);
         }
@@ -5695,7 +5698,6 @@ void CModalSolver::ComputeModalFluidForces(CGeometry *geometry, CConfig *config)
             }
         }
     }
-
 }
 
 void CModalSolver::ComputeModalFluidDamp(CGeometry *geometry, CConfig *config) {
@@ -5710,7 +5712,7 @@ void CModalSolver::ComputeModalFluidDamp(CGeometry *geometry, CConfig *config) {
   vector<su2double> forces;
   vector<unsigned long> npointcheck;
 
-  cout << "getting fluid force\n";
+  cout << "getting fluid damping\n";
   /*--- Loop through the FSI interface pairs ---*/
   /*--- 1st pass to compute forces ---*/
   for (iMarkerInt = 1; iMarkerInt <= nMarkerInt; ++iMarkerInt) {
@@ -5921,7 +5923,7 @@ void CModalSolver::Postprocessing(CGeometry *geometry, CSolver **solver_containe
     cout << "\tGen. Displacement\tGen. Velocity\n";
     for(iMode = 0; iMode < nModes; ++iMode){
         cout <<"Mode " << iMode+1 << "\t";
-        cout << generalizedDisplacement[iMode][0] << "\t\t\t" << generalizedVelocity[iMode][0] << endl;
+        cout << generalizedDisplacement[iMode][0] << "\t" << generalizedVelocity[iMode][0] << endl;
     }
     
     return;    

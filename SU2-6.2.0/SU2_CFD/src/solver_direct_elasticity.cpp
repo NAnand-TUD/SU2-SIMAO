@@ -5337,7 +5337,7 @@ void CModalSolver::ReadCSD_Mesh(CConfig *config){
 	char cstr[200];
 
     mesh_file.close();
-	Uinf = 0.96*pow(config->GetGamma()*config->GetGas_Constant()*config->GetTemperature_FreeStream(),0.5);
+	Uinf = config->GetMach()*pow(config->GetGamma()*config->GetGas_Constant()*config->GetTemperature_FreeStream(),0.5);
 	cout<< " Mach Inf       :: "<<config->GetMach()<<endl;
     cout<< " Gamma          :: "<<config->GetGamma()<<endl;
     cout<< " Temperature    :: "<<config->GetTemperature_FreeStream()<<endl;

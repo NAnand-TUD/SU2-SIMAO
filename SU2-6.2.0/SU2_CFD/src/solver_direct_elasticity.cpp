@@ -5337,6 +5337,7 @@ void CModalSolver::ReadCSD_Mesh(CConfig *config){
 	char cstr[200];
 
     mesh_file.close();
+	Uinf = 1.;
     
     /* --- Read in modes' frequencies and mode shapes vectors --- */
     strcpy(cstr,"modesFile.dat");
@@ -5388,7 +5389,7 @@ void CModalSolver::ReadCSD_Mesh(CConfig *config){
 		getline(mode_file, line);
 		istringstream iss(line); 
 		iss >> frequency;
-		omega[iMode] = frequency; // Uinf*sqrt(frequency)/(2.0*MyPI*refLength);
+		omega[iMode] = 2.0*MyPI*frequency*refLength/Uinf; //frequency; // TODO: compute Uinf from config;
 		iss.clear();
 	}
 

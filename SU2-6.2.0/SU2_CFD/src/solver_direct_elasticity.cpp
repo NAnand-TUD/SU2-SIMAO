@@ -5338,7 +5338,7 @@ void CModalSolver::ReadCSD_Mesh(CConfig *config){
 
     mesh_file.close();
 	Uinf = 0.96*pow(config->GetGamma()*config->GetGas_Constant()*config->GetTemperature_FreeStream(),0.5);
-	cout<< " Mach Inf       :: "<<config->GetMach_Motion()<<endl;
+	cout<< " Mach Inf       :: "<<config->GetMach()<<endl;
     cout<< " Gamma          :: "<<config->GetGamma()<<endl;
     cout<< " Temperature    :: "<<config->GetTemperature_FreeStream()<<endl;
     
@@ -5433,7 +5433,7 @@ void CModalSolver::RK2(CGeometry *geometry, CSolver **solver_container, CConfig 
     
     su2double dt = 0.005;
     qsol = new su2double[2*nModes];
-    
+
     cout << "solving structural equations of motion using two-stage RK method "<< endl;
     // solution array includes X, Y, Z displacements, obtained from gen. vars;
     // and must be parsed to node variable

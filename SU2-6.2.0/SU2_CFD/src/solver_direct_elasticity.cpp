@@ -5337,7 +5337,10 @@ void CModalSolver::ReadCSD_Mesh(CConfig *config){
 	char cstr[200];
 
     mesh_file.close();
-	Uinf = 1.;
+	Uinf = 0.96*pow(config->GetGamma()*config->GetGas_Constant()*config->GetTemperature_FreeStream(),0.5);
+	cout<< " Mach Inf       :: "<<config->GetMach_Motion()<<endl;
+    cout<< " Gamma          :: "<<config->GetGamma()<<endl;
+    cout<< " Temperature    :: "<<config->GetTemperature_FreeStream()<<endl;
     
     /* --- Read in modes' frequencies and mode shapes vectors --- */
     strcpy(cstr,"modesFile.dat");
@@ -5389,7 +5392,8 @@ void CModalSolver::ReadCSD_Mesh(CConfig *config){
 		getline(mode_file, line);
 		istringstream iss(line); 
 		iss >> frequency;
-		omega[iMode] = 2.0*MyPI*frequency*refLength/Uinf; //frequency; // TODO: compute Uinf from config;
+		omega[iMode] = 2.0*PI_NUMBER*frequency*refLength/Uinf; //frequency; // TODO: compute Uinf from config;
+		cout<< "Omega :: "<<omega[iMode]<<" Freq ::"<<  frequency<<endl;
 		iss.clear();
 	}
 
@@ -5447,6 +5451,65 @@ void CModalSolver::RK2(CGeometry *geometry, CSolver **solver_container, CConfig 
         
         qsol[2*iMode]   = generalizedDisplacement[iMode][1] + ONE2*dt*(dy[2] + dy[0]);
         qsol[2*iMode+1] = generalizedVelocity[iMode][1] + ONE2*dt*(dy[3] + dy[1]);
+    }
+
+    // Update old and new solution
+    for( iMode = 0; iMode < nModes; ++iMode) {
+        generalizedDisplacement[iMode][1]   = generalizedDisplacement[iMode][0];
+        generalizedVelocity[iMode][1]       = generalizedVelocity[iMode][0];
+        generalizedDisplacement[iMode][0]   = qsol[2*iMode];
+        generalizedVelocity[iMode][0]       = qsol[2*iMode+1];
+    }
+
+    UpdateStructuralNodes();
+
+    delete [] qsol;
+}
+
+void CModalSolver::RK4(CGeometry *geometry, CSolver **solver_container, CConfig *config){
+
+    unsigned long iPoint;
+    unsigned short iMode,iDim;
+    su2double *qsol;
+    su2double dy[8] = {0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0};
+
+    su2double dt = 0.005;
+    qsol = new su2double[2*nModes];
+
+    cout << "solving structural equations of motion using two-stage RK method "<< endl;
+    // solution array includes X, Y, Z displacements, obtained from gen. vars;
+    // and must be parsed to node variable
+    // generalizedXXX contains solution from state-space modal problem
+
+    // Get the modal forces from the interpolation
+    ComputeModalFluidForces(geometry, config);
+
+    for( iMode = 0; iMode < nModes; ++iMode) {
+
+        // RK Step 1
+        // K1  = dt * f (Tn, Yn)
+        dy[0] = dt*generalizedVelocity[iMode][0];
+        dy[1] = dt*(modalForceLast[iMode] - omega[iMode]*omega[iMode]*generalizedDisplacement[iMode][0]);
+
+        // RK Step 2
+        // K2  = dt * f (Tn + dt/2, Yn + K1/2)
+        dy[2] = dt * (generalizedVelocity[iMode][0] + ONE2*dt*dy[1]) ;
+        dy[3] = dt * (modalForce[iMode] - omega[iMode]*omega[iMode]*(generalizedDisplacement[iMode][0]+ONE2*dt*dy[1])) ;
+
+        // RK Step 3
+        // K3  = dt * f (Tn + dt/2, Yn + K2/2)
+        dy[4] = dt *(generalizedVelocity[iMode][0] + ONE2*dt*dy[3] );
+        dy[5] = dt *(modalForce[iMode] - omega[iMode]*omega[iMode]*(generalizedDisplacement[iMode][0]+ONE2*dt*dy[3]));
+
+        // RK Step 4
+        // K4  = dt * f (Tn + dt, Yn + K3)
+        dy[6] = dt *(generalizedVelocity[iMode][0] + dt*dy[5] );
+        dy[7] = dt *(modalForce[iMode] - omega[iMode]*omega[iMode]*(generalizedDisplacement[iMode][0]+dt*dy[1]));
+
+        // RK4 Solution
+        // Y N+1 = Y N + 1/6 * (K1 + 2K2 + 2K3 + K4)
+        qsol[2*iMode]   = generalizedDisplacement[iMode][0] + 0.16666*dt*(dy[0] + 2*dy[2] + 2*dy[4] + dy[6]);
+        qsol[2*iMode+1] = generalizedVelocity[iMode][0] + 0.16666*(dy[1] + 2*dy[3] + 2*dy[5] + dy[7]);
     }
 
     // Update old and new solution
@@ -5577,7 +5640,6 @@ void CModalSolver::ComputeModalFluidForces(CGeometry *geometry, CConfig *config)
         for (iDim = 0; iDim < nDim; ++iDim) force[iDim] += weight*area*node[nodes[iNode]]->Get_FlowTraction(iDim);
         for (iDim = 0; iDim < nDim; ++iDim) {
           forces.push_back(force[iDim]);
-
       }
     }
   }
@@ -5691,6 +5753,8 @@ void CModalSolver::ComputeModalFluidForces(CGeometry *geometry, CConfig *config)
         modalForceLast[iMode] = modalForce[iMode];
         modalForce[iMode] = 0.0;
     }
+
+    su2double ScaleFactor = 1.225 *  pow(0.463,5);
         // compute new value
     for(iMode = 0; iMode < nModes; ++iMode){
         for( iPoint = 0; iPoint < nPoint; ++iPoint){
@@ -5782,7 +5846,6 @@ void CModalSolver::ComputeModalFluidDamp(CGeometry *geometry, CConfig *config) {
         for (iDim = 0; iDim < nDim; ++iDim) force[iDim] += weight*area*node[nodes[iNode]]->Get_FlowTraction(iDim);
         for (iDim = 0; iDim < nDim; ++iDim) {
           forces.push_back(force[iDim]);
-
       }
     }
   }

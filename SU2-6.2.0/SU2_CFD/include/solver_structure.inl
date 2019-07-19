@@ -2532,6 +2532,8 @@ inline void CSolver::ReadCSD_Mesh(CConfig *config) {}
 
 inline void CSolver::RK2(CGeometry *geometry, CSolver **solver_container, CConfig *config) {}
 
+inline void CSolver::RK4(CGeometry *geometry, CSolver **solver_container, CConfig *config) {}
+
 // inline su2double CModalSolver::Get_MassMatrix(unsigned long iPoint, unsigned long jPoint, unsigned short iVar, unsigned short jVar){ return MassMatrix.GetBlock(iPoint, jPoint, iVar, jVar); }
 // 
 // inline unsigned short CModalSolver::Get_iElem_iDe(unsigned long iElem){ return iElem_iDe[iElem]; }

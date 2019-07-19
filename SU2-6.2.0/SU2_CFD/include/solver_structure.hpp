@@ -4408,6 +4408,8 @@ public:
    * \param[in] config - Definition of the particular problem.
    */
   virtual void RK2(CGeometry *geometry, CSolver **solver_container, CConfig *config);
+
+  virtual void RK4(CGeometry *geometry, CSolver **solver_container, CConfig *config);
     
 };
 
@@ -15934,6 +15936,8 @@ public:
     void ReadCSD_Mesh(CConfig *config);
 
     void RK2(CGeometry *geometry, CSolver **solver_container, CConfig *config);
+
+    void RK4(CGeometry *geometry, CSolver **solver_container, CConfig *config);
     
     /*!
     * \brief Step to map fluid forces and project them onto structural mode shapes.

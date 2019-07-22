@@ -17270,7 +17270,7 @@ void CPhysicalGeometry::SetGridVelocity(CConfig *config, unsigned long iter) {
     /*--- Unsteady time step ---*/
     
     TimeStep = config->GetDelta_UnstTimeND();
-    
+
     /*--- Compute mesh velocity with 1st or 2nd-order approximation ---*/
     
     for (iDim = 0; iDim < nDim; iDim++) {

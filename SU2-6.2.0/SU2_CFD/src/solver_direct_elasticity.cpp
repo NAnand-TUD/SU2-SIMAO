@@ -5257,7 +5257,7 @@ CModalSolver::CModalSolver(CGeometry *geometry, CConfig *config) : CSolver() {
     }
   
     // read in mode shapes (TODO: rename function)
-    ReadCSD_Mesh(config);
+    ReadCSD_Mesh_Nastran(config);
     
     for (iMode=0; iMode < nModes; ++iMode) {
         cout << "2-Mode " << iMode+1 << " Frequency:\t" << " = " << omega[iMode] << endl;
@@ -5322,7 +5322,10 @@ void CModalSolver::Preprocessing(CGeometry *geometry, CSolver **solver_container
 
 }
 
-void CModalSolver::ReadCSD_Mesh(CConfig *config){
+void CModalSolver::ReadCSD_Mesh_Ansys(CConfig *config) {
+}
+
+void CModalSolver::ReadCSD_Mesh_Nastran(CConfig *config){
     //TODO: add options to config file (hardwire test case for now?!)
     //
     unsigned long ipoint,iMode,nModesPoints;
@@ -5760,7 +5763,7 @@ void CModalSolver::ComputeModalFluidForces(CGeometry *geometry, CConfig *config)
     su2double ScaleFactor = 1.225 *  pow(0.463,5);
         // compute new value
     for(iMode = 0; iMode < nModes; ++iMode){
-        for( iPoint = 0; iPoint < nPoint; ++iPoint){
+        for(iPoint = 0; iPoint < nPoint; ++iPoint){
              for(iDim = 0; iDim < nDim; ++iDim){      
                 modalForce[iMode] += node[iPoint]->GetModeVector(iMode,iDim)*node[iPoint]->Get_FlowTraction(iDim);
             }

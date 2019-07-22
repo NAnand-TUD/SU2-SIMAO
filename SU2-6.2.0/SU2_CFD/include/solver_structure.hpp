@@ -15934,7 +15934,9 @@ public:
     */
     void Preprocessing(CGeometry *geometry, CSolver **solver_container, CConfig *config, CNumerics **numerics, unsigned short iMesh, unsigned long Iteration, unsigned short RunTime_EqSystem, bool Output);
   
-    void ReadCSD_Mesh(CConfig *config);
+    void ReadCSD_Mesh_Nastran(CConfig *config);
+
+    void ReadCSD_Mesh_Ansys(CConfig *config);
 
     void RK2(CGeometry *geometry, CSolver **solver_container, CConfig *config);
 

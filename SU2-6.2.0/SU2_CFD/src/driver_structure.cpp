@@ -5546,7 +5546,6 @@ CFSIDriver::CFSIDriver(char* confFile,
     residual_struct[iVar] = 0.0;
     residual_struct_rel[iVar] = 0.0;
   }
-
 }
 
 CFSIDriver::~CFSIDriver(void) {

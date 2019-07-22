@@ -5493,7 +5493,7 @@ void CModalSolver::ReadCSD_Mesh_Nastran(CConfig *config){
 		getline(mode_file, line);
 		istringstream iss(line); 
 		iss >> frequency;
-		omega[iMode] = 2.0*PI_NUMBER*frequency*refLength/Uinf; //frequency; // TODO: compute Uinf from config;
+		omega[iMode] = frequency;//2.0*PI_NUMBER*frequency*refLength/Uinf; //frequency; // TODO: compute Uinf from config;
 		cout<< "Omega :: "<<omega[iMode]<<" Freq ::"<<  frequency<<endl;
 		iss.clear();
 	}
@@ -5543,7 +5543,7 @@ void CModalSolver::RK2(CGeometry *geometry, CSolver **solver_container, CConfig 
     // Get the modal forces from the interpolation
     ComputeModalFluidForces(geometry, config);
 
-    su2double DampingRatio = 0.0;
+    su2double DampingRatio = 0.0005;
 
     for( iMode = 0; iMode < nModes; ++iMode) {
         dy[0] = generalizedVelocity[iMode][1];

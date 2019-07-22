@@ -5257,7 +5257,7 @@ CModalSolver::CModalSolver(CGeometry *geometry, CConfig *config) : CSolver() {
     }
   
     // read in mode shapes (TODO: rename function)
-    ReadCSD_Mesh(config);
+    ReadCSD_Mesh_Nastran(config);
     
     for (iMode=0; iMode < nModes; ++iMode) {
         cout << "2-Mode " << iMode+1 << " Frequency:\t" << " = " << omega[iMode] << endl;
@@ -5322,7 +5322,10 @@ void CModalSolver::Preprocessing(CGeometry *geometry, CSolver **solver_container
 
 }
 
-void CModalSolver::ReadCSD_Mesh(CConfig *config){
+void CModalSolver::ReadCSD_Mesh_Ansys(CConfig *config) {
+}
+
+void CModalSolver::ReadCSD_Mesh_Nastran(CConfig *config){
     //TODO: add options to config file (hardwire test case for now?!)
     //
     unsigned long ipoint,iMode,nModesPoints;

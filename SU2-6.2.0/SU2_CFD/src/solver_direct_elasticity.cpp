@@ -5323,6 +5323,104 @@ void CModalSolver::Preprocessing(CGeometry *geometry, CSolver **solver_container
 }
 
 void CModalSolver::ReadCSD_Mesh_Ansys(CConfig *config) {
+    //TODO: add options to config file (hardwire test case for now?!)
+    //
+    unsigned long iPoint,iMode,nModesPoints;
+    unsigned short nModes,iDim;
+    vector<unsigned long>::iterator it;
+    su2double frequency, Uinf;
+    su2double Coord_3D[3];
+    su2double *XV,*YV,*ZV;
+    ifstream mode_file, mesh_file;
+    string::size_type position;
+    string line, dummy, text_line;
+    char cstr[200];
+
+    mesh_file.close();
+    Uinf = 0.96*pow(config->GetGamma()*config->GetGas_Constant()*config->GetTemperature_FreeStream(),0.5);
+    cout<< " Mach Inf       :: "<<config->GetMach_Motion()<<endl;
+    cout<< " Gamma          :: "<<config->GetGamma()<<endl;
+    cout<< " Temperature    :: "<<config->GetTemperature_FreeStream()<<endl;
+
+    /* --- Read in modes' frequencies and mode shapes vectors --- */
+    strcpy(cstr,"Mode_shaoe_node_coord_mode_1.dat");
+
+    mode_file.open(cstr, ios::in);
+
+    // open the input file
+    if (mode_file.fail()) {
+        cout << "Modes File could not be opened! Terminating!" << endl;
+        exit(EXIT_FAILURE);
+    }
+
+    getline(mode_file, line);
+    nModes = 1; //atoi(line.c_str());
+
+//    getline(mode_file, line);
+//    nModesPoints = atoi(line.c_str());
+//    cout << "npoints/nModesPoints: " << nPoint << "\t" << nModesPoints << endl;
+//    assert(nModesPoints == nPoint);
+
+//    getline(mode_file, line);
+//    refLength = atof(line.c_str());
+//
+//    cout << "N. of modes = " << nModes << "\n";
+//    cout << "N. of nodes in CSD mesh = "<< nPoint << "\n";
+//    cout << "Reference Length = " << refLength << endl;
+
+    // initialize modes shapes, frequency and coordinate arrays
+    modeShapes.reserve(nDim*nPoint*nModes);
+    omega           = new su2double [nModes];
+    modalForce      = new su2double [nModes];
+    modalForceLast  = new su2double [nModes];
+    XV              = new su2double [nPoint];
+    YV              = new su2double [nPoint];
+    ZV              = new su2double [nPoint];
+
+    generalizedDisplacement   = new su2double *[nModes];
+    generalizedVelocity       = new su2double *[nModes];
+
+    for (iMode=0; iMode < nModes; ++iMode) generalizedDisplacement[iMode]   = new su2double [3];
+    for (iMode=0; iMode < nModes; ++iMode) generalizedVelocity[iMode]       = new su2double [3];
+
+    for (iPoint = 0; iPoint < nPoint; iPoint++) {
+        node[iPoint] = new CModalVariable(SolRest, nDim, nVar, nModes, config);
+    }
+
+    for (iMode=0; iMode < nModes; ++iMode) {
+        getline(mode_file, line);
+        istringstream iss(line);
+        iss >> frequency;
+        omega[iMode] = frequency;//2.0*PI_NUMBER*frequency*refLength/Uinf; //frequency; // TODO: compute Uinf from config;
+        cout<< "Omega :: "<<omega[iMode]<<" Freq ::"<<  frequency<<endl;
+        iss.clear();
+    }
+
+    for (iMode=0; iMode < nModes; ++iMode) {
+        for (iPoint = 0 ; iPoint < nPoint; iPoint++) {
+            getline(mode_file, line);
+            istringstream iss(line);
+            iss >> Coord_3D[0]; iss >> Coord_3D[1]; iss >> Coord_3D[2];
+            XV[iPoint] = Coord_3D[0]/refLength;
+            YV[iPoint] = Coord_3D[1]/refLength;
+            ZV[iPoint] = Coord_3D[2]/refLength;
+            for(iDim=0; iDim < nDim; ++iDim) node[iPoint]->SetModeVector(iMode,iDim,Coord_3D[iDim]);
+            iss.clear();
+        }
+        for (iPoint = 0 ; iPoint < nPoint; iPoint++) modeShapes.push_back(XV[iPoint]);
+        for (iPoint = 0 ; iPoint < nPoint; iPoint++) modeShapes.push_back(YV[iPoint]);
+        for (iPoint = 0 ; iPoint < nPoint; iPoint++) modeShapes.push_back(ZV[iPoint]);
+    }
+
+    for (iMode=0; iMode < nModes; ++iMode) {
+        cout << "Mode " << iMode+1 << " Frequency:\t" << " = " << omega[iMode] << endl;
+    }
+
+    mode_file.close();
+
+    delete [] XV;
+    delete [] YV;
+    delete [] ZV;
 }
 
 void CModalSolver::ReadCSD_Mesh_Nastran(CConfig *config){
@@ -5445,12 +5543,14 @@ void CModalSolver::RK2(CGeometry *geometry, CSolver **solver_container, CConfig 
     // Get the modal forces from the interpolation
     ComputeModalFluidForces(geometry, config);
 
+    su2double DampingRatio = 0.0;
+
     for( iMode = 0; iMode < nModes; ++iMode) {
         dy[0] = generalizedVelocity[iMode][1];
-        dy[1] = modalForceLast[iMode] - omega[iMode]*omega[iMode]*generalizedDisplacement[iMode][1];
+        dy[1] = modalForceLast[iMode] - omega[iMode]*omega[iMode]*generalizedDisplacement[iMode][1] - DampingRatio*omega[iMode]*omega[iMode]*generalizedVelocity[iMode][1];
 
         dy[2] = generalizedVelocity[iMode][0];
-        dy[3] = modalForce[iMode] - omega[iMode]*omega[iMode]*generalizedDisplacement[iMode][0];
+        dy[3] = modalForce[iMode] - omega[iMode]*omega[iMode]*generalizedDisplacement[iMode][0] - DampingRatio*omega[iMode]*omega[iMode]*generalizedVelocity[iMode][0];
         
         qsol[2*iMode]   = generalizedDisplacement[iMode][1] + ONE2*dt*(dy[2] + dy[0]);
         qsol[2*iMode+1] = generalizedVelocity[iMode][1] + ONE2*dt*(dy[3] + dy[1]);

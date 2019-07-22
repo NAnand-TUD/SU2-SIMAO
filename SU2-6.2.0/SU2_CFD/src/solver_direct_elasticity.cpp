@@ -5338,9 +5338,12 @@ void CModalSolver::ReadCSD_Mesh(CConfig *config){
 
     mesh_file.close();
 	Uinf = config->GetMach()*pow(config->GetGamma()*config->GetGas_Constant()*config->GetTemperature_FreeStream(),0.5);
+    massrat = config->GetPressure_FreeStream()/(287*config->GetTemperature_FreeStream())*pow(refLength,5);
 	cout<< " Mach Inf       :: "<<config->GetMach()<<endl;
     cout<< " Gamma          :: "<<config->GetGamma()<<endl;
-    cout<< " Temperature    :: "<<config->GetTemperature_FreeStream()<<endl;
+    cout<< " Temperature    :: "<<config->GetTemperature_FreeStream() << endl;
+    cout<< " Pressure_inf   :: "<<config->GetPressure_FreeStream() << endl;
+    cout<< " Density_inf    :: "<<config->GetDensity_FreeStream() << endl;
     
     /* --- Read in modes' frequencies and mode shapes vectors --- */
     strcpy(cstr,"modesFile.dat");
@@ -5392,7 +5395,7 @@ void CModalSolver::ReadCSD_Mesh(CConfig *config){
 		getline(mode_file, line);
 		istringstream iss(line); 
 		iss >> frequency;
-		omega[iMode] = 2.0*PI_NUMBER*frequency*refLength/Uinf; //frequency; // TODO: compute Uinf from config;
+		omega[iMode] = 2.0*PI_NUMBER*frequency/Uinf; //frequency;
 		cout<< "Omega :: "<<omega[iMode]<<" Freq ::"<<  frequency<<endl;
 		iss.clear();
 	}
@@ -5959,7 +5962,9 @@ void CModalSolver::ComputeModalFluidDamp(CGeometry *geometry, CConfig *config) {
         modalForceLast[iMode] = modalForce[iMode];
         modalForce[iMode] = 0.0;
     }
-        // compute new value
+    
+    
+    // compute new value
     for(iMode = 0; iMode < nModes; ++iMode){
         for( iPoint = 0; iPoint < nPoint; ++iPoint){
              for(iDim = 0; iDim < nDim; ++iDim){
@@ -6032,30 +6037,6 @@ void CModalSolver::ComputeResidual_Multizone(CGeometry *geometry, CConfig *confi
 
     SetResidual_BGS(geometry, config);
 }
-// void CModalSolver::CalcResidual(CGeometry **geometry, CSolver ***solver_container, CConfig *config, unsigned long ExtIter) {
-//   
-//   unsigned short iMode;
-//   bool incremental_load = config->GetIncrementalLoad();              // If an incremental load is applied
-//   
-//   //set initial velocities
-//   for(iMode = 0; iMode < nModes; ++iMode) {
-//     structResidual[2*iMode] = generalizedDisplacement[2*iMode+1];
-//     structResidual[2*iMode+1] = sqrt(om)*genVel[iMode] - im*genDisp + mass_rat*delta_force;
-//   }
-//   
-//   
-// }
-// for (i=0;i<sp->nstruct/2;++i){
-// 
-// //	 if (i==sp->imode) 	damp=sp->damping;
-// //	 else		  	damp=0.;
-// 	damp=sp->damping;
-// 
-// 	 sr[2*i]  =ss[2*i+1];
-// 	 sr[2*i+1]=-sqrt(mode->omega)*(mode->damping+damp)*ss[2*i+1]-mode->omega*ss[2*i]+sp->mass_rat*(mode->force-mode->force0);
-// 
-// 	 mode=mode->next;
-//   }
 
 void CModalSolver::Set_MPI_Solution(CGeometry *geometry, CConfig *config){
     unsigned short iVar, iMarker, MarkerS, MarkerR;

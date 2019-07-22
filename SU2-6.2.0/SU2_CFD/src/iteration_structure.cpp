@@ -315,12 +315,15 @@ void CIteration::SetGrid_Movement(CGeometry ****geometry_container,
 
       if (rank == MASTER_NODE)
         cout << "Deforming the volume grid. Iteration_Strucutre 317" << endl;
-      grid_movement[val_iZone][val_iInst]->SetVolume_Deformation(geometry_container[val_iZone][val_iInst][MESH_0],
-                                           config_container[val_iZone], true);
+      //grid_movement[val_iZone][val_iInst]->SetVolume_Deformation(geometry_container[val_iZone][val_iInst][MESH_0],
+//                                           config_container[val_iZone], true);
+      grid_movement[val_iZone][val_iInst]->SetVolume_Deformation_Elas(geometry_container[val_iZone][val_iInst][MESH_0],
+                                                                          config_container[val_iZone], true, false);
         cout<<" After Volumetric grid movement. Iteraiton Strucutre 320\n";
       nIterMesh = grid_movement[val_iZone][val_iInst]->Get_nIterMesh();
       stat_mesh = (nIterMesh == 0);
-
+      cout<<"Hacked into the code to make it unsteady Iterating Structure.cpp 325.\n";
+      stat_mesh = 0;
       if (!adjoint && !stat_mesh) {
         if (rank == MASTER_NODE)
           cout << "Computing grid velocities by finite differencing." << endl;

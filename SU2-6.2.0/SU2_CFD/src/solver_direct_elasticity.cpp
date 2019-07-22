@@ -5757,7 +5757,7 @@ void CModalSolver::ComputeModalFluidForces(CGeometry *geometry, CConfig *config)
     su2double ScaleFactor = 1.225 *  pow(0.463,5);
         // compute new value
     for(iMode = 0; iMode < nModes; ++iMode){
-        for( iPoint = 0; iPoint < nPoint; ++iPoint){
+        for(iPoint = 0; iPoint < nPoint; ++iPoint){
              for(iDim = 0; iDim < nDim; ++iDim){      
                 modalForce[iMode] += node[iPoint]->GetModeVector(iMode,iDim)*node[iPoint]->Get_FlowTraction(iDim);
             }

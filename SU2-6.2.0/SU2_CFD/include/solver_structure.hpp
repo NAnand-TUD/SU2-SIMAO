@@ -15878,6 +15878,7 @@ private:
     *SolRest;			            /*!< \brief generalized displacement solution for restarts */
     su2double Uinf,                 /*!< \brief freestream velocity */
     refLength,                      /*!< \brief scaling length for CSD mesh, frequency, etc. */
+    massrat,                        /*!< \brief fluid/structure density ratio */
     relax;                          /*!< \brief relaxation factor for static displacements */
     vector<su2double> modeShapes;   /*!< \brief 1D vector containing mode shapes vector coordinates */
 

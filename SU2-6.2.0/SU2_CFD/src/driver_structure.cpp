@@ -222,8 +222,14 @@ CDriver::CDriver(char* confFile,
       else{
           if (rank == MASTER_NODE) {
               cout << "3A Dynamic Fluid-Structure Interaction driver has been instantiated." << endl;
-              if(config_container[0]->GetKind_Solver() == FEM_MODAL) cout << "For aeroelastic analysis using modal structural solver." << endl;
-              if(config_container[1]->GetKind_Solver() == FEM_MODAL) cout << "For aeroelastic analysis using modal structural solver." << endl;
+              if(config_container[0]->GetKind_Solver() == FEM_MODAL) {
+                  cout << "For aeroelastic analysis using modal structural solver." << endl;
+                  config_container[0]->SetMach(config_container[1]->GetMach());
+              }
+              if(config_container[1]->GetKind_Solver() == FEM_MODAL) {
+                  cout << "For aeroelastic analysis using modal structural solver." << endl;
+                  config_container[1]->SetMach(config_container[0]->GetMach());
+              }
           }
       }
     }
@@ -909,7 +915,7 @@ void CDriver::Input_Preprocessing(SU2_Comm MPICommunicator, bool val_periodic) {
       /*--- Add the Send/Receive boundaries ---*/
       geometry_container[iZone][iInst][MESH_0]->SetBoundaries(config_container[iZone]);
 
-      cout << "modal call" << endl;
+//       cout << "modal call" << endl;
 //       geometry_container[iZone][iInst][MESH_0]->ReadCSD_Mesh(config_container[iZone]);
 //       geometry_container[iZone][iInst][MESH_0]->Read_Modes(config_container[iZone]);
     }

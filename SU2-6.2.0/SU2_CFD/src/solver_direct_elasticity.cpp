@@ -5203,6 +5203,7 @@ CModalSolver::CModalSolver(CGeometry *geometry, CConfig *config) : CSolver() {
     //   bool fsi = config->GetFSI_Simulation();
     
 //     element_based = false;          // A priori we don't have an element-based input file (most of the applications will be like this)
+//     element_based = false;          // A priori we don't have an element-based input file (most of the applications will be like this)
 
 	omega 	                = NULL;
 	damping	                = NULL;
@@ -5262,7 +5263,6 @@ CModalSolver::CModalSolver(CGeometry *geometry, CConfig *config) : CSolver() {
     for (iMode=0; iMode < nModes; ++iMode) {
         cout << "2-Mode " << iMode+1 << " Frequency:\t" << " = " << omega[iMode] << endl;
     }
-
 }
 
 CModalSolver::~CModalSolver(void) {
@@ -5426,7 +5426,7 @@ void CModalSolver::ReadCSD_Mesh_Ansys(CConfig *config) {
 void CModalSolver::ReadCSD_Mesh_Nastran(CConfig *config){
     //TODO: add options to config file (hardwire test case for now?!)
     //
-    unsigned long ipoint,iMode,nModesPoints;
+    unsigned long iPoint,iMode,nModesPoints;
 	unsigned short number_of_modes,iDim;
 	vector<unsigned long>::iterator it;
 	su2double frequency,Uinf;
@@ -5447,7 +5447,7 @@ void CModalSolver::ReadCSD_Mesh_Nastran(CConfig *config){
     cout<< " Pressure_inf   :: "<<config->GetPressure_FreeStream() << endl;
     cout<< " Density_inf    :: "<<config->GetDensity_FreeStream() << endl;
     cout<< " U_inf          :: "<<Uinf << endl;
-    cout<< " Q              :: "<<0.5 * config->GetGamma()*config->GetPressure_FreeStream()*config->GetMach()*config->GetMach() <<endl;
+    cout<< " Q              :: "<< ONE2 * config->GetGamma()*config->GetPressure_FreeStream()*config->GetMach()*config->GetMach() <<endl;
     cout<< " Density        :: "<< config->GetPressure_FreeStream()/(config->GetGas_Constant()*config->GetTemperature_FreeStream())<<endl;
     /* --- Read in modes' frequencies and mode shapes vectors --- */
     strcpy(cstr,"modesFile.dat");
@@ -5491,8 +5491,8 @@ void CModalSolver::ReadCSD_Mesh_Nastran(CConfig *config){
     for (iMode=0; iMode < nModes; ++iMode) generalizedDisplacement[iMode]   = new su2double [3];
     for (iMode=0; iMode < nModes; ++iMode) generalizedVelocity[iMode]       = new su2double [3];
 
-    for (ipoint = 0; ipoint < nPoint; ipoint++) {
-        node[ipoint] = new CModalVariable(SolRest, nDim, nVar, nModes, config);
+    for (iPoint = 0; iPoint < nPoint; iPoint++) {
+        node[iPoint] = new CModalVariable(SolRest, nDim, nVar, nModes, config);
     }
     
 	for (iMode=0; iMode < nModes; ++iMode) {
@@ -5505,19 +5505,19 @@ void CModalSolver::ReadCSD_Mesh_Nastran(CConfig *config){
 	}
 
 	for (iMode=0; iMode < nModes; ++iMode) {
-		for (ipoint = 0 ; ipoint < nPoint; ipoint++) {
+		for (iPoint = 0 ; iPoint < nPoint; iPoint++) {
 			getline(mode_file, line);
 			istringstream iss(line); 
 			iss >> Coord_3D[0]; iss >> Coord_3D[1]; iss >> Coord_3D[2];
-            XV[ipoint] = Coord_3D[0]/refLength;
-            YV[ipoint] = Coord_3D[1]/refLength;
-            ZV[ipoint] = Coord_3D[2]/refLength;
-            for(iDim=0; iDim < nDim; ++iDim) node[ipoint]->SetModeVector(iMode,iDim,Coord_3D[iDim]);
+            XV[iPoint] = Coord_3D[0]/refLength;
+            YV[iPoint] = Coord_3D[1]/refLength;
+            ZV[iPoint] = Coord_3D[2]/refLength;
+            for(iDim=0; iDim < nDim; ++iDim) node[iPoint]->SetModeVector(iMode,iDim,Coord_3D[iDim]);
             iss.clear();
 		}
-		for (ipoint = 0 ; ipoint < nPoint; ipoint++) modeShapes.push_back(XV[ipoint]);
-        for (ipoint = 0 ; ipoint < nPoint; ipoint++) modeShapes.push_back(YV[ipoint]);
-        for (ipoint = 0 ; ipoint < nPoint; ipoint++) modeShapes.push_back(ZV[ipoint]);
+		for (iPoint = 0 ; iPoint < nPoint; iPoint++) modeShapes.push_back(XV[iPoint]);
+        for (iPoint = 0 ; iPoint < nPoint; iPoint++) modeShapes.push_back(YV[iPoint]);
+        for (iPoint = 0 ; iPoint < nPoint; iPoint++) modeShapes.push_back(ZV[iPoint]);
 	}
 
 	for (iMode=0; iMode < nModes; ++iMode) {
@@ -5533,12 +5533,12 @@ void CModalSolver::ReadCSD_Mesh_Nastran(CConfig *config){
 
 void CModalSolver::RK2(CGeometry *geometry, CSolver **solver_container, CConfig *config){
 
-    unsigned long ipoint;
-    unsigned short iMode,iDim;
+    unsigned short iMode, iDim;
     su2double *qsol;
     su2double dy[4] = {0.0, 0.0, 0.0, 0.0};
     
-    su2double dt = 0.005;
+    su2double dt = 0.005;//config->GetDelta_UnstTime();
+    cout<<" Time Step is :: "<< dt <<endl;
     qsol = new su2double[2*nModes];
 
     cout << "solving structural equations of motion using two-stage RK method "<< endl;
@@ -5549,7 +5549,7 @@ void CModalSolver::RK2(CGeometry *geometry, CSolver **solver_container, CConfig 
     // Get the modal forces from the interpolation
     ComputeModalFluidForces(geometry, config);
 
-    su2double DampingRatio = 0.000;
+    su2double DampingRatio = 0.0;
 
     for( iMode = 0; iMode < nModes; ++iMode) {
         dy[0] = generalizedVelocity[iMode][1];
@@ -5577,7 +5577,6 @@ void CModalSolver::RK2(CGeometry *geometry, CSolver **solver_container, CConfig 
 
 void CModalSolver::RK4(CGeometry *geometry, CSolver **solver_container, CConfig *config){
 
-    unsigned long iPoint;
     unsigned short iMode,iDim;
     su2double *qsol;
     su2double dy[8] = {0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0};

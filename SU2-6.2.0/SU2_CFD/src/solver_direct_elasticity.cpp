@@ -5439,13 +5439,16 @@ void CModalSolver::ReadCSD_Mesh_Nastran(CConfig *config){
 
     mesh_file.close();
 	Uinf = config->GetMach()*pow(config->GetGamma()*config->GetGas_Constant()*config->GetTemperature_FreeStream(),0.5);
-    massrat = config->GetPressure_FreeStream()/(287*config->GetTemperature_FreeStream())*pow(refLength,5);
+    massrat = config->GetPressure_FreeStream()/(config->GetGas_Constant()*config->GetTemperature_FreeStream())*pow(refLength,5);
+    su2double flutter_index = config->GetAeroelastic_Flutter_Speed_Index();
 	cout<< " Mach Inf       :: "<<config->GetMach()<<endl;
     cout<< " Gamma          :: "<<config->GetGamma()<<endl;
     cout<< " Temperature    :: "<<config->GetTemperature_FreeStream() << endl;
     cout<< " Pressure_inf   :: "<<config->GetPressure_FreeStream() << endl;
     cout<< " Density_inf    :: "<<config->GetDensity_FreeStream() << endl;
-    
+    cout<< " U_inf          :: "<<Uinf << endl;
+    cout<< " Q              :: "<<0.5 * config->GetGamma()*config->GetPressure_FreeStream()*config->GetMach()*config->GetMach() <<endl;
+    cout<< " Density        :: "<< config->GetPressure_FreeStream()/(config->GetGas_Constant()*config->GetTemperature_FreeStream())<<endl;
     /* --- Read in modes' frequencies and mode shapes vectors --- */
     strcpy(cstr,"modesFile.dat");
 
@@ -5546,7 +5549,7 @@ void CModalSolver::RK2(CGeometry *geometry, CSolver **solver_container, CConfig 
     // Get the modal forces from the interpolation
     ComputeModalFluidForces(geometry, config);
 
-    su2double DampingRatio = 0.0005;
+    su2double DampingRatio = 0.000;
 
     for( iMode = 0; iMode < nModes; ++iMode) {
         dy[0] = generalizedVelocity[iMode][1];

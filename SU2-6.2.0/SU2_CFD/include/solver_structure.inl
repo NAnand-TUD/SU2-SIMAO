@@ -1074,12 +1074,15 @@ inline void CSolver::ExtractAdjoint_Variables(CGeometry *geometry, CConfig *conf
 
 inline void CSolver::SetFreeStream_Solution(CConfig *config){}
 
+inline su2double CSolver::getGeneralizedDisplacement(unsigned short iMode) {return 0.0;}
+
+inline su2double CSolver::getGeneralizedVelocity(unsigned short iMode) {return 0.0;}
+
 inline su2double* CBaselineSolver_FEM::GetVecSolDOFs(void) {return VecSolDOFs.data();}
 
 inline void CSolver::SetTauWall_WF(CGeometry *geometry, CSolver** solver_container, CConfig* config){}
 
-inline void CSolver::SetNuTilde_WF(CGeometry *geometry, CSolver **solver_container, CNumerics *conv_numerics,
-                                           CNumerics *visc_numerics, CConfig *config, unsigned short val_marker) {}
+inline void CSolver::SetNuTilde_WF(CGeometry *geometry, CSolver **solver_container, CNumerics *conv_numerics,CNumerics *visc_numerics, CConfig *config, unsigned short val_marker) {}
 
 inline void CEulerSolver::Set_NewSolution(CGeometry *geometry) {
   for (unsigned long iPoint = 0; iPoint < geometry->GetnPoint(); iPoint++)
@@ -2533,6 +2536,10 @@ inline void CSolver::ReadCSD_Mesh(CConfig *config) {}
 inline void CSolver::RK2(CGeometry *geometry, CSolver **solver_container, CConfig *config) {}
 
 inline void CSolver::RK4(CGeometry *geometry, CSolver **solver_container, CConfig *config) {}
+
+inline su2double CModalSolver::getGeneralizedDisplacement(unsigned short iMode) {return generalizedDisplacement[iMode][0];}
+
+inline su2double CModalSolver::getGeneralizedVelocity(unsigned short iMode) {return generalizedVelocity[iMode][0];}
 
 // inline su2double CModalSolver::Get_MassMatrix(unsigned long iPoint, unsigned long jPoint, unsigned short iVar, unsigned short jVar){ return MassMatrix.GetBlock(iPoint, jPoint, iVar, jVar); }
 // 

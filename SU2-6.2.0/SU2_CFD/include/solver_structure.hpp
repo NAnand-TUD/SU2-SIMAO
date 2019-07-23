@@ -3646,6 +3646,17 @@ public:
   virtual su2double Get_MassMatrix(unsigned long iPoint, unsigned long jPoint, unsigned short iVar, unsigned short jVar);
   
   /*!
+   * \brief A virtual member.
+   * \param[in] iMode - mode selected.
+   */
+  virtual su2double getGeneralizedDisplacement(unsigned short iMode);
+  /*!
+   * \brief A virtual member.
+   * \param[in] iMode - mode selected.
+   */
+  virtual su2double getGeneralizedVelocity(unsigned short iMode);
+  
+  /*!
    * \brief Gauss method for solving a linear system.
    * \param[in] A - Matrix Ax = b.
    * \param[in] rhs - Right hand side.
@@ -15855,6 +15866,7 @@ private:
 /* ----------------------------- CSD ----------------------------- */
 
 /*! \class CModalSolver
+/*! \class CModalSolver
  *  \brief Main class for defining a CSD solver for structural/aeroelastic problems.
  *  \author S. Marques.
  *  \date 25 April, 2019.
@@ -15965,6 +15977,21 @@ public:
     void SetInitialCondition(CGeometry **geometry, CSolver ***solver_container, CConfig *config, unsigned long ExtIter);
 
     void ComputeResidual_Multizone(CGeometry *geometry, CConfig *config);
+    
+    /*!
+    * \brief Returns generalized displacement for mode i at time n.
+    * \param[in] iMode - mode number.
+    * \param[out] displacement for mode i.
+    */
+    su2double getGeneralizedDisplacement(unsigned short iMode);
+
+    /*!
+    * \brief Returns generalized velocity for mode i at time n.
+    * \param[in] iMode - mode number.
+    * \param[out] velocity for mode i.
+    */
+    su2double getGeneralizedVelocity(unsigned short iMode);
+    
     /*!
     * \brief Returns iMode reduced frequency.
     * \param[in] iMode - mode number.

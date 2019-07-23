@@ -4316,7 +4316,7 @@ void COutput::DeallocateSolution(CConfig *config, CGeometry *geometry) {
 
 void COutput::SetConvHistory_Header(ofstream *ConvHist_file, CConfig *config, unsigned short val_iZone, unsigned short val_iInst) {
   char cstr[200], buffer[50], turb_resid[1000], adj_turb_resid[1000];
-  unsigned short iMarker_Monitoring, iMode;
+  unsigned short iMarker_Monitoring, iMode,nModes;
   string Monitoring_Tag, monitoring_coeff, aeroelastic_coeff, turbo_coeff, csd_coeff;
   
   bool rotating_frame = config->GetRotating_Frame();
@@ -4454,7 +4454,8 @@ void COutput::SetConvHistory_Header(ofstream *ConvHist_file, CConfig *config, un
   }
 
   if (csd){
-    for (iMode = 0; iMode < config->GetNumberOfModes(); iMode++) {
+    nModes = config->GetNumberOfModes();
+    for (iMode = 0; iMode < nModes; iMode++) {
 
       stringstream tag;
       tag << iMode + 1;
@@ -4607,7 +4608,11 @@ void COutput::SetConvHistory_Body(ofstream *ConvHist_file,
 
   bool compressible = (config[val_iZone]->GetKind_Regime() == COMPRESSIBLE);
   bool incompressible = (config[val_iZone]->GetKind_Regime() == INCOMPRESSIBLE);
-
+  unsigned short nModes, iMode;
+  su2double *modalDisplacement, *modalVelocity;
+  
+  if(csd) nModes = config[val_iZone]->GetNumberOfModes();
+  
   if (!disc_adj && !cont_adj && !DualTime_Iteration) {
     
     if ((config[val_iZone]->GetFixed_CL_Mode()) &&
@@ -4711,7 +4716,8 @@ void COutput::SetConvHistory_Body(ofstream *ConvHist_file,
     adjoint_coeff[1000], flow_resid[1000], adj_flow_resid[1000], turb_resid[1000], trans_resid[1000],
     adj_turb_resid[1000],
     begin_fem[1000], fem_coeff[1000], heat_resid[1000], combo_obj[1000],
-    fem_resid[1000], end[1000], end_fem[1000], surface_outputs[1000], d_surface_outputs[1000], d_direct_coeff[1000], turbo_coeff[10000];
+    fem_resid[1000], end[1000], end_fem[1000], surface_outputs[1000], d_surface_outputs[1000], d_direct_coeff[1000], turbo_coeff[10000],
+    csd_modal_coord[10000];
 
 
     su2double dummy = 0.0, *Coord;
@@ -5203,7 +5209,15 @@ void COutput::SetConvHistory_Body(ofstream *ConvHist_file,
 
         break;
 
-
+      case FEM_MODAL:
+          
+        /* --- modal displacements and velocities --- */
+        modalDisplacement    = new su2double[nModes];
+        modalVelocity       = new su2double[nModes];
+        for (iMode = 0; iMode < nModes; iMode++){
+            modalDisplacement[iMode] = solver_container[val_iZone][val_iInst][FinestMesh][MODAL_SOL]->getGeneralizedDisplacement(iMode);
+            modalVelocity[iMode] = solver_container[val_iZone][val_iInst][FinestMesh][MODAL_SOL]->getGeneralizedVelocity(iMode);
+        }
     }
 
     if (extra_heat_output) {
@@ -5514,6 +5528,13 @@ void COutput::SetConvHistory_Body(ofstream *ConvHist_file,
               SPRINTF (fem_resid, ", %14.8e, %14.8e, %14.8e, %14.8e, %14.8e", log10 (residual_fem[0]), log10 (residual_fem[1]), log10 (residual_fem[2]), dummy, dummy);
             }
 
+          case FEM_MODAL:
+            SPRINTF (begin_fem, ", %14.8e", 0.0);
+            
+            for(iMode = 0; iMode < nModes; ++iMode){
+                SPRINTF (csd_modal_coord, ", %14.8e, %14.8e", modalDisplacement[iMode],modalVelocity[iMode]);
+            }
+            
             break;
 
         }
@@ -5795,6 +5816,12 @@ void COutput::SetConvHistory_Body(ofstream *ConvHist_file,
                     break;
                 }
             }
+            
+            case FEM_MODAL:
+                for(iMode = 0; iMode < nModes; ++iMode){
+                    cout << modalDisplacement[iMode] <<"\t" << modalVelocity[iMode] << endl;
+                }
+                      
            break;
 
             case ADJ_EULER :              case ADJ_NAVIER_STOKES :
@@ -6211,6 +6238,13 @@ void COutput::SetConvHistory_Body(ofstream *ConvHist_file,
           cout << endl;
           break;
 
+          
+        case FEM_MODAL:
+          
+            config[val_iZone]->GetHistFile()[0] << begin << csd_modal_coord ;
+            config[val_iZone]->GetHistFile()[0].flush();
+            break;
+          
         case ADJ_EULER :              case ADJ_NAVIER_STOKES :
         case DISC_ADJ_EULER:          case DISC_ADJ_NAVIER_STOKES:
           
@@ -6352,6 +6386,8 @@ void COutput::SetConvHistory_Body(ofstream *ConvHist_file,
     delete [] Surface_CMz;
     delete [] aeroelastic_pitch;
     delete [] aeroelastic_plunge;
+    delete [] modalDisplacement;
+    delete [] modalVelocity;
     
   }
 }

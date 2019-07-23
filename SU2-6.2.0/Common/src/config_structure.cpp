@@ -1778,7 +1778,8 @@ void CConfig::SetConfig_Options(unsigned short val_iZone, unsigned short val_nZo
   /* DESCRIPTION: Adapt the boundary elements */
   addBoolOption("ADAPT_BOUNDARY", AdaptBoundary, true);
 
-  /*!\par CONFIG_CATEGORY: Aeroelastic Simulation (Typical Section Model) \ingroup Config*/
+  /*!\par CONFIG_CATEGORY: Aeroelastic/CSD Simulation (Typical Section Model) \ingroup Config*/
+  addUnsignedShortOption("NUMBER_OF_MODES=", NumberOfModes, 1);
   /*--- Options related to aeroelastic simulations using the Typical Section Model) ---*/
   /* DESCRIPTION: The flutter speed index (modifies the freestream condition) */
   addDoubleOption("FLUTTER_SPEED_INDEX", FlutterSpeedIndex, 0.6);

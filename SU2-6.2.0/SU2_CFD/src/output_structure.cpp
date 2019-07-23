@@ -4316,8 +4316,8 @@ void COutput::DeallocateSolution(CConfig *config, CGeometry *geometry) {
 
 void COutput::SetConvHistory_Header(ofstream *ConvHist_file, CConfig *config, unsigned short val_iZone, unsigned short val_iInst) {
   char cstr[200], buffer[50], turb_resid[1000], adj_turb_resid[1000];
-  unsigned short iMarker_Monitoring;
-  string Monitoring_Tag, monitoring_coeff, aeroelastic_coeff, turbo_coeff;
+  unsigned short iMarker_Monitoring, iMode;
+  string Monitoring_Tag, monitoring_coeff, aeroelastic_coeff, turbo_coeff, csd_coeff;
   
   bool rotating_frame = config->GetRotating_Frame();
   bool aeroelastic = config->GetAeroelastic_Simulation();
@@ -4344,9 +4344,12 @@ void COutput::SetConvHistory_Header(ofstream *ConvHist_file, CConfig *config, un
 
   bool thermal = false; /* Flag for whether to print heat flux values */
   bool weakly_coupled_heat = config->GetWeakly_Coupled_Heat();
+  bool csd = false;
 
-  if (config->GetKind_Solver() == RANS || config->GetKind_Solver()  == NAVIER_STOKES) {
-    thermal = true;
+  switch (config->GetKind_Solver()) {
+      case RANS: thermal = true; break;
+      case NAVIER_STOKES: thermal = true; break;
+      case FEM_MODAL: csd = true; break;
   }
   
   /*--- Write file name with extension ---*/
@@ -4450,6 +4453,16 @@ void COutput::SetConvHistory_Header(ofstream *ConvHist_file, CConfig *config, un
     }
   }
 
+  if (csd){
+    for (iMode = 0; iMode < config->GetNumberOfModes(); iMode++) {
+
+      stringstream tag;
+      tag << iMode + 1;
+      csd_coeff += ",\"Mode_" + tag.str() + " disp \"";
+      csd_coeff += ",\"Mode_" + tag.str() + " vel \"";
+    }
+  }
+  
   char combo_obj[] = ",\"ComboObj\"";
   
   /*--- Header for the residuals ---*/
@@ -4552,6 +4565,8 @@ void COutput::SetConvHistory_Header(ofstream *ConvHist_file, CConfig *config, un
       ConvHist_file[0] << fem_resid << endfea;
       break;
 
+    case FEM_MODAL:
+       ConvHist_file[0] << begin << csd_coeff; 
   }
 
   if (config->GetOutput_FileFormat() == TECPLOT ||
@@ -4578,6 +4593,7 @@ void COutput::SetConvHistory_Body(ofstream *ConvHist_file,
   bool output_comboObj      = (config[val_iZone]->GetnObj() > 1);
   bool fluid_structure      = (config[val_iZone]->GetFSI_Simulation());
   bool fea                  = ((config[val_iZone]->GetKind_Solver()== FEM_ELASTICITY)||(config[val_iZone]->GetKind_Solver()== DISC_ADJ_FEM));
+  bool csd                  = (config[val_iZone]->GetKind_Solver()== FEM_MODAL);
   unsigned long iIntIter    = config[val_iZone]->GetIntIter();
   unsigned long iExtIter    = config[val_iZone]->GetExtIter();
   unsigned short FinestMesh = config[val_iZone]->GetFinestMesh();

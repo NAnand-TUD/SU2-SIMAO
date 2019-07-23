@@ -932,6 +932,7 @@ private:
   nPlunging_Ampl_X,           /*!< \brief Number of Plunging amplitudes in the x-direction. */
   nPlunging_Ampl_Y,           /*!< \brief Number of Plunging amplitudes in the y-direction. */
   nPlunging_Ampl_Z,           /*!< \brief Number of Plunging amplitudes in the z-direction. */
+  NumberOfModes,              /*!< \brief Modal solver - N. of modes in csd model to be retained and plotted. */
   nOmega_HB,                /*!< \brief Number of frequencies in Harmonic Balance Operator. */
   nMoveMotion_Origin,         /*!< \brief Number of motion origins. */
   *MoveMotion_Origin;         /*!< \brief Keeps track if we should move moment origin. */
@@ -8143,6 +8144,11 @@ public:
    * \brief Value of Aeroelastic solution coordinate at time n-1 from time n.
    */
   void SetAeroelastic_n1(void);
+  
+  /*!
+   * \brief Number of modes in structural dynamics model.
+   */
+  unsigned short GetNumberOfModes(void);
   
   /*!
    * \brief Aeroelastic Flutter Speed Index.

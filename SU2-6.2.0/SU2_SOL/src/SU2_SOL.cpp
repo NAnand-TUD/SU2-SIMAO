@@ -59,7 +59,7 @@ int main(int argc, char *argv[]) {
 #else
   SU2_Comm MPICommunicator(0);
 #endif
-
+    cout << "here62\n";
   rank = SU2_MPI::GetRank();
   size = SU2_MPI::GetSize();
 
@@ -80,7 +80,7 @@ int main(int argc, char *argv[]) {
 
   CConfig *config = NULL;
   config = new CConfig(config_file_name, SU2_SOL);
-
+    cout << "here83\n";
   if (config->GetKind_Solver() == MULTIZONE) nZone  = config->GetnConfigFiles();
   else nZone  = CConfig::GetnZone(config->GetMesh_FileName(), config->GetMesh_FileFormat(), config);
   periodic = CConfig::GetPeriodic(config->GetMesh_FileName(), config->GetMesh_FileFormat(), config);
@@ -257,7 +257,7 @@ int main(int argc, char *argv[]) {
 #else
   StartTime = su2double(clock())/su2double(CLOCKS_PER_SEC);
 #endif
-
+    cout << "here260\n";
   if (rank == MASTER_NODE)
     cout << endl <<"------------------------- Solution Postprocessing -----------------------" << endl;
   
@@ -607,9 +607,9 @@ int main(int argc, char *argv[]) {
       bool SolutionInstantiated = false;
 
 
-
+        cout << "here610\n";
       /*--- Check for an dynamic restart (structural analysis). Update ExtIter if necessary. ---*/
-      if (config_container[ZONE_0]->GetKind_Solver() == FEM_ELASTICITY &&
+      if ((config_container[ZONE_0]->GetKind_Solver() == FEM_ELASTICITY || config_container[ZONE_0]->GetKind_Solver() == FEM_MODAL) &&
           config_container[ZONE_0]->GetWrt_Dynamic() && config_container[ZONE_0]->GetRestart())
         iExtIter = config_container[ZONE_0]->GetDyn_RestartIter();
 

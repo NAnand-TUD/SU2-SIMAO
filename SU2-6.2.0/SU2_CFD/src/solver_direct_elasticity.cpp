@@ -4755,7 +4755,8 @@ void CFEASolver::Compute_OFRefNode(CGeometry *geometry, CSolver **solver_contain
   else
   {
 
-    // TODO: Temporary output file for the objective function. Will be integrated in the output once is refurbished.
+    // TODO: Temporary output file for the objective function. Will be integrated in 
+    // the output once is refurbished.
     if (rank == MASTER_NODE){
       cout << "Objective function: " << Total_OFRefNode << "." << endl;
       ofstream myfile_res;
@@ -5449,7 +5450,7 @@ void CModalSolver::ReadCSD_Mesh_Nastran(CConfig *config){
     cout<< " U_inf          :: "<<Uinf << endl;
     cout<< " Q              :: "<<0.5 * config->GetGamma()*config->GetPressure_FreeStream()*config->GetMach()*config->GetMach() <<endl;
     cout<< " Density        :: "<< config->GetPressure_FreeStream()/(config->GetGas_Constant()*config->GetTemperature_FreeStream())<<endl;
-    /* --- Read in modes' frequencies and mode shapes vectors --- */
+    /* --- Read in modes' frequencies and mode shapes vectors ---2935.059 */
     strcpy(cstr,"modesFile.dat");
 
 	mode_file.open(cstr, ios::in);
@@ -5499,7 +5500,7 @@ void CModalSolver::ReadCSD_Mesh_Nastran(CConfig *config){
 		getline(mode_file, line);
 		istringstream iss(line); 
 		iss >> frequency;
-		omega[iMode] = 2.0*PI_NUMBER*frequency/Uinf; //frequency;
+		omega[iMode] = 2.0*PI_NUMBER*frequency; //frequency;
 		cout<< "Omega :: "<<omega[iMode]<<" Freq ::"<<  frequency<<endl;
 		iss.clear();
 	}
@@ -5526,6 +5527,7 @@ void CModalSolver::ReadCSD_Mesh_Nastran(CConfig *config){
 
 	mode_file.close();
 
+    //--- SPM ---//
     delete [] XV;
     delete [] YV;
     delete [] ZV;

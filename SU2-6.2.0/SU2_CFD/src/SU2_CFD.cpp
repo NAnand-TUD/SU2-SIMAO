@@ -101,6 +101,7 @@ int main(int argc, char *argv[]) {
   zone_specific = config->GetBoolZoneSpecific();
 
   cout << "SU2_CFD nzone=\n" << nZone << endl;
+  cout<< " \n\n\nMach Inf       :: "<< config->GetMach() << endl;
   /*--- First, given the basic information about the number of zones and the
    solver types from the config, instantiate the appropriate driver for the problem
    and perform all the preprocessing. ---*/

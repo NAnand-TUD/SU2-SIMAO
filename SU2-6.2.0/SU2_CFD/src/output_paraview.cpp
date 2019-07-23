@@ -1962,7 +1962,8 @@ void COutput::WriteParaViewASCII_Parallel(CConfig *config, CGeometry *geometry, 
   unsigned short Kind_Solver = config->GetKind_Solver();
 
   unsigned long iPoint, iElem, iNode;
-  unsigned long iExtIter = config->GetExtIter();
+//  unsigned long iExtIter = config->GetExtIter();
+  unsigned long iExtIter = config->GetOuterIter();
 
   unsigned long nSurf_Elem_Storage;
   unsigned long nGlobal_Elem_Storage;
@@ -2016,7 +2017,7 @@ void COutput::WriteParaViewASCII_Parallel(CConfig *config, CGeometry *geometry, 
   if ((Kind_Solver == EULER || Kind_Solver == NAVIER_STOKES || Kind_Solver == RANS ||
        Kind_Solver == ADJ_EULER || Kind_Solver == ADJ_NAVIER_STOKES || Kind_Solver == ADJ_RANS ||
        Kind_Solver == DISC_ADJ_EULER || Kind_Solver == DISC_ADJ_NAVIER_STOKES || Kind_Solver == DISC_ADJ_RANS ||
-       Kind_Solver == FEM_ELASTICITY || Kind_Solver == HEAT_EQUATION_FVM) &&
+       Kind_Solver == FEM_ELASTICITY || Kind_Solver == FEM_MODAL || Kind_Solver == HEAT_EQUATION_FVM) &&
       (val_nZone > 1) &&
       (config->GetUnsteady_Simulation() != HARMONIC_BALANCE)) {
     SPRINTF (buffer, "_%d", SU2_TYPE::Int(val_iZone));

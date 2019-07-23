@@ -1742,7 +1742,7 @@ inline void CConfig::SetAeroelastic_n(void) {
         Aeroelastic_n = Aeroelastic_np1;
 }
 
-inline unsigned short CConfig::GetNumberOfModes(void) { return NumberOfModes; }
+inline unsigned long CConfig::GetNumberOfModes(void) { return NumberOfModes; }
 
 inline su2double CConfig::GetAeroelastic_Flutter_Speed_Index(void) { return FlutterSpeedIndex; }
 

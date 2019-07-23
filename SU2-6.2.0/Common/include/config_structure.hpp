@@ -932,7 +932,6 @@ private:
   nPlunging_Ampl_X,           /*!< \brief Number of Plunging amplitudes in the x-direction. */
   nPlunging_Ampl_Y,           /*!< \brief Number of Plunging amplitudes in the y-direction. */
   nPlunging_Ampl_Z,           /*!< \brief Number of Plunging amplitudes in the z-direction. */
-  NumberOfModes,              /*!< \brief Modal solver - N. of modes in csd model to be retained and plotted. */
   nOmega_HB,                /*!< \brief Number of frequencies in Harmonic Balance Operator. */
   nMoveMotion_Origin,         /*!< \brief Number of motion origins. */
   *MoveMotion_Origin;         /*!< \brief Keeps track if we should move moment origin. */
@@ -948,6 +947,7 @@ private:
   su2double *Aeroelastic_plunge, /*!< \brief Value of plunging coordinate at the end of an external iteration. */
   *Aeroelastic_pitch;         /*!< \brief Value of pitching coordinate at the end of an external iteration. */
   unsigned short AeroelasticIter; /*!< \brief Solve the aeroelastic equations every given number of internal iterations. */
+  unsigned long NumberOfModes;              /*!< \brief Modal solver - N. of modes in csd model to be retained and plotted. */
   unsigned short Gust_Type,	  /*!< \brief Type of Gust. */
   Gust_Dir;                   /*!< \brief Direction of the gust */
   su2double Gust_WaveLength,  /*!< \brief The gust wavelength. */
@@ -8148,7 +8148,7 @@ public:
   /*!
    * \brief Number of modes in structural dynamics model.
    */
-  unsigned short GetNumberOfModes(void);
+  unsigned long GetNumberOfModes(void);
   
   /*!
    * \brief Aeroelastic Flutter Speed Index.

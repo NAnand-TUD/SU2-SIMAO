@@ -4489,6 +4489,7 @@ void COutput::SetConvHistory_Header(ofstream *ConvHist_file, CConfig *config, un
   
   char end[]= ",\"Linear_Solver_Iterations\",\"CFL_Number\",\"Time(min)\"\n";
   char endfea[]= ",\"Linear_Solver_Iterations\",\"Time(min)\"\n";
+  char endcsd[]= "\n";
   
   if ((config->GetOutput_FileFormat() == TECPLOT) ||
       (config->GetOutput_FileFormat() == TECPLOT_BINARY) ||
@@ -4567,7 +4568,7 @@ void COutput::SetConvHistory_Header(ofstream *ConvHist_file, CConfig *config, un
       break;
 
     case FEM_MODAL:
-       ConvHist_file[0] << begin << csd_coeff; 
+       ConvHist_file[0] << begin << csd_coeff << endcsd; 
   }
 
   if (config->GetOutput_FileFormat() == TECPLOT ||
@@ -4611,7 +4612,10 @@ void COutput::SetConvHistory_Body(ofstream *ConvHist_file,
   unsigned short nModes, iMode;
   su2double *modalDisplacement, *modalVelocity;
   
-  if(csd) nModes = config[val_iZone]->GetNumberOfModes();
+  if(csd) {
+    nModes = config[val_iZone]->GetNumberOfModes();
+    cout << "found " << nModes << " modes" << endl;
+  }  
   
   if (!disc_adj && !cont_adj && !DualTime_Iteration) {
     
@@ -4712,12 +4716,9 @@ void COutput::SetConvHistory_Body(ofstream *ConvHist_file,
     /*--- WARNING: These buffers have hard-coded lengths. Note that you
      may have to adjust them to be larger if adding more entries. ---*/
     
-    char begin[1000], direct_coeff[1000], heat_coeff[1000], equivalent_area_coeff[1000], engine_coeff[1000], rotating_frame_coeff[1000], Cp_inverse_design[1000], Heat_inverse_design[1000], surface_coeff[1000], aeroelastic_coeff[1000], monitoring_coeff[10000], buffet_coeff[1000],
-    adjoint_coeff[1000], flow_resid[1000], adj_flow_resid[1000], turb_resid[1000], trans_resid[1000],
-    adj_turb_resid[1000],
-    begin_fem[1000], fem_coeff[1000], heat_resid[1000], combo_obj[1000],
-    fem_resid[1000], end[1000], end_fem[1000], surface_outputs[1000], d_surface_outputs[1000], d_direct_coeff[1000], turbo_coeff[10000],
-    csd_modal_coord[10000];
+    char begin[1000], direct_coeff[1000], heat_coeff[1000], equivalent_area_coeff[1000], engine_coeff[1000], rotating_frame_coeff[1000], Cp_inverse_design[1000], Heat_inverse_design[1000], surface_coeff[1000], aeroelastic_coeff[1000], 
+    monitoring_coeff[10000], buffet_coeff[1000],adjoint_coeff[1000], flow_resid[1000], adj_flow_resid[1000], turb_resid[1000], trans_resid[1000],adj_turb_resid[1000],begin_fem[1000], fem_coeff[1000], heat_resid[1000], combo_obj[1000],
+    fem_resid[1000], end[1000], end_fem[1000], surface_outputs[1000], d_surface_outputs[1000], d_direct_coeff[1000], turbo_coeff[10000],csd_modal_coord[10000];
 
 
     su2double dummy = 0.0, *Coord;
@@ -5219,7 +5220,7 @@ void COutput::SetConvHistory_Body(ofstream *ConvHist_file,
             modalVelocity[iMode] = solver_container[val_iZone][val_iInst][FinestMesh][MODAL_SOL]->getGeneralizedVelocity(iMode);
         }
     }
-
+  
     if (extra_heat_output) {
       Extra_Total_Heat      = solver_container[ExtraHeatOutputZone][val_iInst][FinestMesh][HEAT_SOL]->GetTotal_HeatFlux();
       //Extra_Total_Temperature   = solver_container[ExtraHeatOutputZone][val_iInst][FinestMesh][HEAT_SOL]->GetTotal_Temperature();
@@ -5253,7 +5254,7 @@ void COutput::SetConvHistory_Body(ofstream *ConvHist_file,
     else write_heads = (((iExtIter % (config[val_iZone]->GetWrt_Con_Freq()*40)) == 0));
     
     bool write_turbo = (((iExtIter % (config[val_iZone]->GetWrt_Con_Freq()*40)) == 0) || (iExtIter == (config[val_iZone]->GetnExtIter() -1)));
-    
+
     /*--- Analogous for dynamic problems (as of now I separate the problems, it may be worthy to do all together later on ---*/
     bool write_heads_FEM;
     if (nonlinear_analysis) write_heads_FEM = (iIntIter == 0);
@@ -5532,9 +5533,25 @@ void COutput::SetConvHistory_Body(ofstream *ConvHist_file,
             SPRINTF (begin_fem, ", %14.8e", 0.0);
             
             for(iMode = 0; iMode < nModes; ++iMode){
-                SPRINTF (csd_modal_coord, ", %14.8e, %14.8e", modalDisplacement[iMode],modalVelocity[iMode]);
+		if (iMode == 0) {
+		      SPRINTF(csd_modal_coord, ", %12.10f", modalDisplacement[iMode]);
+		      SPRINTF(surface_coeff, ", %12.10f", modalVelocity[iMode]);
+		      strcat(csd_modal_coord, surface_coeff);
+		}
+		else {
+		      SPRINTF(surface_coeff, ", %12.10f", modalDisplacement[iMode]);
+		      strcat(csd_modal_coord, surface_coeff);
+		      SPRINTF(surface_coeff, ", %12.10f", modalVelocity[iMode]);
+		      strcat(csd_modal_coord, surface_coeff);
+		}
+		cout << "mode: " << iMode << "\t" << csd_modal_coord << endl;
             }
-            
+            SPRINTF (end_fem,"\n");
+            cout << csd_modal_coord << endl;
+	    
+	    delete [] modalDisplacement;
+	    delete [] modalVelocity;
+
             break;
 
         }
@@ -5683,38 +5700,37 @@ void COutput::SetConvHistory_Body(ofstream *ConvHist_file,
             if (!Unsteady) cout << endl << " Iter" << "    Time(s)";
             else cout << endl << " IntIter" << " ExtIter";
 
-            //            if (!fluid_structure) {
+	    if (!fluid_structure) {
               if (incompressible && !weakly_coupled_heat) {
-              if (energy) {cout << "   Res[Press]" << "     Res[Temp]" << "   CLift(Total)" << "   CDrag(Total)" << endl;}
-              else {cout << "   Res[Press]" << "     Res[Velx]" << "   CLift(Total)" << "   CDrag(Total)" << endl;}
+		if (energy) {cout << "   Res[Press]" << "     Res[Temp]" << "   CLift(Total)" << "   CDrag(Total)" << endl;}
+		else {cout << "   Res[Press]" << "     Res[Velx]" << "   CLift(Total)" << "   CDrag(Total)" << endl;}
               }
               else if (incompressible && weakly_coupled_heat) cout << "   Res[Press]" << "     Res[Heat]" << "   HFlux(Total)";
-            else if (rotating_frame && nDim == 3 && !turbo) cout << "     Res[Rho]" << "     Res[RhoE]" << " CThrust(Total)" << " CTorque(Total)" << endl;
-            else if (aeroelastic) cout << "     Res[Rho]" << "     Res[RhoE]" << "   CLift(Total)" << "   CDrag(Total)" << "         plunge" << "          pitch" << endl;
-            else if (equiv_area) cout << "     Res[Rho]" << "   CLift(Total)" << "   CDrag(Total)" << "    CPress(N-F)" << endl;
+	      else if (rotating_frame && nDim == 3 && !turbo) cout << "     Res[Rho]" << "     Res[RhoE]" << " CThrust(Total)" << " CTorque(Total)" << endl;
+	      else if (aeroelastic) cout << "     Res[Rho]" << "     Res[RhoE]" << "   CLift(Total)" << "   CDrag(Total)" << "         plunge" << "          pitch" << endl;
+	      else if (equiv_area) cout << "     Res[Rho]" << "   CLift(Total)" << "   CDrag(Total)" << "    CPress(N-F)" << endl;
               
-            else if (turbo){
+	      else if (turbo){
 
-              if(nZone  < 2){
+		if(nZone  < 2){
                 /*--- single zone output ---*/
                 cout << "     Res[Rho]" << "     Res[RhoE]"  << "  TotPresLoss(%)" << "  Entropy Gen.(%)";
-              }
-              else{
-                /* --- multi-zone output ---*/
-                cout << "     Res[Rho]" << "     Res[RhoE]"  << " TTEfficiency(%)" << " Entropy Gen.(%)";
-              }
-            }
+		}
+		else{
+		  /* --- multi-zone output ---*/
+		  cout << "     Res[Rho]" << "     Res[RhoE]"  << " TTEfficiency(%)" << " Entropy Gen.(%)";
+		}
+	      }
               
-            else if (actuator_disk) cout << "     Res[Rho]" << "     Res[RhoE]" << "      CL(Total)" << "   CD-CT(Total)";
-            else if (engine) cout << "     Res[Rho]" << "     Res[RhoE]" << "      CL(Total)" << "   CD-CT(Total)";
-            else cout << "     Res[Rho]" << "     Res[RhoE]" << "      CL(Total)" << "      CD(Total)";
+	      else if (actuator_disk) cout << "     Res[Rho]" << "     Res[RhoE]" << "      CL(Total)" << "   CD-CT(Total)";
+	      else if (engine) cout << "     Res[Rho]" << "     Res[RhoE]" << "      CL(Total)" << "   CD-CT(Total)";
+	      else cout << "     Res[Rho]" << "     Res[RhoE]" << "      CL(Total)" << "      CD(Total)";
 
-            if(extra_heat_output) {
-              cout <<  "     Res[Heat]" << "   HFlux(Total)";
-            }
-
-            cout << endl;
-
+	      if(extra_heat_output) {
+		cout <<  "     Res[Heat]" << "   HFlux(Total)";
+	      }
+	      cout << endl;
+	    }
             break;
 
           case RANS :
@@ -5817,12 +5833,12 @@ void COutput::SetConvHistory_Body(ofstream *ConvHist_file,
                 }
             }
             
-            case FEM_MODAL:
-                for(iMode = 0; iMode < nModes; ++iMode){
-                    cout << modalDisplacement[iMode] <<"\t" << modalVelocity[iMode] << endl;
-                }
-                      
-           break;
+//             case FEM_MODAL:
+//                 for(iMode = 0; iMode < nModes; ++iMode){
+//                     cout << modalDisplacement[iMode] <<"\t" << modalVelocity[iMode] << endl;
+//                 }
+//                       
+// 		break;
 
             case ADJ_EULER :              case ADJ_NAVIER_STOKES :
             case DISC_ADJ_EULER:          case DISC_ADJ_NAVIER_STOKES:
@@ -5938,9 +5954,9 @@ void COutput::SetConvHistory_Body(ofstream *ConvHist_file,
 
         }
       }
-
-      /*--- Write the solution on the screen ---*/
       
+      /*--- Write the solution on the screen ---*/
+
       if ((val_iZone == 0 && val_iInst == 0)|| fluid_structure){
         cout.precision(6);
         cout.setf(ios::fixed, ios::floatfield);
@@ -5971,7 +5987,7 @@ void COutput::SetConvHistory_Body(ofstream *ConvHist_file,
           }
         }
       }
-      
+
       switch (config[val_iZone]->GetKind_Solver()) {
         case EULER : case NAVIER_STOKES:
         case FEM_EULER : case FEM_NAVIER_STOKES: case FEM_LES:
@@ -6241,7 +6257,7 @@ void COutput::SetConvHistory_Body(ofstream *ConvHist_file,
           
         case FEM_MODAL:
           
-            config[val_iZone]->GetHistFile()[0] << begin << csd_modal_coord ;
+            config[val_iZone]->GetHistFile()[0] << begin << csd_modal_coord << end_fem;
             config[val_iZone]->GetHistFile()[0].flush();
             break;
           
@@ -6361,7 +6377,6 @@ void COutput::SetConvHistory_Body(ofstream *ConvHist_file,
       cout.unsetf(ios::fixed);
 
     }
-    
 
     delete [] residual_flow;
     delete [] residual_turbulent;
@@ -6386,8 +6401,7 @@ void COutput::SetConvHistory_Body(ofstream *ConvHist_file,
     delete [] Surface_CMz;
     delete [] aeroelastic_pitch;
     delete [] aeroelastic_plunge;
-    delete [] modalDisplacement;
-    delete [] modalVelocity;
+
     
   }
 }

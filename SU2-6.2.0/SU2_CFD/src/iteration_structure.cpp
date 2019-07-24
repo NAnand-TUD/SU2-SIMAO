@@ -1453,7 +1453,14 @@ void CModalIteration::Iterate(COutput *output,
     
     config_container[val_iZone]->SetGlobalParam(FEM_MODAL, RUNTIME_MODAL_SYS, ExtIter); //TODO: Check
     /*--- Run the iteration ---*/
-    integration_container[val_iZone][val_iInst][MODAL_SOL]->Modal_Iteration(geometry_container, solver_container, numerics_container,config_container, RUNTIME_MODAL_SYS, IntIter, val_iZone, val_iInst);
+    integration_container[val_iZone][val_iInst][MODAL_SOL]->Modal_Iteration(geometry_container, solver_container, numerics_container,config_container, RUNTIME_MODAL_SYS, IntIter, val_iZone, val_iInst);   
+
+    
+    if (write_output) {
+      cout << "\n\n ****iteration completed - writing output body****\n\n" << endl;
+      output->SetConvHistory_Body(&ConvHist_file, geometry_container, solver_container, config_container, integration_container, false, 0.0, val_iZone, val_iInst);
+    }
+
 }
 
 void CModalIteration::Solve(COutput *output,
@@ -1477,10 +1484,13 @@ void CModalIteration::Solve(COutput *output,
       surface_movement, grid_movement, FFDBox, val_iZone, INST_0);
 
   /*--- Write the convergence history for the structure (only screen output) ---*/
-  if (multizone) output->SetConvHistory_Body(NULL, geometry_container, solver_container, config_container, integration_container, false, 0.0, val_iZone, INST_0);
+//   if (multizone) output->SetConvHistory_Body(NULL, geometry_container, solver_container, config_container, integration_container, false, 0.0, val_iZone, INST_0);
 
   /*--- Set the structural convergence to false (to make sure outer subiterations converge) ---*/
   integration_container[val_iZone][INST_0][MODAL_SOL]->SetConvergence(false);
+//   cout << "here0" << endl;
+    
+//   output->SetConvHistory_Body(NULL, geometry_container, solver_container, config_container, integration_container, false, 0.0, val_iZone, INST_0);
 
 }
 

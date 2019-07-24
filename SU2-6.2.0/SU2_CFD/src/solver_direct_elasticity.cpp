@@ -5447,7 +5447,7 @@ void CModalSolver::ReadCSD_Mesh_Nastran(CConfig *config){
     cout<< " Temperature    :: "<<config->GetTemperature_FreeStream() << endl;
     cout<< " Pressure_inf   :: "<<config->GetPressure_FreeStream() << endl;
     cout<< " Density_inf    :: "<<config->GetDensity_FreeStream() << endl;
-    cout<< " U_inf          :: "<<Uinf << endl;
+    cout<< " U_inf          :: "<< Uinf << endl;
     cout<< " Q              :: "<< ONE2 * config->GetGamma()*config->GetPressure_FreeStream()*config->GetMach()*config->GetMach() <<endl;
     cout<< " Density        :: "<< config->GetPressure_FreeStream()/(config->GetGas_Constant()*config->GetTemperature_FreeStream())<<endl;
     /* --- Read in modes' frequencies and mode shapes vectors ---2935.059 */
@@ -5750,6 +5750,7 @@ void CModalSolver::ComputeModalFluidForces(CGeometry *geometry, CConfig *config)
         for (iDim = 0; iDim < nDim; ++iDim) force[iDim] += weight*area*node[nodes[iNode]]->Get_FlowTraction(iDim);
         for (iDim = 0; iDim < nDim; ++iDim) {
           forces.push_back(force[iDim]);
+// 	  cout << force[0] << "\t"  << force[1] << "\t" << force[2] << endl;
       }
     }
   }

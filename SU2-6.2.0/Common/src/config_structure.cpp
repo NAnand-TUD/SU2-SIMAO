@@ -2026,6 +2026,8 @@ void CConfig::SetConfig_Options(unsigned short val_iZone, unsigned short val_nZo
   addBoolOption("PSEUDO_STATIC", PseudoStatic, false);
   /* DESCRIPTION: Dynamic or static structural analysis */
   addEnumOption("DYNAMIC_ANALYSIS", Dynamic_Analysis, Dynamic_Map, STATIC);
+    /* DESCRIPTION: Dynamic or static structural analysis */
+    addEnumOption("DYNAMIC_METHOD", Dynamic_Method, Dynamic_Map, MODAL_HARMONIC_BALANCE);
   /* DESCRIPTION: Time Step for dynamic analysis (s) */
   addDoubleOption("DYN_TIMESTEP", Delta_DynTime, 0.0);
   /* DESCRIPTION: Total Physical Time for dual time stepping simulations (s) */

@@ -1957,11 +1957,13 @@ enum ENUM_RECORDING {
  */
 enum ENUM_DYNAMIC {
   STATIC = 0,             /*!< \brief A static structural computation. */
-  DYNAMIC = 1		      /*!< \brief Use a time stepping strategy for dynamic computations. */
+  DYNAMIC = 1,		      /*!< \brief Use a time stepping strategy for dynamic computations. */
+    MODAL_HARMONIC_BALANCE = 2
 };
 static const map<string, ENUM_DYNAMIC> Dynamic_Map = CCreateMap<string, ENUM_DYNAMIC>
 ("NO", STATIC)
-("YES", DYNAMIC);
+("YES", DYNAMIC)
+("MODAL_HARMONIC_BALANCE", MODAL_HARMONIC_BALANCE);
 
 /*!
  * \brief types of input file formats

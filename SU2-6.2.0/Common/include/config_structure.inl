@@ -1854,6 +1854,8 @@ inline bool CConfig::GetSteadyRestart(void) { return SteadyRestart; }
 
 inline unsigned short CConfig::GetDynamic_Analysis(void) { return Dynamic_Analysis; }
 
+inline unsigned short CConfig::GetDynamic_Method(void) { return Dynamic_Method; }
+
 inline su2double CConfig::GetDelta_DynTime(void) { return Delta_DynTime; }
 
 inline su2double CConfig::GetTotal_DynTime(void) { return Total_DynTime; }

@@ -164,6 +164,7 @@ private:
   su2double *HTP_Min_XCoord, *HTP_Min_YCoord; /*!< \brief Identification of the HTP. */
   unsigned short Unsteady_Simulation;	/*!< \brief Steady or unsteady (time stepping or dual time stepping) computation. */
   unsigned short Dynamic_Analysis;	/*!< \brief Static or dynamic structural analysis. */
+  unsigned short Dynamic_Method;	/*!< \brief Static or dynamic structural analysis. */
   unsigned short nStartUpIter;	/*!< \brief Start up iterations using the fine grid. */
   su2double FixAzimuthalLine; /*!< \brief Fix an azimuthal line due to misalignments of the nearfield. */
   su2double **DV_Value;		/*!< \brief Previous value of the design variable. */
@@ -8589,6 +8590,8 @@ public:
    * \return The kind of time integration: Static or dynamic analysis
    */
   unsigned short GetDynamic_Analysis(void);
+
+    unsigned short GetDynamic_Method(void);
   
   /*!
    * \brief If we are prforming an unsteady simulation, there is only

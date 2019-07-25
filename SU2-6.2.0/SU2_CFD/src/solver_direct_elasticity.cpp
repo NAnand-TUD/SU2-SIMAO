@@ -5195,10 +5195,11 @@ CModalSolver::CModalSolver(void) : CSolver() {
 }
 
 CModalSolver::CModalSolver(CGeometry *geometry, CConfig *config) : CSolver() {
-  
+
     unsigned long iPoint;
     unsigned short iMode,iVar,iDim;
     su2double Uinf = 1.0;
+
     
 //     bool dynamic = (config->GetDynamic_Analysis() == DYNAMIC);              // Dynamic simulations.
     //   bool fsi = config->GetFSI_Simulation();
@@ -5213,7 +5214,13 @@ CModalSolver::CModalSolver(CGeometry *geometry, CConfig *config) : CSolver() {
     SolRest                 = NULL;
     generalizedDisplacement = NULL;
     generalizedVelocity     = NULL;
-    
+
+    DMatrix =   NULL;
+    EMatrix =   NULL;
+    AMatrix =   NULL;
+    AsMatrix =   NULL;
+    EMatrixInv =   NULL;
+
     Conv_Check[0] = 0; Conv_Check[1] = 0; Conv_Check[2] = 0;
     
     nElement= geometry->GetnElem();
@@ -5221,6 +5228,7 @@ CModalSolver::CModalSolver(CGeometry *geometry, CConfig *config) : CSolver() {
     nVar    = 2*4;                 // n. of vars for state-space calculation
     nMarker = geometry->GetnMarker();
     nPoint = geometry->GetnPoint();
+    nModes = 1;
     cout<< "nModes here is "<< nModes<<endl;
     cout << "modal solver initialized:" << nDim << "\t" << nVar << "\t" << nPoint << endl;
     
@@ -5229,6 +5237,30 @@ CModalSolver::CModalSolver(CGeometry *geometry, CConfig *config) : CSolver() {
     node    = new CVariable*[nPoint];
     // restart solution, i.e. generalized displacements for now???
     SolRest = new su2double[nVar];
+
+    if (config->GetDynamic_Analysis()){
+        cout<<"Dynamic Analysis \n";
+        if (config->GetDynamic_Method() == MODAL_HARMONIC_BALANCE)
+        {
+            unsigned short nInst = 3;
+            su2double HB_Period =  0.05891103435003335;
+            HB_Period /= config->GetTime_Ref();
+            su2double deltaT = HB_Period/(su2double)(nInst);
+//            su2double HB_Omega[3]={0,106.69842,-106.69842};
+            su2double HB_Const = 2.0*PI_NUMBER/(su2double)(nInst);
+            su2double HB_t[3]={HB_Const*0,HB_Const*1,HB_Const*2};
+            // EInv Matrix
+            Initialize_Transformation_Matrix(nModes, nInst);
+            // E Matrix
+            Initialize_Transformation_Matrix_Inv(nModes, nInst);
+            // A Matrix
+//            Initialize_A_Matrix(nModes, nInst);
+            // D Matrix
+            Initialize_HB_Operator(nModes, nInst);
+            // As Matrix
+            Initialize_As_Matrix(nModes,nInst);
+        }
+    }
 
     /*--- Initialize from zero everywhere. ---*/
     for (iVar = 0; iVar < nVar; iVar++) SolRest[iVar] = 0.0;
@@ -6274,4 +6306,155 @@ void CModalSolver::ImplicitNewmark_Update(CGeometry *geometry, CSolver **solver_
     }
 
 
+}
+
+su2double CModalSolver::Initialize_HB_Operator(unsigned short nMode, unsigned short nInst) {
+
+    unsigned short iInst, iMode, Di, Dj, Dk, nDij = nMode*nInst;
+    su2double Const = 2.0 / nInst, factor;
+    su2double iHB = 1;
+
+    DMatrix = new su2double*[nMode] ;
+    for (Di = 0; Di < nDij; Di++)
+        DMatrix[Di] = new su2double[nDij];
+
+    for (Di = 0; Di < nDij; Di++)
+        for (Dj = 0; Dj<nDij; Dj++)
+            DMatrix[Di][Dj] = 0.0;
+
+    cout<< " +++ DMatrix +++ \n";
+    for (Di = 0; Di < nDij; Di++) {
+        for (Dj = 0; Dj < nDij; Dj++) {
+            for (Dk = 0; Dk < iHB; Dk++) {
+                factor = (2.0 * PI_NUMBER * (Dk + 1) * (Dj - Di)) / (nInst);
+                DMatrix[Di][Dj] += (Dk + 1) * sin(factor);
+            }
+            DMatrix[Di][Dj] *= Const;
+            cout <<"DMatrix("<<Di<<","<<Dj<<")="<<DMatrix[Di][Dj] << "\t";
+        }
+        cout << endl;
+    }
+}
+
+su2double CModalSolver::Initialize_A_Matrix(unsigned short nMode, unsigned short nInst) {
+//    AMatrix
+    unsigned short iInst, iMode, Ai, Aj, nA=nMode*nInst;
+    AMatrix = new su2double*[nMode] ;
+
+    for (Ai = 0; Ai < nA; Ai++)
+        EMatrix[Ai] = new su2double[nInst];
+
+    for (Ai = 0; Ai < nA; Ai++)
+        for (Aj = 0; Aj<nA; Aj++)
+            AMatrix[Ai][Aj] = 0.0;
+}
+
+su2double CModalSolver::Initialize_Transformation_Matrix(unsigned short nMode, unsigned short nInst) {
+    unsigned short iInst, iMode, Ei, Ej, nE;
+//    nMode = 4;
+    nE = nMode*nInst;
+
+    su2double HB_Const = 2.0*PI_NUMBER/(su2double)(nInst);
+
+    EMatrix = new su2double*[nE] ;
+    for (Ei = 0; Ei < nE; Ei++)
+        EMatrix[Ei] = new su2double[nE];
+
+    for (Ei = 0; Ei < nE; Ei++)
+        for (Ej = 0; Ej<nE; Ej++)
+            EMatrix[Ei][Ej] = 0.0;
+
+    for (Ei = 0; Ei < nInst; Ei++){
+        for (Ej = 0; Ej < nMode; Ej++){
+            EMatrix[Ej+(nMode*Ei)][Ej+(nMode*0)] = 1;
+//            cout<<Ej+(nMode*Ei)<<" "<<Ej+(nMode*0)<<"\t";
+            EMatrix[Ej+(nMode*Ei)][Ej+(nMode*1)] = cos(HB_Const*Ei);
+//            cout<<Ej+(nMode*Ei)<<" "<<Ej+(nMode*1)<<"\t";
+            EMatrix[Ej+(nMode*Ei)][Ej+(nMode*2)] = sin(HB_Const*Ei);
+//            cout<<Ej+(nMode*Ei)<<" "<<Ej+(nMode*2)<<"\t";
+        }
+//        cout<< EMatrix[Ei][Ej] << "\t";
+//        cout<<endl;
+    }
+//    cout<<endl;
+    for (Ei = 0; Ei < nE; Ei++) {
+        for (Ej = 0; Ej < nE; Ej++) {
+            cout << EMatrix[Ei][Ej] << "\t";
+        }
+        cout<<endl;
+    }
+}
+
+su2double CModalSolver::Initialize_Transformation_Matrix_Inv(unsigned short nMode, unsigned short nInst) {
+//      EMatrixInv
+//    nMode = 3;
+    unsigned short iInst, iMode, Ei, Ej, nE=nMode*nInst;
+
+    su2double HB_Const = 2.0*PI_NUMBER/(su2double)(nInst);
+
+    su2double Const = 2.0 / nInst, factor;
+
+    EMatrixInv = new su2double*[nMode] ;
+    for (Ei = 0; Ei < nE; Ei++)
+        EMatrixInv[Ei] = new su2double[nE];
+
+    for (Ei = 0; Ei < nE; Ei++)
+        for (Ej = 0; Ej<nE; Ej++)
+            EMatrixInv[Ei][Ej] = 0.0;
+
+    for (Ei = 0; Ei < nInst; Ei++){
+        for (Ej = 0; Ej < nMode; Ej++){
+//            cout<<Ej+(nMode*Ei)<<Ej+(nMode*0)<<"\t";
+            EMatrixInv[Ej+(nMode*Ei)][Ej+(nMode*0)] = 0.5*Const;
+//            cout<<Ej+(nMode*Ei)<<Ej+(nMode*1)<<"\t";
+            EMatrixInv[Ej+(nMode*Ei)][Ej+(nMode*1)] = cos(HB_Const*Ei)*Const;
+//            cout<<Ej+(nMode*Ei)<<Ej+(nMode*2)<<"\t";
+            EMatrixInv[Ej+(nMode*Ei)][Ej+(nMode*2)] = sin(HB_Const*Ei)*Const;
+        }
+    }
+
+    cout<<"+++ InvMatrix +++\n";
+    for (Ei = 0; Ei < nE; Ei++) {
+        for (Ej = 0; Ej < nE; Ej++) {
+            cout << EMatrixInv[Ei][Ej] << "\t";
+        }
+        cout<<endl;
+    }
+}
+
+su2double CModalSolver::Initialize_As_Matrix(unsigned short nMode, unsigned short nInst) {
+    //              |   0       I   |
+    // AsMatrix =   |               |
+    //              |   K/M     D/M |
+    unsigned short Asij = nMode*nInst*2;
+    unsigned short i,j;
+//    AsMatrix = new su2double[Asij];
+
+    AsMatrix = new su2double*[Asij];
+
+    for(i=0; i<Asij; i++)
+        AsMatrix[i] = new su2double[Asij];
+
+    for(i=0; i<Asij; i++)
+        for(j=0; j<Asij; j++)
+            AsMatrix[i][j] = 0.0;
+
+    // I Matrix
+    for(i = 0; i < Asij/2; i++)
+        AsMatrix[i][i+(Asij/2)] = 1.0;
+
+    // K/M Matrix
+    for (i=0; i< Asij/2; i++)
+        AsMatrix[i+(Asij/2)][i] = 2.0;
+
+    // D/M Matrix
+    for (i=0; i< Asij/2; i++)
+        AsMatrix[i+(Asij/2)][i+(Asij/2)] = 3.0;
+
+    cout<<" +++ As Matrix +++ \n";
+    cout<<" Asij :: "<<Asij<<endl;
+    for (i=0; i < Asij; i++)
+        for (j=0; j < Asij; j++)
+            cout<<AsMatrix[i][j]<<"\t";
+        cout<<endl;
 }

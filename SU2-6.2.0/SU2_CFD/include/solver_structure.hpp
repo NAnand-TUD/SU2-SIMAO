@@ -15894,6 +15894,13 @@ private:
     relax;                          /*!< \brief relaxation factor for static displacements */
     vector<su2double> modeShapes;   /*!< \brief 1D vector containing mode shapes vector coordinates */
 
+    su2double **DMatrix,
+    **AMatrix,
+    **EMatrix,
+    **EMatrixInv,
+    **AsMatrix,
+    *HB_t;
+
     su2double ForceCoeff;             /*!< \brief Load transfer coefficient . */
     su2double RelaxCoeff;             /*!< \brief Relaxation coefficient . */
     su2double FSI_Residual;           /*!< \brief FSI residual. */
@@ -15991,7 +15998,20 @@ public:
     * \param[out] velocity for mode i.
     */
     su2double getGeneralizedVelocity(unsigned short iMode);
-    
+
+    /*!
+     * \brief Function for harmonic balance follows here
+     */
+    su2double Initialize_HB_Operator(unsigned short nMode, unsigned short nInst);
+
+    su2double Initialize_A_Matrix(unsigned short nMode, unsigned short nInst);
+
+    su2double Initialize_Transformation_Matrix_Inv(unsigned short nMode, unsigned short nInst);
+
+    su2double Initialize_Transformation_Matrix(unsigned short nMode, unsigned short nInst);
+
+    su2double Initialize_As_Matrix(unsigned short nMode, unsigned short nInst);
+
     /*!
     * \brief Returns iMode reduced frequency.
     * \param[in] iMode - mode number.

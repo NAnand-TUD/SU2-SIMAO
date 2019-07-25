@@ -69,7 +69,7 @@ void CIntegration::Space_Integration(CGeometry *geometry,
                     (config->GetUnsteady_Simulation() == DT_STEPPING_2ND));
 
   /*--- Compute inviscid residuals ---*/
-  cout << "space integration 72\n";
+//   cout << "space integration 72\n";
   switch (config->GetKind_ConvNumScheme()) {
     case SPACE_CENTERED:
       solver_container[MainSolver]->Centered_Residual(geometry, solver_container, numerics[CONV_TERM], config, iMesh, iRKStep);
@@ -348,7 +348,7 @@ void CIntegration::Time_Integration(CGeometry *geometry, CSolver **solver_contai
         solver_container[MainSolver]->ExplicitEuler_Iteration(geometry, solver_container, config);
         break;
       case (EULER_IMPLICIT):
-          cout << "integration structure - time integration euler implicit\n";
+//           cout << "integration structure - time integration euler implicit\n";
         solver_container[MainSolver]->ImplicitEuler_Iteration(geometry, solver_container, config);
         break;
     }

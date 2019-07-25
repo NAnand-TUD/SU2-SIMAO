@@ -4615,6 +4615,7 @@ void COutput::SetConvHistory_Body(ofstream *ConvHist_file,
   if(csd) {
     nModes = config[val_iZone]->GetNumberOfModes();
     cout << "found " << nModes << " modes" << endl;
+    iExtIter = config[val_iZone]->GetOuterIter();   //GetOuterIter();
   }  
   
   if (!disc_adj && !cont_adj && !DualTime_Iteration) {

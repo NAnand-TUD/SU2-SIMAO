@@ -423,7 +423,7 @@ bool CMultizoneDriver::OuterConvergence(unsigned long OuterIter) {
       /*-- If the solver position iSol is enabled --*/
       if (solver_container[iZone][INST_0][MESH_0][iSol] != NULL){
         nVarSol = solver_container[iZone][INST_0][MESH_0][iSol]->GetnVar();
-        cout<<"Compute Residul multizone being called"<<endl;
+//         cout<<"Compute Residul multizone being called"<<endl;
         /*--- Compute the block residual on each solver ---*/
         solver_container[iZone][INST_0][MESH_0][iSol]->ComputeResidual_Multizone(geometry_container[iZone][INST_0][MESH_0],config_container[iZone]);
 
@@ -505,7 +505,7 @@ bool CMultizoneDriver::OuterConvergence(unsigned long OuterIter) {
         config_container, integration_container, 0,
         ZONE_FLOW, ZONE_FEA, false);
   }
-    cout << "end convergence\n";
+//     cout << "end convergence\n";
   return Convergence;
 
 }

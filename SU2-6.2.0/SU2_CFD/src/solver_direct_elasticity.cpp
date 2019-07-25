@@ -5532,7 +5532,7 @@ void CModalSolver::ReadCSD_Mesh_Nastran(CConfig *config){
 		getline(mode_file, line);
 		istringstream iss(line); 
 		iss >> frequency;
-		omega[iMode] = 2.0*PI_NUMBER*frequency; //frequency;
+		omega[iMode] = 2.0*PI_NUMBER*frequency/(Uinf); //frequency;
 		cout<< "Omega :: "<<omega[iMode]<<" Freq ::"<<  frequency<<endl;
 		iss.clear();
 	}

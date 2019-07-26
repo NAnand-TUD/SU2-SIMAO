@@ -15894,6 +15894,7 @@ private:
     relax;                          /*!< \brief relaxation factor for static displacements */
     vector<su2double> modeShapes;   /*!< \brief 1D vector containing mode shapes vector coordinates */
 
+    CBlasStructure *blasFunctions; /*!< \brief  Pointer to the object to carry out the BLAS functionalities. */
     su2double **DMatrix,
     **AMatrix,
     **EMatrix,

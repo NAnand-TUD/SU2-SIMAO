@@ -15875,7 +15875,7 @@ class CModalSolver : public CSolver {
 private:
   
   unsigned long nElement, nPoints;
-  unsigned short nMarker,nModes;
+  unsigned short nMarker,nModes, nInst, nEqn;
   int nFEA_Terms;
   
     bool element_based;             /*!< \brief Bool to determine if an element-based file is used. */  
@@ -15895,11 +15895,18 @@ private:
     vector<su2double> modeShapes;   /*!< \brief 1D vector containing mode shapes vector coordinates */
 
     su2double **DMatrix,
+    **D2Matrix,
     **AMatrix,
     **EMatrix,
     **EMatrixInv,
     **AsMatrix,
-    *HB_t;
+    *HVector,
+    **FMatrix,
+    *HB_t,
+    *HB_Omega,
+    *QSolVector,
+    *QSolVector_Old,
+    *SystemVector;
 
     su2double ForceCoeff;             /*!< \brief Load transfer coefficient . */
     su2double RelaxCoeff;             /*!< \brief Relaxation coefficient . */
@@ -16002,15 +16009,27 @@ public:
     /*!
      * \brief Function for harmonic balance follows here
      */
-    su2double Initialize_HB_Operator(unsigned short nMode, unsigned short nInst);
+    void Initialize_HB_Operator(unsigned short nMode, unsigned short nInst);
 
-    su2double Initialize_A_Matrix(unsigned short nMode, unsigned short nInst);
+    void Initialize_A_Matrix(unsigned short nMode, unsigned short nInst);
 
-    su2double Initialize_Transformation_Matrix_Inv(unsigned short nMode, unsigned short nInst);
+    void Initialize_Transformation_Matrix_Inv(unsigned short nMode, unsigned short nInst);
 
-    su2double Initialize_Transformation_Matrix(unsigned short nMode, unsigned short nInst);
+    void Initialize_Transformation_Matrix(unsigned short nMode, unsigned short nInst);
 
-    su2double Initialize_As_Matrix(unsigned short nMode, unsigned short nInst);
+    void Initialize_As_Matrix(unsigned short nMode, unsigned short nInst);
+
+    void Initialize_EqnOfMotion(unsigned short nMode, unsigned short nInst, su2double *QSol);
+
+    void InitializeHBMatrices(unsigned short nMode, unsigned short nInst);
+
+    void Update_EqnOfMotion(unsigned short nMode, unsigned short nInst);
+
+    void Update_FMatrix(unsigned short nMode, unsigned short nInst);
+
+    su2double Get_EqnOfMotion(unsigned short nMode, unsigned short nInst);
+
+    void HB_RK4(CGeometry *geometry, CSolver **solver_container, CConfig *config);
 
     /*!
     * \brief Returns iMode reduced frequency.

@@ -5583,7 +5583,7 @@ void CModalSolver::RK2(CGeometry *geometry, CSolver **solver_container, CConfig 
     su2double *qsol;
     su2double dy[4] = {0.0, 0.0, 0.0, 0.0};
     
-    su2double dt = 0.005;//config->GetDelta_UnstTime();
+    su2double dt = 0.015;//config->GetDelta_UnstTime();
     cout<<" Time Step is :: "<< dt <<endl;
     qsol = new su2double[2*nModes];
 
@@ -5688,7 +5688,7 @@ void CModalSolver::RK4(CGeometry *geometry, CSolver **solver_container, CConfig 
     su2double *qsol;
     su2double dy[8] = {0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0};
 
-    su2double dt = 0.005;
+    su2double dt = 0.015;
     qsol = new su2double[2*nModes];
 
     cout << "solving structural equations of motion using two-stage RK method "<< endl;

@@ -5622,6 +5622,8 @@ void CModalSolver::ReadCSD_Mesh_Nastran(CConfig *config,CGeometry *geometry){
 //     cout << endl;
 //     exit(0);
     
+    for (iMode=0; iMode < nModes; ++iMode) cout << "X0=" << generalizedDisplacement[iMode] << endl;
+    for (iMode=0; iMode < nModes; ++iMode) cout << "V0=" << generalizedVelocity[iMode] << endl;
     //--- SPM ---//
     delete [] XV;
     delete [] YV;

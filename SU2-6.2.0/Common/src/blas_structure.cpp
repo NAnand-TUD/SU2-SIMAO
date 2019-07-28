@@ -73,6 +73,10 @@ void CBlasStructure::gemm(const int M,        const int N,        const int K,
      assumes that the matrices are in column major order. This can be
      accomplished by swapping N and M and A and B. This implementation is based
      on https://github.com/flame/how-to-optimize-gemm. */
+  for(int i=0; i < M*K; ++i)  cout << "A[" << i << "]= " << A[i] <<  "\t" << M << " " << N << " " << K << endl;
+  for(int i=0; i < M*N; ++i)  cout << "B[" << i << "]= " << B[i] <<  endl;  
+  for(int i=0; i < M*N; ++i)  cout << "C[" << i << "]= " << C[i] <<  endl;  
+  cout << endl;
   gemm_imp(N, M, K, B, A, C);
 
 #else
@@ -151,13 +155,24 @@ void CBlasStructure::gemv(const int M,        const int N,   const su2double *A,
 void CBlasStructure::gemm_imp(const int m,        const int n,        const int k,
                               const su2double *a, const su2double *b, su2double *c) {
 
+    
   /* Initialize the elements of c to zero. */
   memset(c, 0, m*n*sizeof(su2double));
-
+  
+  for(int i=0; i < m*n; ++i)  cout << "_imp B[" << i << "]= " << a[i] << endl;
+  for(int i=0; i < n*k; ++i)  cout << "_imp A[" << i << "]= " << b[i] << endl;  
+  for(int i=0; i < m*n; ++i)  cout << "_imp C[" << i << "]= " << c[i] << endl;  
+  
   /* Set the leading dimensions of the three matrices. */
   const int lda = m;
-  const int ldb = k;
-  const int ldc = m;
+  const int ldb = n;
+  const int ldc = k;
+  
+  cout << "lds: " << lda << "\t" << ldb << "\t" << ldc << endl;
+
+  const int kc = 128;
+  const int mc = 256;
+  const int nc = 128;
 
   /* The full matrix multiplication is split in several blocks.
      Loop over these blocks. */
@@ -167,7 +182,7 @@ void CBlasStructure::gemm_imp(const int m,        const int n,        const int 
       int jb = min(n-j, nc);
       for(int i=0; i<m; i+=mc) {
         int ib = min(m-i, mc);
-
+        cout << "indices: " << i << "  " << p << "  " << j << " -> " << A(i,p) << "\t" << B(p,j) << endl;
         /* Carry out the multiplication for this block. */
         gemm_inner(ib, jb, pb, &A(i, p), lda, &B(p, j), ldb, &C(i, j), ldc);
       }

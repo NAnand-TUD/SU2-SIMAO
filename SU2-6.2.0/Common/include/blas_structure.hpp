@@ -111,9 +111,9 @@ private:
 
   /*!
    * \brief Function, which perform the implementation of the gemm functionality.
-   * \param[in]  m  - Number of rows of a and c.
-   * \param[in]  n  - Number of columns of b and c.
-   * \param[in]  k  - Number of columns of a and number of rows of b.
+   * \param[in]  m  - Number of rows of a and c.    a=8x4;  c=8x4   => m=8
+   * \param[in]  n  - Number of columns of b and c. b=8X8;  c=8X4   => n=8 or 4
+   * \param[in]  k  - Number of columns of a and number of rows of b.   a=8x4;  b=8x8   => k=8
    * \param[in]  a  - Input matrix in the multiplication.
    * \param[in]  b  - Input matrix in the multiplication.
    * \param[out] c  - Result of the matrix product a*b.

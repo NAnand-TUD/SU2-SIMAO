@@ -15890,7 +15890,7 @@ private:
     *SolRest;			            /*!< \brief generalized displacement solution for restarts */
     su2double Uinf,                 /*!< \brief freestream velocity */
     refLength,                      /*!< \brief scaling length for CSD mesh, frequency, etc. */
-    massrat,                        /*!< \brief fluid/structure density ratio */
+    Qinf,                           /*!< \brief freestream dynamic pressure */
     relax;                          /*!< \brief relaxation factor for static displacements */
     vector<su2double> modeShapes;   /*!< \brief 1D vector containing mode shapes vector coordinates */
 
@@ -15900,6 +15900,7 @@ private:
     **EMatrix,
     **EMatrixInv,
     **AsMatrix,
+    *Ass,*Bss,
     *HB_t;
 
     su2double ForceCoeff;             /*!< \brief Load transfer coefficient . */
@@ -15954,9 +15955,11 @@ public:
     */
     void Preprocessing(CGeometry *geometry, CSolver **solver_container, CConfig *config, CNumerics **numerics, unsigned short iMesh, unsigned long Iteration, unsigned short RunTime_EqSystem, bool Output);
   
-    void ReadCSD_Mesh_Nastran(CConfig *config);
+    void ReadCSD_Mesh_Nastran(CConfig *config, CGeometry *geometry);
 
     void ReadCSD_Mesh_Ansys(CConfig *config);
+    
+    void Initialize_StateSpace_Matrices(unsigned short);
 
     void RK2(CGeometry *geometry, CSolver **solver_container, CConfig *config);
 
@@ -16012,7 +16015,29 @@ public:
     su2double Initialize_Transformation_Matrix(unsigned short nMode, unsigned short nInst);
 
     su2double Initialize_As_Matrix(unsigned short nMode, unsigned short nInst);
+    
+    /*!
+    * \brief matrix multiplication utility based on BLAS function.
+    * \param[in] Matrix A, B, number of rows & cols
+    * \param[in] Matrix C, output matrix, n. rows
+    * \param[in] alpha multiplyer scalar.
+    * \param[in] lda/ldb/ldc leading matrix dimension
+    * \param[out] Matrix C.
+    */
+    void dgemm( char transa, char transb, unsigned long m, unsigned long n, unsigned long k, 
+  su2double alpha, double a[], unsigned long lda, su2double b[], unsigned long ldb, su2double beta, su2double c[],  unsigned long ldc );
 
+    /*!
+    * \brief matrix-vector multiplication utility based on BLAS function.
+    * \param[in] Matrix a, number of rows & cols
+    * \param[in] vector x, output matrix, n. rows
+    * \param[in] alpha multiplyer scalar.
+    * \param[in] lda/ldb/ldc leading matrix dimension
+    * \param[out] Vector y.
+    */
+    void dgemv( bool trans, unsigned long m, unsigned long n, double alpha, double a[], 
+              unsigned long lda, su2double x[], unsigned long incx, su2double beta, su2double y[], int incy );
+    
     /*!
     * \brief Returns iMode reduced frequency.
     * \param[in] iMode - mode number.

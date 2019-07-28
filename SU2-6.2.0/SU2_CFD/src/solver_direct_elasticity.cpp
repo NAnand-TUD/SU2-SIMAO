@@ -5215,11 +5215,14 @@ CModalSolver::CModalSolver(CGeometry *geometry, CConfig *config) : CSolver() {
     generalizedDisplacement = NULL;
     generalizedVelocity     = NULL;
 
-    DMatrix =   NULL;
-    EMatrix =   NULL;
-    AMatrix =   NULL;
-    AsMatrix =   NULL;
-    EMatrixInv =   NULL;
+    blasFunctions   = NULL;
+    DMatrix         = NULL;
+    EMatrix         = NULL;
+    AMatrix         = NULL;
+    AsMatrix        = NULL;
+    Ass             = NULL;
+    Bss             = NULL;
+    EMatrixInv      = NULL;
 
     Conv_Check[0] = 0; Conv_Check[1] = 0; Conv_Check[2] = 0;
     
@@ -5238,29 +5241,29 @@ CModalSolver::CModalSolver(CGeometry *geometry, CConfig *config) : CSolver() {
     // restart solution, i.e. generalized displacements for now???
     SolRest = new su2double[nVar];
 
-    if (config->GetDynamic_Analysis()){
-        cout<<"Dynamic Analysis \n";
-        if (config->GetDynamic_Method() == MODAL_HARMONIC_BALANCE)
-        {
-            unsigned short nInst = 3;
-            su2double HB_Period =  0.05891103435003335;
-            HB_Period /= config->GetTime_Ref();
-            su2double deltaT = HB_Period/(su2double)(nInst);
-//            su2double HB_Omega[3]={0,106.69842,-106.69842};
-            su2double HB_Const = 2.0*PI_NUMBER/(su2double)(nInst);
-            su2double HB_t[3]={HB_Const*0,HB_Const*1,HB_Const*2};
-            // EInv Matrix
-            Initialize_Transformation_Matrix(nModes, nInst);
-            // E Matrix
-            Initialize_Transformation_Matrix_Inv(nModes, nInst);
-            // A Matrix
-//            Initialize_A_Matrix(nModes, nInst);
-            // D Matrix
-            Initialize_HB_Operator(nModes, nInst);
-            // As Matrix
-            Initialize_As_Matrix(nModes,nInst);
-        }
-    }
+//     if (config->GetDynamic_Analysis()){
+//         cout<<"Dynamic Analysis \n";
+//         if (config->GetDynamic_Method() == MODAL_HARMONIC_BALANCE)
+//         {
+//             unsigned short nInst = 3;
+//             su2double HB_Period =  0.05891103435003335;
+//             HB_Period /= config->GetTime_Ref();
+//             su2double deltaT = HB_Period/(su2double)(nInst);
+// //            su2double HB_Omega[3]={0,106.69842,-106.69842};
+//             su2double HB_Const = 2.0*PI_NUMBER/(su2double)(nInst);
+//             su2double HB_t[3]={HB_Const*0,HB_Const*1,HB_Const*2};
+//             // EInv Matrix
+//             Initialize_Transformation_Matrix(nModes, nInst);
+//             // E Matrix
+//             Initialize_Transformation_Matrix_Inv(nModes, nInst);
+//             // A Matrix
+// //            Initialize_A_Matrix(nModes, nInst);
+//             // D Matrix
+//             Initialize_HB_Operator(nModes, nInst);
+//             // As Matrix
+//             Initialize_As_Matrix(nModes,nInst);
+//         }
+//     }
 
     /*--- Initialize from zero everywhere. ---*/
     for (iVar = 0; iVar < nVar; iVar++) SolRest[iVar] = 0.0;
@@ -5291,7 +5294,7 @@ CModalSolver::CModalSolver(CGeometry *geometry, CConfig *config) : CSolver() {
     }
   
     // read in mode shapes (TODO: rename function)
-    ReadCSD_Mesh_Nastran(config);
+    ReadCSD_Mesh_Nastran(config,geometry);
     
     for (iMode=0; iMode < nModes; ++iMode) {
         cout << "2-Mode " << iMode+1 << " Frequency:\t" << " = " << omega[iMode] << endl;
@@ -5318,6 +5321,8 @@ CModalSolver::~CModalSolver(void) {
     if (SolRest != NULL) delete [] SolRest;
     if (damping != NULL) delete [] damping;
     if (omega != NULL) delete [] omega;
+
+    if( blasFunctions ) delete blasFunctions;
 }
 
 void CModalSolver::Preprocessing(CGeometry *geometry, CSolver **solver_container, CConfig *config, CNumerics **numerics, unsigned short iMesh, unsigned long Iteration, unsigned short RunTime_EqSystem, bool Output) {
@@ -5456,13 +5461,13 @@ void CModalSolver::ReadCSD_Mesh_Ansys(CConfig *config) {
     delete [] ZV;
 }
 
-void CModalSolver::ReadCSD_Mesh_Nastran(CConfig *config){
+void CModalSolver::ReadCSD_Mesh_Nastran(CConfig *config,CGeometry *geometry){
     //TODO: add options to config file (hardwire test case for now?!)
     //
     unsigned long iPoint,iMode,nModesPoints;
 	unsigned short number_of_modes,iDim;
 	vector<unsigned long>::iterator it;
-	su2double frequency,Uinf;
+	su2double frequency;
 	su2double Coord_3D[3];
     su2double *XV,*YV,*ZV;
 	ifstream mode_file,mesh_file;
@@ -5472,7 +5477,8 @@ void CModalSolver::ReadCSD_Mesh_Nastran(CConfig *config){
 
     mesh_file.close();
 	Uinf = config->GetMach()*pow(config->GetGamma()*config->GetGas_Constant()*config->GetTemperature_FreeStream(),0.5);
-    massrat = config->GetPressure_FreeStream()/(config->GetGas_Constant()*config->GetTemperature_FreeStream())*pow(refLength,5);
+    Qinf = ONE2 * config->GetGamma()*config->GetPressure_FreeStream()*config->GetMach()*config->GetMach();
+//     massrat = config->GetPressure_FreeStream()/(config->GetGas_Constant()*config->GetTemperature_FreeStream())*pow(refLength,5);
     su2double flutter_index = config->GetAeroelastic_Flutter_Speed_Index();
 	cout<< " Mach Inf       :: "<<config->GetMach()<<endl;
     cout<< " Gamma          :: "<<config->GetGamma()<<endl;
@@ -5480,7 +5486,7 @@ void CModalSolver::ReadCSD_Mesh_Nastran(CConfig *config){
     cout<< " Pressure_inf   :: "<<config->GetPressure_FreeStream() << endl;
     cout<< " Density_inf    :: "<<config->GetDensity_FreeStream() << endl;
     cout<< " U_inf          :: "<< Uinf << endl;
-    cout<< " Q              :: "<< ONE2 * config->GetGamma()*config->GetPressure_FreeStream()*config->GetMach()*config->GetMach() <<endl;
+    cout<< " Q              :: "<< Qinf <<endl;
     cout<< " Density        :: "<< config->GetPressure_FreeStream()/(config->GetGas_Constant()*config->GetTemperature_FreeStream())<<endl;
     /* --- Read in modes' frequencies and mode shapes vectors ---2935.059 */
     strcpy(cstr,"modesFile.dat");
@@ -5533,7 +5539,7 @@ void CModalSolver::ReadCSD_Mesh_Nastran(CConfig *config){
 		istringstream iss(line); 
 		iss >> frequency;
 		omega[iMode] = 2.0*PI_NUMBER*frequency/(Uinf); //frequency;
-		cout<< "Omega :: "<<omega[iMode]<<" Freq ::"<<  frequency<<endl;
+		cout<< "vel_inf: " << Uinf << "; Omega :: "<<omega[iMode]<<" Freq ::"<<  frequency<<endl;
 		iss.clear();
 	}
 
@@ -5545,8 +5551,9 @@ void CModalSolver::ReadCSD_Mesh_Nastran(CConfig *config){
             XV[iPoint] = Coord_3D[0]/refLength;
             YV[iPoint] = Coord_3D[1]/refLength;
             ZV[iPoint] = Coord_3D[2]/refLength;
+            
             for(iDim=0; iDim < nDim; ++iDim) node[iPoint]->SetModeVector(iMode,iDim,Coord_3D[iDim]);
-            iss.clear();
+            iss.clear();    //WARNING: why is this not scaled with refLength?
 		}
 		for (iPoint = 0 ; iPoint < nPoint; iPoint++) modeShapes.push_back(XV[iPoint]);
         for (iPoint = 0 ; iPoint < nPoint; iPoint++) modeShapes.push_back(YV[iPoint]);
@@ -5558,7 +5565,63 @@ void CModalSolver::ReadCSD_Mesh_Nastran(CConfig *config){
     }
 
 	mode_file.close();
+    
+    //--- scale CSD mesh ---//
+    for (iPoint = 0 ; iPoint < geometry->GetnPoint(); iPoint++){
+        for(iDim = 0; iDim < nDim ; ++iDim){
+            Coord_3D[iDim] = geometry->node[iPoint]->GetCoord(iDim);
+            geometry->node[iPoint]->SetCoord(iDim,Coord_3D[iDim]/refLength);
+        }
+    }
 
+    // --- initialize state-space matrices ---//
+    Initialize_StateSpace_Matrices(0);
+    
+//     su2double *Ctmp;
+// //     Cmatrix = new su2double[nModes*nModes];
+//     Cmatrix = (su2double *) malloc( nModes*nModes*sizeof(su2double) );
+//     unsigned long i,j;
+//     for ( j = 0; j < nModes; j++ )
+//     {
+//       for ( i = 0; i < nModes; i++ )
+//       {
+//         Cmatrix[i+j*nModes] = ( su2double ) ( 10 * ( i + 1 ) + ( j + 1 ) );
+//       }
+//     }
+//     const su2double *Atmp = &(Ass[0]);
+//     const su2double *Btmp = &(Bss[0]);
+//     Ctmp = (su2double *) malloc( nModes*2*nModes*sizeof(su2double) );
+// 
+//     cout << "\n\n  Blas matrix multiplication C matrix\n\nCol:    ";    
+//     // test
+//     dgemm('n','n',2*nModes, nModes, 2*nModes, 1.0L, Ass, 2*nModes, Bss, 2*nModes, 0.L, Ctmp, 2*nModes );
+//   
+//     //  Write the header.
+//     for (int j = 0; j < nModes; j++ )
+//     {
+//       cout << setw(7) << j << "       ";
+//     }
+//     cout << "\n";
+//     cout << "  Row\n";
+//     cout << "\n";
+//     for ( int i = 0; i < 2*nModes; i++ )
+//     {
+//       for ( int j = 0; j < nModes; j++ ) cout << setw(12) << Ctmp[i+j*2*nModes] << "  ";
+//       cout << "\n";
+//     }
+//     su2double *x, *y;
+//     x = new su2double[2*nModes];
+//     y = new su2double[2*nModes];
+//     for (int i = 0; i < 2*nModes; i++ ) x[i] = ( su2double ) ( i + 1 );
+//   
+//     bool trans = false;
+//     dgemv( trans, 2*nModes,2*nModes, 1.0, Ass,2*nModes,x,1,0.,y, 1 );
+//     for ( int j = 0; j < 2*nModes; j++ ) cout << setw(5) << x[j] << " ";
+//     cout << endl;
+//     for ( int j = 0; j < 2*nModes; j++ ) cout << setw(5) << y[j] << " ";
+//     cout << endl;
+//     exit(0);
+    
     //--- SPM ---//
     delete [] XV;
     delete [] YV;
@@ -5585,6 +5648,7 @@ void CModalSolver::RK2(CGeometry *geometry, CSolver **solver_container, CConfig 
 
     su2double DampingRatio = 0.0;
 
+    
     for( iMode = 0; iMode < nModes; ++iMode) {
         dy[0] = generalizedVelocity[iMode][1];
         dy[1] = modalForceLast[iMode] - omega[iMode]*omega[iMode]*generalizedDisplacement[iMode][1] - DampingRatio*omega[iMode]*omega[iMode]*generalizedVelocity[iMode][1];
@@ -5611,61 +5675,158 @@ void CModalSolver::RK2(CGeometry *geometry, CSolver **solver_container, CConfig 
 
 void CModalSolver::RK4(CGeometry *geometry, CSolver **solver_container, CConfig *config){
 
-    unsigned short iMode,iDim;
-    su2double *qsol;
-    su2double dy[8] = {0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0};
+    unsigned short iMode, iDim, irk, nStage,ind;
+    su2double *qsol,*dy,*ForceVec;
+    su2double *rk1,*rk2,*rk3,*rk4,*yout;
+//     su2double dy[4] = {0.0, 0.0, 0.0, 0.0};
+    su2double rkcoeff[4] = {0.0, 0.0, 0.0, 0.0};
+    bool trans = false;
+    su2double dt = config->GetTime_Step();
+    
+    qsol    = new su2double[2*nModes];
+    dy      = new su2double[2*nModes];
+    yout    = new su2double[2*nModes];
+    ForceVec= new su2double[2*nModes];
 
-    su2double dt = 0.005;
-    qsol = new su2double[2*nModes];
+    // R-K number of stages and coefficients
+    nStage = 4;
+    switch(nStage){
+        case 4:
+            rkcoeff[0]  = rkcoeff[3] = 0.16666666666666666;
+            rkcoeff[1]  = rkcoeff[2] = 0.33333333333333;
+            rk1         = new su2double[2*nModes];
+            rk2         = new su2double[2*nModes];
+            rk3         = new su2double[2*nModes];
+            rk4         = new su2double[2*nModes];
+        case 2:
+            rkcoeff[0] = 0.5;
+            rkcoeff[1] = 0.5;
+            rk1         = new su2double[2*nModes];
+            rk2         = new su2double[2*nModes];
+    }
 
-    cout << "solving structural equations of motion using two-stage RK method "<< endl;
+    cout << "solving structural equations of motion using n-stage RK method "<< endl;
     // solution array includes X, Y, Z displacements, obtained from gen. vars;
     // and must be parsed to node variable
     // generalizedXXX contains solution from state-space modal problem
+    //
+    //   d |y|   |  0      I   ||y|          |   0   |
+    // ----| | = |             || | + Q/Uinf*|       |
+    //  dt |ŷ|   | -K/M   -D/M ||ŷ|          | PHI*F |
 
     // Get the modal forces from the interpolation
     ComputeModalFluidForces(geometry, config);
 
-    for( iMode = 0; iMode < nModes; ++iMode) {
+    for(iMode = 0; iMode < nModes; ++iMode) qsol[iMode]         = generalizedDisplacement[iMode][0];
+    for(iMode = 0; iMode < nModes; ++iMode) qsol[iMode+nModes]  = generalizedVelocity[iMode][0];
+    for(iMode = 0; iMode < 2*nModes; ++iMode) dy[iMode]         = 0;
+    for(iMode = 0; iMode < 2*nModes; ++iMode) yout[iMode]       = 0;
 
-        // RK Step 1
-        // K1  = dt * f (Tn, Yn)
-        dy[0] = dt*generalizedVelocity[iMode][0];
-        dy[1] = dt*(modalForceLast[iMode] - omega[iMode]*omega[iMode]*generalizedDisplacement[iMode][0]);
-
-        // RK Step 2
-        // K2  = dt * f (Tn + dt/2, Yn + K1/2)
-        dy[2] = dt * (generalizedVelocity[iMode][0] + ONE2*dt*dy[1]) ;
-        dy[3] = dt * (modalForce[iMode] - omega[iMode]*omega[iMode]*(generalizedDisplacement[iMode][0]+ONE2*dt*dy[1])) ;
-
-        // RK Step 3
-        // K3  = dt * f (Tn + dt/2, Yn + K2/2)
-        dy[4] = dt *(generalizedVelocity[iMode][0] + ONE2*dt*dy[3] );
-        dy[5] = dt *(modalForce[iMode] - omega[iMode]*omega[iMode]*(generalizedDisplacement[iMode][0]+ONE2*dt*dy[3]));
-
-        // RK Step 4
-        // K4  = dt * f (Tn + dt, Yn + K3)
-        dy[6] = dt *(generalizedVelocity[iMode][0] + dt*dy[5] );
-        dy[7] = dt *(modalForce[iMode] - omega[iMode]*omega[iMode]*(generalizedDisplacement[iMode][0]+dt*dy[1]));
-
-        // RK4 Solution
-        // Y N+1 = Y N + 1/6 * (K1 + 2K2 + 2K3 + K4)
-        qsol[2*iMode]   = generalizedDisplacement[iMode][0] + 0.16666*dt*(dy[0] + 2*dy[2] + 2*dy[4] + dy[6]);
-        qsol[2*iMode+1] = generalizedVelocity[iMode][0] + 0.16666*(dy[1] + 2*dy[3] + 2*dy[5] + dy[7]);
+    for(iMode = 0; iMode < nModes; ++iMode) {
+        ForceVec[iMode]             = 0;
+        ForceVec[iMode+nModes]      = modalForce[iMode]*Bss[nModes+iMode + iMode*2*nModes];
     }
 
-    // Update old and new solution
+    //rk1    
+    dgemv(trans,2*nModes,2*nModes,1.0,Ass,2*nModes,qsol,1,0.,yout, 1 );
+    for(iMode = 0; iMode < 2*nModes; ++iMode) rk1[iMode] = yout[iMode] + ForceVec[iMode];
+    for(iMode = 0; iMode < 2*nModes; ++iMode) yout[iMode] = 0;
+    
+    //rk2
+    for(iMode = 0; iMode < 2*nModes; ++iMode) dy[iMode] = qsol[iMode] + ONE2*dt*rk1[iMode];
+    dgemv(false,2*nModes,2*nModes,1.0,Ass,2*nModes,dy,1,0.,yout, 1 );
+    for(iMode = 0; iMode < 2*nModes; ++iMode) rk2[iMode] = yout[iMode] + ForceVec[iMode];
+    for(iMode = 0; iMode < 2*nModes; ++iMode) yout[iMode] = 0;
+
+    //rk3
+    for(iMode = 0; iMode < 2*nModes; ++iMode) dy[iMode] = qsol[iMode] + ONE2*dt*rk2[iMode];
+    dgemv(false,2*nModes,2*nModes,1.0,Ass,2*nModes,dy,1,0.,yout, 1 );
+    for(iMode = 0; iMode < 2*nModes; ++iMode) rk3[iMode] = yout[iMode] + ForceVec[iMode];
+    for(iMode = 0; iMode < 2*nModes; ++iMode) yout[iMode] = 0;
+    
+    //rk4
+    for(iMode = 0; iMode < 2*nModes; ++iMode) dy[iMode] = qsol[iMode] + ONE2*dt*rk3[iMode];
+    dgemv(false,2*nModes,2*nModes,1.0,Ass,2*nModes,dy,1,0.,yout, 1 );
+    for(iMode = 0; iMode < 2*nModes; ++iMode) rk4[iMode] = yout[iMode] + ForceVec[iMode];    
+    
     for( iMode = 0; iMode < nModes; ++iMode) {
         generalizedDisplacement[iMode][1]   = generalizedDisplacement[iMode][0];
         generalizedVelocity[iMode][1]       = generalizedVelocity[iMode][0];
-        generalizedDisplacement[iMode][0]   = qsol[2*iMode];
-        generalizedVelocity[iMode][0]       = qsol[2*iMode+1];
+//         
+        generalizedDisplacement[iMode][0] += dt*(rkcoeff[0]*rk1[iMode] + 
+        rkcoeff[1]*rk2[iMode] + rkcoeff[2]*rk3[iMode] + rkcoeff[3]*rk4[iMode]);
+        ind = iMode+nModes;
+        generalizedVelocity[iMode][0] += dt*(rkcoeff[0]*rk1[ind] + 
+        rkcoeff[1]*rk2[ind] + rkcoeff[2]*rk3[ind] + rkcoeff[3]*rk4[ind]);
     }
-
     UpdateStructuralNodes();
 
     delete [] qsol;
+    delete [] rk1;
+    delete [] rk2;
+    delete [] rk3;
+    delete [] rk4;
+    delete [] dy;
+    delete [] yout;
 }
+
+// void CModalSolver::RK4(CGeometry *geometry, CSolver **solver_container, CConfig *config){
+// 
+//     unsigned short iMode,iDim;
+//     su2double *qsol;
+//     su2double dy[8] = {0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0};
+// 
+//     su2double dt = 0.025;
+//     qsol = new su2double[2*nModes];
+// 
+//     cout << "solving structural equations of motion using two-stage RK method "<< endl;
+//     // solution array includes X, Y, Z displacements, obtained from gen. vars;
+//     // and must be parsed to node variable
+//     // generalizedXXX contains solution from state-space modal problem
+// 
+//     // Get the modal forces from the interpolation
+//     ComputeModalFluidForces(geometry, config);
+// 
+//     for( iMode = 0; iMode < nModes; ++iMode) {
+// 
+//         // RK Step 1
+//         // K1  = dt * f (Tn, Yn)
+//         dy[0] = dt*generalizedVelocity[iMode][0];
+//         dy[1] = dt*(modalForceLast[iMode] - omega[iMode]*omega[iMode]*generalizedDisplacement[iMode][0]);
+// 
+//         // RK Step 2
+//         // K2  = dt * f (Tn + dt/2, Yn + K1/2)
+//         dy[2] = dt * (generalizedVelocity[iMode][0] + ONE2*dt*dy[1]) ;
+//         dy[3] = dt * (modalForce[iMode] - omega[iMode]*omega[iMode]*(generalizedDisplacement[iMode][0]+ONE2*dt*dy[1])) ;
+// 
+//         // RK Step 3
+//         // K3  = dt * f (Tn + dt/2, Yn + K2/2)
+//         dy[4] = dt *(generalizedVelocity[iMode][0] + ONE2*dt*dy[3] );
+//         dy[5] = dt *(modalForce[iMode] - omega[iMode]*omega[iMode]*(generalizedDisplacement[iMode][0]+ONE2*dt*dy[3]));
+// 
+//         // RK Step 4
+//         // K4  = dt * f (Tn + dt, Yn + K3)
+//         dy[6] = dt *(generalizedVelocity[iMode][0] + dt*dy[5] );
+//         dy[7] = dt *(modalForce[iMode] - omega[iMode]*omega[iMode]*(generalizedDisplacement[iMode][0]+dt*dy[1]));
+// 
+//         // RK4 Solution
+//         // Y N+1 = Y N + 1/6 * (K1 + 2K2 + 2K3 + K4)
+//         qsol[2*iMode]   = generalizedDisplacement[iMode][0] + 0.16666*dt*(dy[0] + 2*dy[2] + 2*dy[4] + dy[6]);
+//         qsol[2*iMode+1] = generalizedVelocity[iMode][0] + 0.16666*(dy[1] + 2*dy[3] + 2*dy[5] + dy[7]);
+//     }
+// 
+//     // Update old and new solution
+//     for( iMode = 0; iMode < nModes; ++iMode) {
+//         generalizedDisplacement[iMode][1]   = generalizedDisplacement[iMode][0];
+//         generalizedVelocity[iMode][1]       = generalizedVelocity[iMode][0];
+//         generalizedDisplacement[iMode][0]   = qsol[2*iMode];
+//         generalizedVelocity[iMode][0]       = qsol[2*iMode+1];
+//     }
+// 
+//     UpdateStructuralNodes();
+// 
+//     delete [] qsol;
+// }
 
 void CModalSolver::UpdateStructuralNodes() {
 
@@ -6308,6 +6469,88 @@ void CModalSolver::ImplicitNewmark_Update(CGeometry *geometry, CSolver **solver_
 
 }
 
+void CModalSolver::Initialize_StateSpace_Matrices(unsigned short nInst) {
+    //    Input, unsigned short  nModes, number of modes, leading dimension of the matrix = (2*nModes)x(2*nModes).
+    //    number of columns implied from the state-space problem.
+    //
+    //    Output are matrix Ass and Bss.
+    //    Ass is stored in (2*nModes)x(2*nModes) entries; Bss => is as an M x N matrix;
+    //
+    //              |   0       I   |                      | 0 |
+    // Ass =        |               |;   BsMatrix = Q/Uinf*|   |
+    //              |   K/M     D/M |                      | I |
+
+//     su2double *a;
+    unsigned long i, j;
+    //m, n: number of rows and columns of the matrix.
+    const unsigned short m = 2*nModes;
+    const unsigned short n = 2*nModes;
+    
+    su2double DampingRatio = 0.0;
+
+//     Ass = new su2double[m*n];
+//     BsMatrix = new su2double[m*nModes];
+    Ass = (su2double *) malloc( m*n*sizeof(su2double) );
+    Bss = (su2double *) malloc( m*nModes*sizeof(su2double) );
+
+    // initialize
+    for ( i = 0; i < m*n; ++i ) Ass[i] = (su2double) (0);
+    for ( i = 0; i < m*nModes; ++i ) Bss[i] = (su2double) (0);
+    
+    //Ass
+    // I
+    for ( j = nModes; j < n; j++ )   //loop over cols
+        for ( i = 0; i < nModes; i++ ) if (i+nModes == j) Ass[i+j*m] = ( su2double ) (1); //rows
+    
+    //K/M
+    for ( j = 0; j < nModes; j++ )   //loop over cols
+        for ( i = nModes; i < m; i++ )
+            if (i == j+nModes) Ass[i+j*m] = -omega[j]*omega[j]; //rows
+
+    //D/M
+    for ( j = nModes; j < n; j++ )   //loop over cols
+        for ( i = nModes; i < m; i++ ) 
+            if (i == j) Ass[i+j*m] = -2.*DampingRatio*omega[j-nModes]; // su2double (3); //rows
+
+    //  Write the header.
+    cout << "\nAs Matrix\n\n   Col:    ";
+    for ( j = 0; j < n; j++ ) cout << setw(7) << j << "       ";
+    
+    cout << "\n";
+    cout << "  Row\n";
+    cout << "\n";
+    
+    for ( i = 0; i < n; i++ ){  //rows
+      for ( j = 0; j < m; j++ ) cout << setw(12) << Ass[i+j*m] << "  ";     //cols
+      cout << "\n";
+    }
+
+    
+    //Bss
+    // I
+    for ( j = 0; j < nModes; j++ )   //loop over cols
+    {
+        for ( i = nModes; i < m; i++ ) {
+            if (i == j+nModes) Bss[i+j*m] = Qinf/(Uinf*Uinf); //rows
+        }
+    }
+    //  Write the header.
+    cout << " \n Bs Matrix " << Uinf << "\t" << Qinf << "\n\nCol:    ";
+    for ( j = 0; j < nModes; j++ )
+    {
+      cout << setw(7) << j << "       ";
+    }
+    cout << "\n";
+    cout << "  Row\n";
+    cout << "\n";
+    for ( i = 0; i < m; i++ )
+    {
+      for ( j = 0; j < nModes; j++ ) cout << setw(12) << Bss[i+j*m] << "  ";
+      cout << "\n";
+    }
+    
+}
+
 su2double CModalSolver::Initialize_HB_Operator(unsigned short nMode, unsigned short nInst) {
 
     unsigned short iInst, iMode, Di, Dj, Dk, nDij = nMode*nInst;
@@ -6428,9 +6671,8 @@ su2double CModalSolver::Initialize_As_Matrix(unsigned short nMode, unsigned shor
     //              |   K/M     D/M |
     unsigned short Asij = nMode*nInst*2;
     unsigned short i,j;
-//    AsMatrix = new su2double[Asij];
-
-    AsMatrix = new su2double*[Asij];
+    
+    AsMatrix = new su2double* [Asij];
 
     for(i=0; i<Asij; i++)
         AsMatrix[i] = new su2double[Asij];
@@ -6457,4 +6699,461 @@ su2double CModalSolver::Initialize_As_Matrix(unsigned short nMode, unsigned shor
         for (j=0; j < Asij; j++)
             cout<<AsMatrix[i][j]<<"\t";
         cout<<endl;
+}
+
+void CModalSolver::dgemm( char transa, char transb, unsigned long m, unsigned long n, unsigned long k, 
+  su2double alpha, su2double a[],  unsigned long lda, su2double b[],  unsigned long ldb, su2double beta, su2double c[],  unsigned long ldc ){
+
+//****************************************************************************80
+//
+//  Purpose: DGEMM computes C = alpha * A * B and related operations.
+//  Discussion: DGEMM performs one of the matrix-matrix operations
+//     C := alpha * op ( A ) * op ( B ) + beta * C,
+//    where op ( X ) is one of: op ( X ) = X   or   op ( X ) = X',
+//
+//    ALPHA and BETA are scalars, and A, B and C are matrices, with op ( A )
+//    an M by K matrix, op ( B ) a K by N matrix and C an N by N matrix.
+//  Licensing: This code is distributed under the GNU LGPL license.
+//  Modified: 26 July 2019
+//  Author: Original FORTRAN77 version by Jack Dongarra.
+//    C++ version by John Burkardt.
+//
+//  Parameters:
+//    Input, char TRANSA, specifies the form of op( A ) to be used in
+//    the matrix multiplication as follows:
+//    'N' or 'n', op ( A ) = A.
+//    'T' or 't', op ( A ) = A'.
+//    'C' or 'c', op ( A ) = A'.
+//
+//    Input, char TRANSB, specifies the form of op ( B ) to be used in
+//    the matrix multiplication as follows:
+//    'N' or 'n', op ( B ) = B.
+//    'T' or 't', op ( B ) = B'.
+//    'C' or 'c', op ( B ) = B'.
+//
+//    Input, int M, the number of rows of the  matrix op ( A ) and of the  
+//    matrix C.  0 <= M.
+//
+//    Input, int N, the number  of columns of the matrix op ( B ) and the 
+//    number of columns of the matrix C.  0 <= N.
+//
+//    Input, int K, the number of columns of the matrix op ( A ) and the 
+//    number of rows of the matrix op ( B ).  0 <= K.
+//
+//    Input, double ALPHA, the scalar multiplier 
+//    for op ( A ) * op ( B ).
+//
+//    Input, double A(LDA,KA), where:
+//    if TRANSA is 'N' or 'n', KA is equal to K, and the leading M by K
+//    part of the array contains A;
+//    if TRANSA is not 'N' or 'n', then KA is equal to M, and the leading
+//    K by M part of the array must contain the matrix A.
+//
+//    Input, int LDA, the first dimension of A as declared in the calling 
+//    routine.  When TRANSA = 'N' or 'n' then LDA must be at least max ( 1, M ), 
+//    otherwise LDA must be at least max ( 1, K ).
+//
+//    Input, double B(LDB,KB), where:
+//    if TRANSB is 'N' or 'n', kB is N, and the leading K by N 
+//    part of the array contains B;
+//    if TRANSB is not 'N' or 'n', then KB is equal to K, and the leading
+//    N by K part of the array must contain the matrix B.
+//
+//    Input, int LDB, the first dimension of B as declared in the calling 
+//    routine.  When TRANSB = 'N' or 'n' then LDB must be at least max ( 1, K ), 
+//    otherwise LDB must be at least max ( 1, N ).
+//
+//    Input, double BETA, the scalar multiplier for C.
+//
+//    Input/output, double C[LDC*N].
+//    On input, the leading M by N part of this array must contain the 
+//    matrix C, except when BETA is 0.0, in which case C need not be set.
+//    On output, the array C is overwritten by the M by N matrix
+//    alpha * op ( A ) * op ( B ) + beta * C.
+//
+//    Input, int LDC, the first dimension of C as declared in the calling 
+//    routine.  max ( 1, M ) <= LDC.
+//
+  unsigned long i,j,l;  
+  unsigned long ncola, nrowa, nrowb, oneL, m2;
+  bool nota;
+  bool notb;
+  su2double temp;
+  
+  oneL = 1;
+//
+//  Set NOTA and NOTB as true if A and B respectively are not
+//  transposed and set NROWA, NCOLA and NROWB as the number of rows
+//  and columns of A and the number of rows of B respectively.
+//
+  nota = ( ( transa == 'N' ) || ( transa == 'n' ) );
+
+  cout << "options0: "<< "\t" << transa << "\t" << transb << "\t" << nota << endl;
+  if ( nota ){
+    nrowa   = m;
+    ncola   = k;
+    m2      = m;
+    cout << "options01" << endl;
+  }
+  else{
+    nrowa   = k;
+    ncola   = m;
+    m2      = m;
+    cout << "options02" << endl;
+  }
+
+  notb = ( ( transb == 'N' ) || ( transb == 'n' ) );
+  cout << "options0: "<< "\t" << transb << "\t" << transb << "\t" << nota << endl;
+
+  if ( notb ){
+    nrowb = k;
+  }
+  else{
+    nrowb = n;
+  }
+//
+//  Test the input parameters.
+//
+  if ( ! ( transa == 'N' || transa == 'n' ||
+           transa == 'C' || transa == 'c' ||
+           transa == 'T' || transa == 't' ) )
+  {
+    cerr << "\n";
+    cerr << "DGEMM - Fatal error!\n";
+    cerr << "  Input TRANSA has an illegal value.\n";
+    exit ( 1 );
+  }
+
+  if ( ! ( transb == 'N' || transb == 'n' ||
+           transb == 'C' || transb == 'c' ||
+           transb == 'T' || transb == 't' ) )
+  {
+    cerr << "\n";
+    cerr << "DGEMM - Fatal error!\n";
+    cerr << "  Input TRANSB has an illegal value.\n";
+    exit ( 1 );
+  }
+
+  if ( m < 0 ){
+    cerr << "\n";
+    cerr << "DGEMM - Fatal error!\n";
+    cerr << "  Input M has an illegal value.\n";
+    exit ( 1 );
+  }
+
+  if ( n < 0 ){
+    cerr << "\n";
+    cerr << "DGEMM - Fatal error!\n";
+    cerr << "  Input N has an illegal value.\n";
+    exit ( 1 );
+  }
+
+  if ( k  < 0 ){
+    cerr << "\n";
+    cerr << "DGEMM - Fatal error!\n";
+    cerr << "  Input K has an illegal value.\n";
+    exit ( 1 );
+  }
+
+  if ( lda < max( oneL, nrowa ) ){
+    cerr << "\n";
+    cerr << "DGEMM - Fatal error!\n";
+    cerr << "  Input LDA has an illegal value.\n";
+    cout << lda << "\t" << oneL << "\t" << nrowa << endl;
+    exit ( 1 );
+  }
+
+  if ( ldb < max( oneL, nrowb ) )
+  {
+    cerr << "\n";
+    cerr << "DGEMM - Fatal error!\n";
+    cerr << "  Input LDB has an illegal value.\n";
+//     cout << ldb << "\t" << oneL << "\t" << nrowb << "\t" << n << "\t" << endl;
+    exit ( 1 );
+  }
+
+  if ( ldc < max( oneL, m2 ) )
+  {
+    cerr << "\n";
+    cerr << "DGEMM - Fatal error!\n";
+    cerr << "  Input LDC has an illegal value.\n";
+    exit ( 1 );
+  }
+
+//   cout << "cleared checks\n";
+//
+//  Quick return if possible.
+//
+  if ( m == 0 ) return;
+  if ( n == 0 ) return;
+
+  if ( ( alpha == 0.0 || k == 0 ) && ( beta == 1.0 ) ) return;
+//
+//  And if alpha is 0.0.
+//
+  if ( alpha == 0.0 ){
+    for ( j = 0; j < n; j++ ) 
+        for ( i = 0; i < m; i++ ) c[i+j*ldc] = 0.0;
+    return;
+  }
+//
+//  Start the operations.
+//
+  if ( notb ){
+//
+//  Form  C := alpha*A*B
+//
+    if ( nota ){
+      for ( j = 0; j < n; j++ ){
+        for ( i = 0; i < m; i++ ) c[i+j*ldc] = 0.0;
+        for ( l = 0; l < k; l++ ){
+            if ( b[l+j*ldb] != 0.0 ){
+                temp = alpha * b[l+j*ldb];
+                for ( i = 0; i < m; i++ ) c[i+j*ldc] = c[i+j*ldc] + temp * a[i+l*lda];
+            }
+        }
+      }
+    }
+//
+//  Form  C := alpha*A'*B
+//
+    else{
+      for ( j = 0; j < n; j++ ){
+        for ( i = 0; i < m; i++ ){
+          temp = 0.0;
+          for ( l = 0; l < k; l++ ) temp += a[l+i*lda] * b[l+j*ldb];
+          c[i+j*ldc] = alpha * temp;
+        }
+      }
+    }
+  }
+//
+//  Form  C := alpha*A*B'
+//
+  else{
+    if ( nota )
+    {
+      for ( j = 0; j < n; j++ )
+      {
+        for ( i = 0; i < m; i++ ) c[i+j*ldc] = 0.0;
+        for ( l = 0; l < k; l++ ){
+          if ( b[j+l*ldb] != 0.0 ){
+            temp = alpha * b[j+l*ldb];
+            for ( i = 0; i < m; i++ ) c[i+j*ldc] = c[i+j*ldc] + temp * a[i+l*lda];
+          }
+        }
+      }
+    }
+//
+//  Form  C := alpha*A'*B'
+//
+    else{
+      for ( j = 0; j < n; j++ ){
+        for ( i = 0; i < m; i++ ){
+          temp = 0.0;
+          for ( l = 0; l < k; l++ ) temp = temp + a[l+i*lda] * b[j+l*ldb];
+          c[i+j*ldc] = alpha * temp;
+        }
+      }
+    }
+  }
+
+  return;
+}
+
+//****************************************************************************80
+void CModalSolver::dgemv( bool trans, unsigned long m, unsigned long n, double alpha, double a[], 
+                          unsigned long lda, su2double x[], unsigned long incx, su2double beta, 
+                          su2double y[], int incy )
+//****************************************************************************80
+//
+//  Purpose: DGEMV computes y := alpha * A * x + beta * y for general matrix A.
+//
+//  Discussion: DGEMV performs one of the matrix-vector operations
+//      y := alpha*A *x + beta*y
+//    or
+//      y := alpha*A'*x + beta*y,
+//    where alpha and beta are scalars, x and y are vectors and A is an
+//    m by n matrix.
+//
+//  Licensing: This code is distributed under the GNU LGPL license.
+//  Modified: 02 April 2014 / 27 July 2019
+//  Author: C++ version by John Burkardt
+//
+//  Parameters:
+//    Input, char TRANS, specifies the operation to be performed:
+//    'n' or 'N'   y := alpha*A *x + beta*y.
+//    't' or 'T'   y := alpha*A'*x + beta*y.
+//    'c' or 'C'   y := alpha*A'*x + beta*y.
+//
+//    - Input, int M, the number of rows of the matrix A. 0 <= M.
+//    - Input, int N, the number of columns of the matrix A. 0 <= N.
+//    - Input, double ALPHA, the scalar multiplier for A * x.
+//    - Input, double A[LDA*N].  The M x N subarray contains the matrix A.
+//    - Input, int LDA, the the first dimension of A as declared
+//    in the calling routine.  max ( 1, M ) <= LDA.
+//    - Input, double X[*], an array containing the vector to be 
+//    multiplied by the matrix A.  
+//    - If TRANS = 'N' or 'n', then X must contain N entries, stored in INCX 
+//    increments in a space of at least ( 1 + ( N - 1 ) * abs ( INCX ) ) 
+//    locations.
+//    - Otherwise, X must contain M entries, store in INCX increments
+//    in a space of at least ( 1 + ( M - 1 ) * abs ( INCX ) ) locations.
+//
+//    - Input, int INCX, the increment for the elements of X.  INCX must not be zero.
+//    - Input, double BETA, the scalar multiplier for Y.
+//
+//    - Input/output, double Y[*], an array containing the vector to
+//    be scaled and incremented by A*X.
+//    - If TRANS = 'N' or 'n', then Y must contain M entries, stored in INCY
+//    increments in a space of at least ( 1 + ( M - 1 ) * abs ( INCY ) ) 
+//    locations.
+//    - Otherwise, Y must contain N entries, store in INCY increments
+//    in a space of at least ( 1 + ( N - 1 ) * abs ( INCY ) ) locations.
+//
+//    Input, int INCY, the increment for the elements of Y.  INCY must not be zero. --> TODO: remove feature
+//
+{
+  unsigned long i,j,lenx,leny;
+  unsigned short info;
+  unsigned long oneL = 1;
+  int ix, iy, jx, jy, kx, ky;
+  su2double temp;
+//
+//  Test the input parameters.
+//
+  info = 0;
+
+  if ( m < 0 ){
+    info = 2;
+  }
+  else if ( n < 0 ){
+    info = 3;
+  }
+  else if ( lda < max ( oneL, m ) )
+  {
+    info = 6;
+  }
+  else if ( incx == 0 )
+  {
+    info = 8;
+  }
+  else if ( incy == 0 )
+  {
+    info = 11;
+  }
+
+  if ( info != 0 ){
+    cerr << "DGEMV: " << info << endl;
+    return;
+  }
+//
+//  Quick return if possible.
+//
+  if ( ( m == 0 ) ||
+       ( n == 0 ) ||
+       ( ( alpha == 0.0 ) && ( beta == 1.0 ) ) ) return;
+//
+//  Set LENX and LENY, the lengths of the vectors x and y, and set
+//  up the start points in X and Y.
+//
+  if ( trans ){
+    lenx = m;
+    leny = n;
+  }
+  else{
+    lenx = n;
+    leny = m;
+  }
+
+  if ( 0 < incx ){
+    kx = 0;
+  }
+  else{
+    kx = 0 - ( lenx - 1 ) * incx;
+  }
+
+  if ( 0 < incy ){
+    ky = 0;
+  }
+  else{
+    ky = 0 - ( leny - 1 ) * incy;
+  }
+//
+//  Start the operations. In this version the elements of A are
+//  accessed sequentially with one pass through A.
+//     for ( i = 0; i < m; i++ ) {cout << "y- " << y[i] << endl;}
+  if ( alpha == 0.0 ) return;
+//
+//  Form y := alpha*A*x.
+//
+  if ( !(trans) ){
+    jx = kx;
+    if ( incy == 1 ){
+      for ( j = 0; j < n; j++ ){
+//         if ( abs(x[jx]) > 1e-14 ){
+          temp = alpha * x[jx];
+//           cout << alpha << "\t" << x[jx] << "\t" << temp << endl;
+          for ( i = 0; i < m; i++ ) {
+              y[i] = y[i] + temp * a[i+j*lda];
+//               cout << "ind: " << i << "\t" << a[i+j*lda] << "\t" << y[i] << endl;
+          }
+//         }
+        jx = jx + incx;
+      }
+    }
+    else
+    {
+      for ( j = 0; j < n; j++ ){
+        if ( abs(x[jx]) > 1e-14 ){
+          temp = alpha * x[jx];
+//         cout <<"v2 " << alpha << "\t" << x[jx] << "\t" << temp << endl;
+          iy = ky;
+          for ( i = 0; i < m; i++ )
+          {
+            y[iy] = y[iy] + temp * a[i+j*lda];
+            iy = iy + incy;
+//               cout << "v2: " << a[i+j*lda] << "\t" << y[i] << endl;
+          }
+        }
+        jx = jx + incx;
+      }
+    }
+  }
+/*
+  Form y := alpha*A'*x.
+*/
+  else{
+    jy = ky;
+    if ( incx == 1 )
+    {
+      for ( j = 0; j < n; j++ )
+      {
+        temp = 0.0;
+        for ( i = 0; i < m; i++ )
+        {
+          temp = temp + a[i+j*lda] * x[i];
+        }
+        y[jy] = y[jy] + alpha * temp;
+        jy = jy + incy;
+      }
+    }
+    else
+    {
+      for ( j = 0; j < n; j++ )
+      {
+        temp = 0.0;
+        ix = kx;
+        for ( i = 0; i < m; i++ )
+        {
+          temp = temp + a[i+j*lda] * x[ix];
+          ix = ix + incx;
+        }
+        y[jy] = y[jy] + alpha * temp;
+        jy = jy + incy;
+      }
+    }
+  }
+
+  return;
 }

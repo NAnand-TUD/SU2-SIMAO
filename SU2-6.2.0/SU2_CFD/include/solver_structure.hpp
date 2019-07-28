@@ -15875,7 +15875,7 @@ class CModalSolver : public CSolver {
 private:
   
   unsigned long nElement, nPoints;
-  unsigned short nMarker,nModes;
+  unsigned short nMarker,nModes, nInst, nEqn;
   int nFEA_Terms;
   
     bool element_based;             /*!< \brief Bool to determine if an element-based file is used. */  
@@ -15896,12 +15896,23 @@ private:
 
     CBlasStructure *blasFunctions; /*!< \brief  Pointer to the object to carry out the BLAS functionalities. */
     su2double **DMatrix,
+    **D2Matrix,
     **AMatrix,
     **EMatrix,
     **EMatrixInv,
     **AsMatrix,
+<<<<<<< HEAD
     *Ass,*Bss,
     *HB_t;
+=======
+    *HVector,
+    **FMatrix,
+    *HB_t,
+    *HB_Omega,
+    *QSolVector,
+    *QSolVector_Old,
+    *SystemVector;
+>>>>>>> acac050e3cb0912cefc312ff94a8c162d39c5666
 
     su2double ForceCoeff;             /*!< \brief Load transfer coefficient . */
     su2double RelaxCoeff;             /*!< \brief Relaxation coefficient . */
@@ -16006,14 +16017,15 @@ public:
     /*!
      * \brief Function for harmonic balance follows here
      */
-    su2double Initialize_HB_Operator(unsigned short nMode, unsigned short nInst);
+    void Initialize_HB_Operator(unsigned short nMode, unsigned short nInst);
 
-    su2double Initialize_A_Matrix(unsigned short nMode, unsigned short nInst);
+    void Initialize_A_Matrix(unsigned short nMode, unsigned short nInst);
 
-    su2double Initialize_Transformation_Matrix_Inv(unsigned short nMode, unsigned short nInst);
+    void Initialize_Transformation_Matrix_Inv(unsigned short nMode, unsigned short nInst);
 
-    su2double Initialize_Transformation_Matrix(unsigned short nMode, unsigned short nInst);
+    void Initialize_Transformation_Matrix(unsigned short nMode, unsigned short nInst);
 
+<<<<<<< HEAD
     su2double Initialize_As_Matrix(unsigned short nMode, unsigned short nInst);
     
     /*!
@@ -16026,6 +16038,21 @@ public:
     */
     void dgemm( char transa, char transb, unsigned long m, unsigned long n, unsigned long k, 
   su2double alpha, double a[], unsigned long lda, su2double b[], unsigned long ldb, su2double beta, su2double c[],  unsigned long ldc );
+=======
+    void Initialize_As_Matrix(unsigned short nMode, unsigned short nInst);
+
+    void Initialize_EqnOfMotion(unsigned short nMode, unsigned short nInst, su2double *QSol);
+
+    void InitializeHBMatrices(unsigned short nMode, unsigned short nInst);
+
+    void Update_EqnOfMotion(unsigned short nMode, unsigned short nInst);
+
+    void Update_FMatrix(unsigned short nMode, unsigned short nInst);
+
+    su2double Get_EqnOfMotion(unsigned short nMode, unsigned short nInst);
+
+    void HB_RK4(CGeometry *geometry, CSolver **solver_container, CConfig *config);
+>>>>>>> acac050e3cb0912cefc312ff94a8c162d39c5666
 
     /*!
     * \brief matrix-vector multiplication utility based on BLAS function.

@@ -5215,22 +5215,17 @@ CModalSolver::CModalSolver(CGeometry *geometry, CConfig *config) : CSolver() {
     generalizedDisplacement = NULL;
     generalizedVelocity     = NULL;
 
-<<<<<<< HEAD
     blasFunctions   = NULL;
-    DMatrix         = NULL;
-    EMatrix         = NULL;
-    AMatrix         = NULL;
-    AsMatrix        = NULL;
     Ass             = NULL;
     Bss             = NULL;
     EMatrixInv      = NULL;
-=======
+
     DMatrix                 = NULL;
     EMatrix                 = NULL;
     AMatrix                 = NULL;
     AsMatrix                = NULL;
     EMatrixInv              = NULL;
->>>>>>> acac050e3cb0912cefc312ff94a8c162d39c5666
+
 
     Conv_Check[0] = 0; Conv_Check[1] = 0; Conv_Check[2] = 0;
     
@@ -5252,7 +5247,7 @@ CModalSolver::CModalSolver(CGeometry *geometry, CConfig *config) : CSolver() {
     // restart solution, i.e. generalized displacements for now???
     SolRest = new su2double[nVar];
 
-<<<<<<< HEAD
+// <<<<<<< HEAD
 //     if (config->GetDynamic_Analysis()){
 //         cout<<"Dynamic Analysis \n";
 //         if (config->GetDynamic_Method() == MODAL_HARMONIC_BALANCE)
@@ -5276,7 +5271,7 @@ CModalSolver::CModalSolver(CGeometry *geometry, CConfig *config) : CSolver() {
 //             Initialize_As_Matrix(nModes,nInst);
 //         }
 //     }
-=======
+// =======
     if (config->GetDynamic_Analysis()){
         cout<<"Dynamic Analysis \n";
         if (config->GetDynamic_Method() == MODAL_HARMONIC_BALANCE)
@@ -5309,7 +5304,7 @@ CModalSolver::CModalSolver(CGeometry *geometry, CConfig *config) : CSolver() {
             Initialize_EqnOfMotion(nModes, nInst, QSolVector);
         }
     }
->>>>>>> acac050e3cb0912cefc312ff94a8c162d39c5666
+// >>>>>>> acac050e3cb0912cefc312ff94a8c162d39c5666
 
     /*--- Initialize from zero everywhere. ---*/
     for (iVar = 0; iVar < nVar; iVar++) SolRest[iVar] = 0.0;
@@ -5726,7 +5721,7 @@ void CModalSolver::HB_RK4(CGeometry *geometry, CSolver **solver_container, CConf
     su2double *k1, *k2, *k3, *k4, *QSol_RK;
     su2double coeff1 = 1.0/6.0, coeff2 = 2.0/6.0, coeff3 = 2.0/6.0, coeff4 = 1.0/6.0;
     su2double dt = 0.005;
-    unsigned short i, j;
+    unsigned short i, j; // iMode;
     unsigned short nVars = (nModes*nInst*nEqn);
 
     QSol_RK = new su2double[nVars];
@@ -5770,12 +5765,12 @@ void CModalSolver::HB_RK4(CGeometry *geometry, CSolver **solver_container, CConf
         QSolVector[i] = QSolVector_Old[i] + (coeff1*k1[1]+coeff2*k1[2]+coeff3*k1[3]+coeff4*k1[4]);
     }
 
-    for( iMode = 0; iMode < nModes; ++iMode) {
-        generalizedDisplacement[iMode][1]   = generalizedDisplacement[iMode][0];
-        generalizedVelocity[iMode][1]       = generalizedVelocity[iMode][0];
-        generalizedDisplacement[iMode][0]   = qsol[2*iMode];
-        generalizedVelocity[iMode][0]       = qsol[2*iMode+1];
-    }
+//     for( iMode = 0; iMode < nModes; ++iMode) {
+//         generalizedDisplacement[iMode][1]   = generalizedDisplacement[iMode][0];
+//         generalizedVelocity[iMode][1]       = generalizedVelocity[iMode][0];
+//         generalizedDisplacement[iMode][0]   = qsol[2*iMode];
+//         generalizedVelocity[iMode][0]       = qsol[2*iMode+1];
+//     }
 
     UpdateStructuralNodes();
 
@@ -5784,7 +5779,7 @@ void CModalSolver::HB_RK4(CGeometry *geometry, CSolver **solver_container, CConf
 
 void CModalSolver::RK4(CGeometry *geometry, CSolver **solver_container, CConfig *config){
 
-<<<<<<< HEAD
+// <<<<<<< HEAD
     unsigned short iMode, iDim, irk, nStage,ind;
     su2double *qsol,*dy,*ForceVec;
     su2double *rk1,*rk2,*rk3,*rk4,*yout;
@@ -5816,16 +5811,7 @@ void CModalSolver::RK4(CGeometry *geometry, CSolver **solver_container, CConfig 
     }
 
     cout << "solving structural equations of motion using n-stage RK method "<< endl;
-=======
-    unsigned short iMode, iDim;
-    su2double *qsol;
-    su2double dy[8] = {0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0};
 
-    su2double dt = 0.015;
-    qsol = new su2double[2*nModes];
-
-    cout << "solving structural equations of motion using two-stage RK method "<< endl;
->>>>>>> acac050e3cb0912cefc312ff94a8c162d39c5666
     // solution array includes X, Y, Z displacements, obtained from gen. vars;
     // and must be parsed to node variable
     // generalizedXXX contains solution from state-space modal problem
@@ -5881,6 +5867,9 @@ void CModalSolver::RK4(CGeometry *geometry, CSolver **solver_container, CConfig 
     }
     UpdateStructuralNodes();
 
+//     for( iMode = 0; iMode < nModes; ++iMode) generalizedDisplacement[iMode][0] = 0;
+//     for( iMode = 0; iMode < nModes; ++iMode) generalizedVelocity[iMode][0] = 0;
+    
     delete [] qsol;
     delete [] rk1;
     delete [] rk2;
@@ -6398,7 +6387,7 @@ void CModalSolver::ComputeModalFluidDamp(CGeometry *geometry, CConfig *config) {
 
 void CModalSolver::Postprocessing(CGeometry *geometry, CSolver **solver_container, CConfig *config,  CNumerics **numerics,unsigned short iMesh) {
     
-    su2double deltaMax,delta;
+    su2double deltaMax,delta,dq,dqdot;
     unsigned short iDim,iMode;
     unsigned long iPoint;
     //sanity check: delta displacement fraction w.r.t. reference length
@@ -6413,7 +6402,9 @@ void CModalSolver::Postprocessing(CGeometry *geometry, CSolver **solver_containe
     cout << "\tGen. Displacement\tGen. Velocity\n";
     for(iMode = 0; iMode < nModes; ++iMode){
         cout <<"Mode " << iMode+1 << "\t";
-        cout << generalizedDisplacement[iMode][0] << "\t" << generalizedVelocity[iMode][0] << endl;
+        dq      = generalizedDisplacement[iMode][0] - generalizedDisplacement[iMode][1];
+        dqdot   = generalizedVelocity[iMode][0] - generalizedVelocity[iMode][1];
+        cout << dq << "\t" << dqdot << endl;
     }
     
     return;    
@@ -6599,7 +6590,6 @@ void CModalSolver::ImplicitNewmark_Update(CGeometry *geometry, CSolver **solver_
 
 }
 
-<<<<<<< HEAD
 void CModalSolver::Initialize_StateSpace_Matrices(unsigned short nInst) {
     //    Input, unsigned short  nModes, number of modes, leading dimension of the matrix = (2*nModes)x(2*nModes).
     //    number of columns implied from the state-space problem.
@@ -6682,10 +6672,7 @@ void CModalSolver::Initialize_StateSpace_Matrices(unsigned short nInst) {
     
 }
 
-su2double CModalSolver::Initialize_HB_Operator(unsigned short nMode, unsigned short nInst) {
-=======
 void CModalSolver::Initialize_HB_Operator(unsigned short nMode, unsigned short nInst) {
->>>>>>> acac050e3cb0912cefc312ff94a8c162d39c5666
 
     unsigned short iInst, iMode, Di, Dj, Dk, nDij = nMode*nInst;
     su2double Const = 2.0 / nInst, factor;
@@ -6867,50 +6854,44 @@ void CModalSolver::Initialize_Transformation_Matrix(unsigned short nMode, unsign
     }
 }
 
-void CModalSolver::Initialize_As_Matrix(unsigned short nMode, unsigned short nInst) {
-    /*!             |   0       I   |
-     * AsMatrix =   |               |
-     *              |   K/M     D/M |
-     */
-    unsigned short Asij = nMode*nInst*2;
-    unsigned short i,j;
-<<<<<<< HEAD
-    
-    AsMatrix = new su2double* [Asij];
-=======
+// void CModalSolver::Initialize_As_Matrix(unsigned short nMode, unsigned short nInst) {
+//     /*!             |   0       I   |
+//      * AsMatrix =   |               |
+//      *              |   K/M     D/M |
+//      */
+//     unsigned short Asij = nMode*nInst*2;
+//     unsigned short i,j;
+// 
+//     // Initialize Matrix
+//     AsMatrix = new su2double*[Asij];
+// 
+//     for(i=0; i<Asij; i++)
+//         AsMatrix[i] = new su2double[Asij];
+// 
+//     for(i=0; i<Asij; i++)
+//         for(j=0; j<Asij; j++)
+//             AsMatrix[i][j] = 0.0;
+// 
+//     // I Matrix
+//     for(i = 0; i < Asij/2; i++)
+//         AsMatrix[i][i+(Asij/2)] = -1.0;
+// 
+//     // K/M Matrix
+//     for (i=0; i< Asij/2; i++)
+//         AsMatrix[i+(Asij/2)][i] = 2.0; // K/M terms
+// 
+//     // D/M Matrix
+//     for (i=0; i< Asij/2; i++)
+//         AsMatrix[i+(Asij/2)][i+(Asij/2)] = 3.0; // D/M terms
+// 
+//     cout<<" +++ As Matrix +++ \n";
+//     cout<<" Asij :: "<<Asij<<endl;
+//     for (i=0; i < Asij; i++)
+//         for (j=0; j < Asij; j++)
+//             cout<<AsMatrix[i][j]<<"\t";
+//         cout<<endl;
+// }
 
-    // Initialize Matrix
-    AsMatrix = new su2double*[Asij];
->>>>>>> acac050e3cb0912cefc312ff94a8c162d39c5666
-
-    for(i=0; i<Asij; i++)
-        AsMatrix[i] = new su2double[Asij];
-
-    for(i=0; i<Asij; i++)
-        for(j=0; j<Asij; j++)
-            AsMatrix[i][j] = 0.0;
-
-    // I Matrix
-    for(i = 0; i < Asij/2; i++)
-        AsMatrix[i][i+(Asij/2)] = -1.0;
-
-    // K/M Matrix
-    for (i=0; i< Asij/2; i++)
-        AsMatrix[i+(Asij/2)][i] = 2.0; // K/M terms
-
-    // D/M Matrix
-    for (i=0; i< Asij/2; i++)
-        AsMatrix[i+(Asij/2)][i+(Asij/2)] = 3.0; // D/M terms
-
-    cout<<" +++ As Matrix +++ \n";
-    cout<<" Asij :: "<<Asij<<endl;
-    for (i=0; i < Asij; i++)
-        for (j=0; j < Asij; j++)
-            cout<<AsMatrix[i][j]<<"\t";
-        cout<<endl;
-}
-
-<<<<<<< HEAD
 void CModalSolver::dgemm( char transa, char transb, unsigned long m, unsigned long n, unsigned long k, 
   su2double alpha, su2double a[],  unsigned long lda, su2double b[],  unsigned long ldb, su2double beta, su2double c[],  unsigned long ldc ){
 
@@ -7367,7 +7348,7 @@ void CModalSolver::dgemv( bool trans, unsigned long m, unsigned long n, double a
 
   return;
 }
-=======
+
 void CModalSolver::Initialize_EqnOfMotion(unsigned short nMode, unsigned short nInst, su2double *QSol) {
     /*!
      *  Y = -As Q + B F
@@ -7427,7 +7408,7 @@ void CModalSolver::InitializeHBMatrices(unsigned short nMode, unsigned short nIn
     Initialize_HB_Operator(nMode, nInst);
 
     // As Matrix
-    Initialize_As_Matrix(nMode,nInst);
+//     Initialize_As_Matrix(nMode,nInst);
 
     FMatrix = new su2double*[2*nModes*nInst];
 
@@ -7439,4 +7420,3 @@ void CModalSolver::InitializeHBMatrices(unsigned short nMode, unsigned short nIn
     }
 
 }
->>>>>>> acac050e3cb0912cefc312ff94a8c162d39c5666

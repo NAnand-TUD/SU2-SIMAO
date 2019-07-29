@@ -877,7 +877,6 @@ void CDriver::Input_Preprocessing(SU2_Comm MPICommunicator, bool val_periodic) {
       geometry_container[iZone][iInst] = NULL;
       geometry_container[iZone][iInst] = new CGeometry *[config_container[iZone]->GetnMGLevels()+1];
 
-
       if( fem_solver ) {
         switch( config_container[iZone]->GetKind_FEM_Flow() ) {
           case DG: {
@@ -935,8 +934,7 @@ void CDriver::Geometrical_Preprocessing() {
 
     fea = ((config_container[iZone]->GetKind_Solver() == FEM_ELASTICITY) ||
         (config_container[iZone]->GetKind_Solver() == DISC_ADJ_FEM)||
-        (config_container[iZone]->GetKind_Solver() == FEM_MODAL)
-    );
+        (config_container[iZone]->GetKind_Solver() == FEM_MODAL));
 
     for (iInst = 0; iInst < nInst[iZone]; iInst++){
 

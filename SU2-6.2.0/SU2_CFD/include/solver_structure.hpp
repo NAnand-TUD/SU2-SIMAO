@@ -15901,19 +15901,15 @@ private:
     **EMatrix,
     **EMatrixInv,
     **AsMatrix,
-<<<<<<< HEAD
     *Ass,*Bss,
-    *HB_t;
-=======
+    *HB_t,
     *HVector,
     **FMatrix,
-    *HB_t,
     *HB_Omega,
     *QSolVector,
     *QSolVector_Old,
     *SystemVector;
->>>>>>> acac050e3cb0912cefc312ff94a8c162d39c5666
-
+    
     su2double ForceCoeff;             /*!< \brief Load transfer coefficient . */
     su2double RelaxCoeff;             /*!< \brief Relaxation coefficient . */
     su2double FSI_Residual;           /*!< \brief FSI residual. */
@@ -16025,8 +16021,8 @@ public:
 
     void Initialize_Transformation_Matrix(unsigned short nMode, unsigned short nInst);
 
-<<<<<<< HEAD
-    su2double Initialize_As_Matrix(unsigned short nMode, unsigned short nInst);
+
+//     void Initialize_As_Matrix(unsigned short nMode, unsigned short nInst);
     
     /*!
     * \brief matrix multiplication utility based on BLAS function.
@@ -16038,8 +16034,8 @@ public:
     */
     void dgemm( char transa, char transb, unsigned long m, unsigned long n, unsigned long k, 
   su2double alpha, double a[], unsigned long lda, su2double b[], unsigned long ldb, su2double beta, su2double c[],  unsigned long ldc );
-=======
-    void Initialize_As_Matrix(unsigned short nMode, unsigned short nInst);
+
+//     void Initialize_As_Matrix(unsigned short nMode, unsigned short nInst);
 
     void Initialize_EqnOfMotion(unsigned short nMode, unsigned short nInst, su2double *QSol);
 
@@ -16052,7 +16048,6 @@ public:
     su2double Get_EqnOfMotion(unsigned short nMode, unsigned short nInst);
 
     void HB_RK4(CGeometry *geometry, CSolver **solver_container, CConfig *config);
->>>>>>> acac050e3cb0912cefc312ff94a8c162d39c5666
 
     /*!
     * \brief matrix-vector multiplication utility based on BLAS function.

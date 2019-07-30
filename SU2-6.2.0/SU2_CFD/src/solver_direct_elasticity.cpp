@@ -5198,6 +5198,8 @@ CModalSolver::CModalSolver(CGeometry *geometry, CConfig *config) : CSolver() {
 
 //     unsigned long iPoint;
     unsigned short iMode, iVar, iDim;
+    su2double Uinf = 1.0;
+
     
 //     bool dynamic = (config->GetDynamic_Analysis() == DYNAMIC);              // Dynamic simulations.
     //   bool fsi = config->GetFSI_Simulation();
@@ -5725,7 +5727,8 @@ void CModalSolver::HB_RK4(CGeometry *geometry, CSolver **solver_container, CConf
     su2double dt = 0.005;
     unsigned short i, j; // iMode;
     unsigned short nVars = (nModes*nInst*nEqn);
-
+    su2double flutter_index = config->GetAeroelastic_Flutter_Speed_Index();
+    
     QSol_RK = new su2double[nVars];
 
     ComputeModalFluidForces(geometry, config);
@@ -5789,6 +5792,7 @@ void CModalSolver::RungeKutta_TimeInt(CGeometry *geometry, CSolver **solver_cont
     su2double rkcoeff[4] = {0.0, 0.0, 0.0, 0.0};
     bool trans = false;
     su2double dt = config->GetTime_Step();
+    su2double flutter_index = config->GetAeroelastic_Flutter_Speed_Index();
     
     qsol    = new su2double[2*nModes];
     dy      = new su2double[2*nModes];
@@ -5815,7 +5819,7 @@ void CModalSolver::RungeKutta_TimeInt(CGeometry *geometry, CSolver **solver_cont
 
     for(iMode = 0; iMode < nModes; ++iMode) {
         ForceVec[iMode]             = 0;
-        ForceVec[iMode+nModes]      = (modalForce[iMode]-modalForceLast[iMode])*Bss[nModes+iMode + iMode*2*nModes];
+        ForceVec[iMode+nModes]      = modalForce[iMode]*Bss[nModes+iMode + iMode*2*nModes];
     }
     // R-K number of stages and coefficients
     cout << "rk scheme: " << config->GetKind_TimeIntScheme_FEA() << endl;
@@ -6436,7 +6440,7 @@ void CModalSolver::SetInitialCondition(CGeometry **geometry, CSolver ***solver_c
   unsigned short iMode, i, j;
   bool incremental_load = config->GetIncrementalLoad();              // If an incremental load is applied
   
-  //perturb all modes velocities
+  //set initial velocities
   for(iMode = 0; iMode < nModes; ++iMode) generalizedVelocity[iMode][0] = 1e-2;
   for(iMode = 0; iMode < nModes; ++iMode) generalizedVelocity[iMode][1] = 1e-2;
 

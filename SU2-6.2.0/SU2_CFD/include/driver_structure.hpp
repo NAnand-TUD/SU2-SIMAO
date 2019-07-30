@@ -1702,5 +1702,7 @@ public:
 
     void ComputeHB_Operator(unsigned short val_iZone);
 
+    void StabilizeHarmonicBalance(unsigned short val_iZone);
+
 };
 

@@ -788,6 +788,23 @@ void CMultizoneDriver::FluidHBUpdate(unsigned short val_iZone){
         SetHarmonicBalance(val_iZone, iInst);
 
     }
+
+    /*--- Precondition the harmonic balance source terms ---*/
+    if (config_container[val_iZone]->GetHB_Precondition() == YES) {
+        StabilizeHarmonicBalance(val_iZone);
+
+    }
+
+    for (iInst = 0; iInst < nInst[val_iZone]; iInst++) {
+
+        /*--- Update the harmonic balance terms across all zones ---*/
+        iteration_container[val_iZone][iInst]->Update(output, integration_container, geometry_container,
+                                                   solver_container, numerics_container, config_container,
+                                                   surface_movement, grid_movement, FFDBox, val_iZone, iInst);
+
+    }
+
+
 }
 
 void CMultizoneDriver::ModalHBUpdate(unsigned short val_iZone) {
@@ -1092,4 +1109,164 @@ void CMultizoneDriver::ComputeHB_Operator(unsigned short val_iZone) {
     delete [] Dcpx;
     delete [] Omega_HB;
 
+}
+
+void CMultizoneDriver::StabilizeHarmonicBalance(unsigned short val_iZone){
+
+    unsigned short nInstHB = nInst[val_iZone];
+    unsigned short i, j, k, iVar, iInst, jInst, iMGlevel;
+    unsigned short nVar = solver_container[val_iZone][INST_0][MESH_0][FLOW_SOL]->GetnVar();
+    unsigned long iPoint;
+    bool adjoint = (config_container[val_iZone]->GetContinuous_Adjoint());
+
+    /*--- Retrieve values from the config file ---*/
+    su2double *Source     = new su2double[nInstHB];
+    su2double *Source_old = new su2double[nInstHB];
+    su2double Delta;
+
+    su2double **Pinv     = new su2double*[nInstHB];
+    su2double **P        = new su2double*[nInstHB];
+    for (iInst = 0; iInst < nInstHB; iInst++) {
+        Pinv[iInst]       = new su2double[nInstHB];
+        P[iInst]          = new su2double[nInstHB];
+    }
+
+    /*--- Loop over all grid levels ---*/
+    for (iMGlevel = 0; iMGlevel <= config_container[val_iZone]->GetnMGLevels(); iMGlevel++) {
+
+        /*--- Loop over each node in the volume mesh ---*/
+        for (iPoint = 0; iPoint < geometry_container[val_iZone][INST_0][iMGlevel]->GetnPoint(); iPoint++) {
+
+            /*--- Get time step for current node ---*/
+            Delta = solver_container[val_iZone][INST_0][iMGlevel][FLOW_SOL]->node[iPoint]->GetDelta_Time();
+
+            /*--- Setup stabilization matrix for this node ---*/
+            for (iInst = 0; iInst < nInstHB; iInst++) {
+                for (jInst = 0; jInst < nInstHB; jInst++) {
+                    if (jInst == iInst ) {
+                        Pinv[iInst][jInst] = 1.0 + Delta*D[iInst][jInst];
+                    }
+                    else {
+                        Pinv[iInst][jInst] = Delta*D[iInst][jInst];
+                    }
+                }
+            }
+
+            /*--- Invert stabilization matrix Pinv with Gauss elimination---*/
+
+            /*--  A temporary matrix to hold the inverse, dynamically allocated ---*/
+            su2double **temp = new su2double*[nInstHB];
+            for (i = 0; i < nInstHB; i++) {
+                temp[i] = new su2double[2 * nInstHB];
+            }
+
+            /*---  Copy the desired matrix into the temporary matrix ---*/
+            for (i = 0; i < nInstHB; i++) {
+                for (j = 0; j < nInstHB; j++) {
+                    temp[i][j] = Pinv[i][j];
+                    temp[i][nInstHB + j] = 0;
+                }
+                temp[i][nInstHB + i] = 1;
+            }
+
+            su2double max_val;
+            unsigned short max_idx;
+
+            /*---  Pivot each column such that the largest number possible divides the other rows  ---*/
+            for (k = 0; k < nInstHB - 1; k++) {
+                max_idx = k;
+                max_val = abs(temp[k][k]);
+                /*---  Find the largest value (pivot) in the column  ---*/
+                for (j = k; j < nInstHB; j++) {
+                    if (abs(temp[j][k]) > max_val) {
+                        max_idx = j;
+                        max_val = abs(temp[j][k]);
+                    }
+                }
+
+                /*---  Move the row with the highest value up  ---*/
+                for (j = 0; j < (nInstHB * 2); j++) {
+                    su2double d = temp[k][j];
+                    temp[k][j] = temp[max_idx][j];
+                    temp[max_idx][j] = d;
+                }
+                /*---  Subtract the moved row from all other rows ---*/
+                for (i = k + 1; i < nInstHB; i++) {
+                    su2double c = temp[i][k] / temp[k][k];
+                    for (j = 0; j < (nInstHB * 2); j++) {
+                        temp[i][j] = temp[i][j] - temp[k][j] * c;
+                    }
+                }
+            }
+
+            /*---  Back-substitution  ---*/
+            for (k = nInstHB - 1; k > 0; k--) {
+                if (temp[k][k] != su2double(0.0)) {
+                    for (int i = k - 1; i > -1; i--) {
+                        su2double c = temp[i][k] / temp[k][k];
+                        for (j = 0; j < (nInstHB * 2); j++) {
+                            temp[i][j] = temp[i][j] - temp[k][j] * c;
+                        }
+                    }
+                }
+            }
+
+            /*---  Normalize the inverse  ---*/
+            for (i = 0; i < nInstHB; i++) {
+                su2double c = temp[i][i];
+                for (j = 0; j < nInstHB; j++) {
+                    temp[i][j + nInstHB] = temp[i][j + nInstHB] / c;
+                }
+            }
+
+            /*---  Copy the inverse back to the main program flow ---*/
+            for (i = 0; i < nInstHB; i++) {
+                for (j = 0; j < nInstHB; j++) {
+                    P[i][j] = temp[i][j + nInstHB];
+                }
+            }
+
+            /*---  Delete dynamic template  ---*/
+            for (iInst = 0; iInst < nInstHB; iInst++) {
+                delete[] temp[iInst];
+            }
+            delete[] temp;
+
+            /*--- Loop through variables to precondition ---*/
+            for (iVar = 0; iVar < nVar; iVar++) {
+
+                /*--- Get current source terms (not yet preconditioned) and zero source array to prepare preconditioning ---*/
+                for (iInst = 0; iInst < nInstHB; iInst++) {
+                    Source_old[iInst] = solver_container[ZONE_0][iInst][iMGlevel][FLOW_SOL]->node[iPoint]->GetHarmonicBalance_Source(iVar);
+                    Source[iInst] = 0;
+                }
+
+                /*--- Step through columns ---*/
+                for (iInst = 0; iInst < nInstHB; iInst++) {
+                    for (jInst = 0; jInst < nInstHB; jInst++) {
+                        Source[iInst] += P[iInst][jInst]*Source_old[jInst];
+                    }
+
+                    /*--- Store updated source terms for current node ---*/
+                    if (!adjoint) {
+                        solver_container[val_iZone][iInst][iMGlevel][FLOW_SOL]->node[iPoint]->SetHarmonicBalance_Source(iVar, Source[iInst]);
+                    }
+                    else {
+                        solver_container[val_iZone][iInst][iMGlevel][ADJFLOW_SOL]->node[iPoint]->SetHarmonicBalance_Source(iVar, Source[iInst]);
+                    }
+                }
+
+            }
+        }
+    }
+
+    /*--- Deallocate dynamic memory ---*/
+    for (iInst = 0; iInst < nInstHB; iInst++){
+        delete [] P[iInst];
+        delete [] Pinv[iInst];
+    }
+    delete [] P;
+    delete [] Pinv;
+    delete [] Source;
+    delete [] Source_old;
 }

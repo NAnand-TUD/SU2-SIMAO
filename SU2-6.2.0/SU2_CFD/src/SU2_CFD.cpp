@@ -49,7 +49,7 @@ using namespace std;
 
 int main(int argc, char *argv[]) {
   
-  unsigned short nZone, nDim;
+  unsigned short nZone, nDim, nInst;
   char config_file_name[MAX_STRING_SIZE];
   bool fsi, turbo, zone_specific, periodic = false;
   
@@ -89,8 +89,10 @@ int main(int argc, char *argv[]) {
   
   CConfig *config = NULL;
   config = new CConfig(config_file_name, SU2_CFD);
-  if (config->GetKind_Solver() == MULTIZONE)
-    nZone  = config->GetnConfigFiles();
+  if (config->GetKind_Solver() == MULTIZONE) {
+      nZone = config->GetnConfigFiles();
+      nInst = config->GetnTimeInstances();
+  }
   else
     nZone  = CConfig::GetnZone(config->GetMesh_FileName(), config->GetMesh_FileFormat(), config);
   

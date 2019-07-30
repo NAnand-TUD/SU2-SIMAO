@@ -129,7 +129,7 @@ public:
  * \param[in] iZone - index of the donor zone
  * \param[in] jZone - index of the target zone
  */
-  CInterpolator(CGeometry ****geometry_container, CConfig **config, unsigned int iZone, unsigned int jZone);
+  CInterpolator(CGeometry ****geometry_container, CConfig **config, unsigned int iZone, unsigned int jZone, unsigned short iInst);
 
     /*!
  * \brief Constructor of the class.
@@ -220,7 +220,7 @@ public:
    * \param[in] iZone - index of the donor zone
    * \param[in] jZone - index of the target zone
    */
-  CNearestNeighbor(CGeometry ****geometry_container, CConfig **config, unsigned int iZone, unsigned int jZone);
+  CNearestNeighbor(CGeometry ****geometry_container, CConfig **config, unsigned int iZone, unsigned int jZone, unsigned short iInst);
 
   /*!
    * \brief Destructor of the class.
@@ -248,7 +248,7 @@ public:
    * \param[in] iZone - index of the donor zone
    * \param[in] jZone - index of the target zone
    */
-  CIsoparametric(CGeometry ****geometry_container, CConfig **config, unsigned int iZone, unsigned int jZone);
+  CIsoparametric(CGeometry ****geometry_container, CConfig **config, unsigned int iZone, unsigned int jZone, unsigned short iInst);
 
   /*!
    * \brief Destructor of the class.
@@ -296,7 +296,7 @@ public:
    * Data is set in geometry[targetZone]
    *
    */
-  CMirror(CGeometry ****geometry_container, CConfig **config, unsigned int iZone, unsigned int jZone);
+  CMirror(CGeometry ****geometry_container, CConfig **config, unsigned int iZone, unsigned int jZone, unsigned short iInst);
 
   /*!
    * \brief Destructor of the class.
@@ -324,7 +324,7 @@ public:
    * \param[in] iZone - index of the donor zone
    * \param[in] jZone - index of the target zone
    */
-  CSlidingMesh(CGeometry ****geometry_container, CConfig **config, unsigned int iZone, unsigned int jZone);
+  CSlidingMesh(CGeometry ****geometry_container, CConfig **config, unsigned int iZone, unsigned int jZone, unsigned short iInst);
 
   /*!
    * \brief Destructor of the class.
@@ -420,7 +420,7 @@ public:
    * \param[in] iZone - index of the donor zone
    * \param[in] jZone - index of the target zone
    */
-  CRadialBasisFunction(CGeometry ****geometry_container, CConfig **config, unsigned int iZone, unsigned int jZone);
+  CRadialBasisFunction(CGeometry ****geometry_container, CConfig **config, unsigned int iZone, unsigned int jZone, unsigned short iInst);
 
   /*!
    * \brief Constructor of the class for aeroelastic problems (using only 1 zone)

@@ -844,7 +844,7 @@ void CFluidIteration::Solve(COutput *output,
   /*--- Preprocess the solver ---*/
   Preprocess(output, integration_container, geometry_container,
       solver_container, numerics_container, config_container,
-      surface_movement, grid_movement, FFDBox, val_iZone, INST_0);
+      surface_movement, grid_movement, FFDBox, val_iZone, val_iInst);
 
     /*--- For steady-state flow simulations, we need to loop over ExtIter for the number of time steps ---*/
     /*--- However, ExtIter is the number of FSI iterations, so nIntIter is used in this case ---*/
@@ -860,12 +860,12 @@ void CFluidIteration::Solve(COutput *output,
         if (unsteady) config_container[val_iZone]->SetIntIter(config_container[val_iZone]->GetOuterIter());
       }
       /*--- Run a single iteration of the solver ---*/
-      Iterate(output, integration_container, geometry_container,solver_container, numerics_container, config_container,surface_movement, grid_movement, FFDBox, val_iZone, INST_0);
+      Iterate(output, integration_container, geometry_container,solver_container, numerics_container, config_container,surface_movement, grid_movement, FFDBox, val_iZone, val_iInst);
 
       /*--- Monitor the pseudo-time ---*/
       StopCalc = Monitor(output, integration_container, geometry_container,
                          solver_container, numerics_container, config_container,
-                         surface_movement, grid_movement, FFDBox, val_iZone, INST_0);
+                         surface_movement, grid_movement, FFDBox, val_iZone, val_iInst);
 
       /*--- Output files at intermediate time positions if the problem is single zone ---*/
 
@@ -878,7 +878,7 @@ void CFluidIteration::Solve(COutput *output,
     }
 
     /*--- Set the fluid convergence to false (to make sure outer subiterations converge) ---*/
-    if (multizone) integration_container[val_iZone][INST_0][FLOW_SOL]->SetConvergence(false);
+    if (multizone) integration_container[val_iZone][val_iInst][FLOW_SOL]->SetConvergence(false);
 
 }
 
@@ -1481,13 +1481,13 @@ void CModalIteration::Solve(COutput *output,
   /*------------------ Structural subiteration ----------------------*/
   Iterate(output, integration_container, geometry_container,
       solver_container, numerics_container, config_container,
-      surface_movement, grid_movement, FFDBox, val_iZone, INST_0);
+      surface_movement, grid_movement, FFDBox, val_iZone, val_iInst);
 
   /*--- Write the convergence history for the structure (only screen output) ---*/
 //   if (multizone) output->SetConvHistory_Body(NULL, geometry_container, solver_container, config_container, integration_container, false, 0.0, val_iZone, INST_0);
 
   /*--- Set the structural convergence to false (to make sure outer subiterations converge) ---*/
-  integration_container[val_iZone][INST_0][MODAL_SOL]->SetConvergence(false);
+  integration_container[val_iZone][val_iInst][MODAL_SOL]->SetConvergence(false);
 //   cout << "here0" << endl;
     
 //   output->SetConvHistory_Body(NULL, geometry_container, solver_container, config_container, integration_container, false, 0.0, val_iZone, INST_0);
@@ -1505,7 +1505,7 @@ void CModalIteration::Update(COutput *output,
                            CFreeFormDefBox*** FFDBox,
                            unsigned short val_iZone,
                            unsigned short val_iInst) {
-    cout<<" MODAL Update was called :: Ieraion Sucure 1465\n";
+    cout<<" MODAL Update was called :: Iteration Structure 1465\n";
     unsigned short iVar;
     unsigned long iPoint;
     su2double nVar    = 2*4;
@@ -1970,7 +1970,7 @@ void CFEAIteration::Solve(COutput *output,
 
   bool multizone = config_container[val_iZone]->GetMultizone_Problem();
 
-  /*------------------ Structural subiteration ----------------------*/
+  cout<<"/*------------------ Structural subiteration ----------------------*/ Inst :: "<<val_iInst<<endl;
   Iterate(output, integration_container, geometry_container,
       solver_container, numerics_container, config_container,
       surface_movement, grid_movement, FFDBox, val_iZone, INST_0);

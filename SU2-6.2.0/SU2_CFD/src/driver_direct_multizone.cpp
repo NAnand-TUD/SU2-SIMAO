@@ -126,6 +126,13 @@ CMultizoneDriver::CMultizoneDriver(char* confFile,
     }
   }
 
+  if(config_container[ZONE_0]->GetUnsteady_Simulation() == HARMONIC_BALANCE) {
+      D = NULL;
+      /*--- allocate dynamic memory for the Harmonic Balance operator ---*/
+      D = new su2double *[nInst[ZONE_0]];
+      for (iInst = 0; iInst < nInst[ZONE_0]; iInst++) D[iInst] = new su2double[nInst[ZONE_0]];
+  }
+
 }
 
 CMultizoneDriver::~CMultizoneDriver(void) {
@@ -246,12 +253,15 @@ void CMultizoneDriver::Preprocess(unsigned long TimeIter) {
 
   DynamicMeshUpdate(TimeIter);
 
+  cout<<"After dynamic Mesh Update Line 249 driver_direct_multizone \n";
+
   /*--- Updating zone interface communication patterns for unsteady problems with pre-fixed motion in the config file ---*/
-  if ( unsteady ) {
+  if ( unsteady || config_container[iZone]->GetUnsteady_Simulation()==HARMONIC_BALANCE) {
     for (iZone = 0; iZone < nZone; iZone++) {
       for (unsigned short jZone = 0; jZone < nZone; jZone++){
-        if(jZone != iZone && interpolator_container[iZone][jZone] != NULL && prefixed_motion[iZone])
-          interpolator_container[iZone][jZone]->Set_TransferCoeff(config_container);
+          for(iInst=0; iInst<nInst[iZone]; iInst++)
+                if(jZone != iZone && interpolator_container[iZone][jZone][iInst] != NULL && prefixed_motion[iZone])
+                    interpolator_container[iZone][jZone][iInst]->Set_TransferCoeff(config_container);
       }
     }
   }
@@ -304,13 +314,27 @@ void CMultizoneDriver::Run_GaussSeidel() {
 
 
       /*--- Iterate the zone as a block, either to convergence or to a max number of iterations ---*/
-    cout << "\n\n run GS iteration->solve --> " << iZone <<"\n(Fluid: zone 0; Structure: zone 1)\n";
-      iteration_container[iZone][INST_0]->Solve(output, integration_container, geometry_container, solver_container,numerics_container, config_container, surface_movement, grid_movement, FFDBox, iZone, INST_0);
-        cout << "\n\n completed iteration->solve\n";
-      /*--- A corrector step can help preventing numerical instabilities ---*/
-      if(config_container[0]->GetKind_Solver() != FEM_MODAL && config_container[1]->GetKind_Solver() != FEM_MODAL) Corrector(iZone);
+      for (iInst = 0; iInst < nInst[iZone]; iInst++) {
+          cout << "\n\n run GS iteration->solve --> " << iZone << "\n(Fluid: zone 0; Structure: zone 1)\n";
+          iteration_container[iZone][iInst]->Solve(output, integration_container, geometry_container, solver_container,
+                                                   numerics_container, config_container, surface_movement,
+                                                   grid_movement, FFDBox, iZone, iInst);
+          cout << "\n\n completed iteration->solve\n";
+
+          /*--- A corrector step can help preventing numerical instabilities ---*/
+          if (config_container[0]->GetKind_Solver() != FEM_MODAL &&
+              config_container[1]->GetKind_Solver() != FEM_MODAL)
+              Corrector(iZone);
+      }
+
+    // Solver Update
+    if (config_container[iZone][INST_0].GetUnsteady_Simulation() == HARMONIC_BALANCE)
+        FluidHBUpdate(iZone);
+    else if (config_container[iZone][INST_0].GetUnsteady_Simulation() == MODAL_HARMONIC_BALANCE)
+        ModalHBUpdate(iZone);
 
     }
+
 
     /*--- This is temporary. Each zone has to be monitored independently. Right now, fixes CHT output. ---*/
 
@@ -356,7 +380,7 @@ void CMultizoneDriver::Run_Jacobi() {
       /*--- Transfer from all the remaining zones ---*/
       for (jZone = 0; jZone < nZone; jZone++){
         /*--- The target zone is iZone ---*/
-        if (jZone != iZone && transfer_container[iZone][jZone] != NULL){
+        if (jZone != iZone && transfer_container[iZone][jZone][INST_0] != NULL){
                       cout << "\n\n run jacobi deform zone --> " << jZone <<"\n\n";
           DeformMesh = Transfer_Data(jZone, iZone);
           if (DeformMesh) UpdateMesh+=1;
@@ -374,7 +398,7 @@ void CMultizoneDriver::Run_Jacobi() {
       /*--- Set the OuterIter ---*/
       config_container[iZone]->SetOuterIter(iOuter_Iter);
         cout << "\n\n run jacobi iteration->solve --> " << iZone <<"\n\n";
-        
+
       /*--- Iterate the zone as a block, either to convergence or to a max number of iterations ---*/
       iteration_container[iZone][INST_0]->Solve(output, integration_container, geometry_container, solver_container,numerics_container, config_container, surface_movement, grid_movement, FFDBox, iZone, INST_0);
 
@@ -532,9 +556,16 @@ void CMultizoneDriver::Update() {
     /*--- If a mesh update is required due to the transfer of data ---*/
     if (UpdateMesh > 0) DynamicMeshUpdate(iZone, ExtIter);
 
-    iteration_container[iZone][INST_0]->Update(output, integration_container, geometry_container,
+    // Update harmonic Balance
+    if (config_container[iZone][INST_0].GetUnsteady_Simulation() == HARMONIC_BALANCE)
+        FluidHBUpdate(iZone);
+    else if (config_container[iZone][INST_0].GetUnsteady_Simulation() == MODAL_HARMONIC_BALANCE)
+        ModalHBUpdate(iZone);
+
+    for(iInst=0; iInst<nInst[iZone]; iInst++)
+    iteration_container[iZone][iInst]->Update(output, integration_container, geometry_container,
         solver_container, numerics_container, config_container,
-        surface_movement, grid_movement, FFDBox, iZone, INST_0);
+        surface_movement, grid_movement, FFDBox, iZone, iInst);
 
     /*--- Set the Convergence_FSI boolean to false for the next time step ---*/
     for (unsigned short iSol = 0; iSol < MAX_SOLS; iSol++){
@@ -657,9 +688,12 @@ void CMultizoneDriver::DynamicMeshUpdate(unsigned long ExtIter) {
 }
 
 void CMultizoneDriver::DynamicMeshUpdate(unsigned short val_iZone, unsigned long ExtIter) {
-
-  iteration_container[val_iZone][INST_0]->SetGrid_Movement(geometry_container,surface_movement, grid_movement, FFDBox, solver_container,config_container, val_iZone, INST_0, 0, ExtIter);
-    cout << "dynamic mesh update 2 completed\t\t";
+    for(iInst = 0; iInst < nInst[val_iZone]; iInst++) {
+        iteration_container[val_iZone][iInst]->SetGrid_Movement(geometry_container, surface_movement, grid_movement, FFDBox,
+                                                                solver_container, config_container, val_iZone, iInst, 0,
+                                                                ExtIter);
+        cout << "++++++Dynamic Mesh update 2 Completed :: iInst "<<iInst<<"++++++\t\t";
+    }
 }
 
 bool CMultizoneDriver::Transfer_Data(unsigned short donorZone, unsigned short targetZone) {
@@ -672,46 +706,48 @@ bool CMultizoneDriver::Transfer_Data(unsigned short donorZone, unsigned short ta
     " transfer: " << transfer_types[donorZone][targetZone] << endl;
 
   if (transfer_types[donorZone][targetZone] == SLIDING_INTERFACE) {
-    transfer_container[donorZone][targetZone]->Broadcast_InterfaceData(solver_container[donorZone][INST_0][MESH_0][FLOW_SOL],solver_container[targetZone][INST_0][MESH_0][FLOW_SOL],
+    transfer_container[donorZone][targetZone][INST_0]->Broadcast_InterfaceData(solver_container[donorZone][INST_0][MESH_0][FLOW_SOL],solver_container[targetZone][INST_0][MESH_0][FLOW_SOL],
                                                                        geometry_container[donorZone][INST_0][MESH_0],geometry_container[targetZone][INST_0][MESH_0],
                                                                        config_container[donorZone], config_container[targetZone]);
     if (config_container[targetZone]->GetKind_Solver() == RANS)
-      transfer_container[donorZone][targetZone]->Broadcast_InterfaceData(solver_container[donorZone][INST_0][MESH_0][TURB_SOL],solver_container[targetZone][INST_0][MESH_0][TURB_SOL],
+      transfer_container[donorZone][targetZone][INST_0]->Broadcast_InterfaceData(solver_container[donorZone][INST_0][MESH_0][TURB_SOL],solver_container[targetZone][INST_0][MESH_0][TURB_SOL],
                                                                          geometry_container[donorZone][INST_0][MESH_0],geometry_container[targetZone][INST_0][MESH_0],
                                                                          config_container[donorZone], config_container[targetZone]);
   }
   else if (transfer_types[donorZone][targetZone] == CONJUGATE_HEAT_FS) {
-    transfer_container[donorZone][targetZone]->Broadcast_InterfaceData(solver_container[donorZone][INST_0][MESH_0][FLOW_SOL],solver_container[targetZone][INST_0][MESH_0][HEAT_SOL],
+    transfer_container[donorZone][targetZone][INST_0]->Broadcast_InterfaceData(solver_container[donorZone][INST_0][MESH_0][FLOW_SOL],solver_container[targetZone][INST_0][MESH_0][HEAT_SOL],
                                                                        geometry_container[donorZone][INST_0][MESH_0],geometry_container[targetZone][INST_0][MESH_0],
                                                                        config_container[donorZone], config_container[targetZone]);
   }
   else if (transfer_types[donorZone][targetZone] == CONJUGATE_HEAT_WEAKLY_FS) {
-    transfer_container[donorZone][targetZone]->Broadcast_InterfaceData(solver_container[donorZone][INST_0][MESH_0][HEAT_SOL],solver_container[targetZone][INST_0][MESH_0][HEAT_SOL],
+    transfer_container[donorZone][targetZone][INST_0]->Broadcast_InterfaceData(solver_container[donorZone][INST_0][MESH_0][HEAT_SOL],solver_container[targetZone][INST_0][MESH_0][HEAT_SOL],
                                                                        geometry_container[donorZone][INST_0][MESH_0],geometry_container[targetZone][INST_0][MESH_0],
                                                                        config_container[donorZone], config_container[targetZone]);
   }
   else if (transfer_types[donorZone][targetZone] == CONJUGATE_HEAT_SF) {
-    transfer_container[donorZone][targetZone]->Broadcast_InterfaceData(solver_container[donorZone][INST_0][MESH_0][HEAT_SOL],solver_container[targetZone][INST_0][MESH_0][FLOW_SOL],
+    transfer_container[donorZone][targetZone][INST_0]->Broadcast_InterfaceData(solver_container[donorZone][INST_0][MESH_0][HEAT_SOL],solver_container[targetZone][INST_0][MESH_0][FLOW_SOL],
                                                                        geometry_container[donorZone][INST_0][MESH_0],geometry_container[targetZone][INST_0][MESH_0],
                                                                        config_container[donorZone], config_container[targetZone]);
   }
   else if (transfer_types[donorZone][targetZone] == CONJUGATE_HEAT_WEAKLY_SF) {
-    transfer_container[donorZone][targetZone]->Broadcast_InterfaceData(solver_container[donorZone][INST_0][MESH_0][HEAT_SOL],solver_container[targetZone][INST_0][MESH_0][HEAT_SOL],
+    transfer_container[donorZone][targetZone][INST_0]->Broadcast_InterfaceData(solver_container[donorZone][INST_0][MESH_0][HEAT_SOL],solver_container[targetZone][INST_0][MESH_0][HEAT_SOL],
                                                                        geometry_container[donorZone][INST_0][MESH_0],geometry_container[targetZone][INST_0][MESH_0],
                                                                        config_container[donorZone], config_container[targetZone]);
   }
   else if (transfer_types[donorZone][targetZone] == STRUCTURAL_DISPLACEMENTS){
       if(config_container[donorZone]->GetKind_Solver() == FEM_MODAL) {
         cout << "\n\ntransfer data: CSD structural displacements" << endl;
-        
-        transfer_container[donorZone][targetZone]->Broadcast_InterfaceData(solver_container[donorZone][INST_0][MESH_0][MODAL_SOL],solver_container[targetZone][INST_0][MESH_0][FLOW_SOL],
-                geometry_container[donorZone][INST_0][MESH_0],geometry_container[targetZone][INST_0][MESH_0],
+
+        for (iInst = 0; iInst<nInst[donorZone]; iInst++){
+        transfer_container[donorZone][targetZone][iInst]->Broadcast_InterfaceData(solver_container[donorZone][iInst][MESH_0][MODAL_SOL],solver_container[targetZone][iInst][MESH_0][FLOW_SOL],
+                geometry_container[donorZone][iInst][MESH_0],geometry_container[targetZone][iInst][MESH_0],
                 config_container[donorZone], config_container[targetZone]);
-        UpdateMesh = true;
+        }
+          UpdateMesh = true;
     }
     else{
           cout << "\n\ntransfer data: FEM structural displacements" << endl;
-        transfer_container[donorZone][targetZone]->Broadcast_InterfaceData(solver_container[donorZone][INST_0][MESH_0][FEA_SOL],solver_container[targetZone][INST_0][MESH_0][FLOW_SOL],
+        transfer_container[donorZone][targetZone][INST_0]->Broadcast_InterfaceData(solver_container[donorZone][INST_0][MESH_0][FEA_SOL],solver_container[targetZone][INST_0][MESH_0][FLOW_SOL],
         geometry_container[donorZone][INST_0][MESH_0],geometry_container[targetZone][INST_0][MESH_0],
         config_container[donorZone], config_container[targetZone]);
       UpdateMesh = true;  
@@ -719,13 +755,21 @@ bool CMultizoneDriver::Transfer_Data(unsigned short donorZone, unsigned short ta
   }
   
   else if (transfer_types[donorZone][targetZone] == STRUCTURAL_DISPLACEMENTS && config_container[donorZone]->GetKind_Solver() != FEM_ELASTICITY) {
-    transfer_container[donorZone][targetZone]->Broadcast_InterfaceData(solver_container[donorZone][INST_0][MESH_0][FEA_SOL],solver_container[targetZone][INST_0][MESH_0][FLOW_SOL],geometry_container[donorZone][INST_0][MESH_0],geometry_container[targetZone][INST_0][MESH_0],config_container[donorZone], config_container[targetZone]);
+    transfer_container[donorZone][targetZone][INST_0]->Broadcast_InterfaceData(solver_container[donorZone][INST_0][MESH_0][FEA_SOL],solver_container[targetZone][INST_0][MESH_0][FLOW_SOL],geometry_container[donorZone][INST_0][MESH_0],geometry_container[targetZone][INST_0][MESH_0],config_container[donorZone], config_container[targetZone]);
     UpdateMesh = true;
   }
   else if (transfer_types[donorZone][targetZone] == FLOW_TRACTION) {
                 cout << "\n\ntransfer data: fluid forces" << endl;
-    transfer_container[donorZone][targetZone]->Broadcast_InterfaceData(solver_container[donorZone][INST_0][MESH_0][FLOW_SOL],solver_container[targetZone][INST_0][MESH_0][FEA_SOL],                                                                     geometry_container[donorZone][INST_0][MESH_0],geometry_container[targetZone][INST_0][MESH_0],
-                                                                       config_container[donorZone], config_container[targetZone]);
+        for (iInst=0; iInst<nInst[donorZone]; iInst++) {
+            cout<< "++++++++++ Transfer Data iInst :: "<<iInst<<"++++++++++"<<endl;
+            cout<<transfer_container[donorZone][targetZone][iInst]<<endl;
+            transfer_container[donorZone][targetZone][iInst]->Broadcast_InterfaceData(
+                    solver_container[donorZone][iInst][MESH_0][FLOW_SOL],
+                    solver_container[targetZone][iInst][MESH_0][FEA_SOL],
+                    geometry_container[donorZone][iInst][MESH_0],
+                    geometry_container[targetZone][iInst][MESH_0],
+                    config_container[donorZone], config_container[targetZone]);
+        }
   }
   else if ((transfer_types[donorZone][targetZone] == NO_TRANSFER)
            || (transfer_types[donorZone][targetZone] == ZONES_ARE_EQUAL)
@@ -735,4 +779,317 @@ bool CMultizoneDriver::Transfer_Data(unsigned short donorZone, unsigned short ta
   }
 
   return UpdateMesh;
+}
+
+void CMultizoneDriver::FluidHBUpdate(unsigned short val_iZone){
+    cout<<"Fluid_Harmonic_Balance Update \n";
+    for (iInst = 0; iInst < nInst[val_iZone]; iInst++) {
+        /*--- Compute the harmonic balance terms across all zones ---*/
+        SetHarmonicBalance(val_iZone, iInst);
+
+    }
+}
+
+void CMultizoneDriver::ModalHBUpdate(unsigned short val_iZone) {
+    cout<<"Modal_Harmonic_Balance Update \n";
+}
+
+void CMultizoneDriver::SetHarmonicBalance(unsigned short val_iZone, unsigned short iInst) {
+
+    cout<<"++++++ Setting Harmonic Balance +++++ \n";
+
+    unsigned short iVar, jInst, iMGlevel;
+    unsigned short nVar = solver_container[val_iZone][INST_0][MESH_0][FLOW_SOL]->GetnVar();
+    unsigned long iPoint;
+    bool implicit = (config_container[val_iZone]->GetKind_TimeIntScheme_Flow() == EULER_IMPLICIT);
+    bool adjoint = (config_container[val_iZone]->GetContinuous_Adjoint());
+    if (adjoint) {
+        implicit = (config_container[val_iZone]->GetKind_TimeIntScheme_AdjFlow() == EULER_IMPLICIT);
+    }
+
+    unsigned long ExtIter = config_container[val_iZone]->GetExtIter();
+
+    /*--- Retrieve values from the config file ---*/
+    su2double *U = new su2double[nVar];
+    su2double *U_old = new su2double[nVar];
+    su2double *Psi = new su2double[nVar];
+    su2double *Psi_old = new su2double[nVar];
+    su2double *Source = new su2double[nVar];
+    su2double deltaU, deltaPsi;
+
+    /*--- Compute period of oscillation ---*/
+    su2double period = config_container[val_iZone]->GetHarmonicBalance_Period();
+
+    /*--- Non-dimensionalize the input period, if necessary.  */
+    period /= config_container[val_iZone]->GetTime_Ref();
+
+    if (ExtIter == 0)
+        ComputeHB_Operator(val_iZone);
+
+    /*--- Compute various source terms for explicit direct, implicit direct, and adjoint problems ---*/
+    /*--- Loop over all grid levels ---*/
+    for (iMGlevel = 0; iMGlevel <= config_container[val_iZone]->GetnMGLevels(); iMGlevel++) {
+
+        /*--- Loop over each node in the volume mesh ---*/
+        for (iPoint = 0; iPoint < geometry_container[val_iZone][iInst][iMGlevel]->GetnPoint(); iPoint++) {
+
+            for (iVar = 0; iVar < nVar; iVar++) {
+                Source[iVar] = 0.0;
+            }
+
+            /*--- Step across the columns ---*/
+            for (jInst = 0; jInst < nInst[val_iZone]; jInst++) {
+
+                /*--- Retrieve solution at this node in current zone ---*/
+                for (iVar = 0; iVar < nVar; iVar++) {
+
+                    if (!adjoint) {
+                        U[iVar] = solver_container[val_iZone][jInst][iMGlevel][FLOW_SOL]->node[iPoint]->GetSolution(iVar);
+                        Source[iVar] += U[iVar]*D[iInst][jInst];
+
+                        if (implicit) {
+                            U_old[iVar] = solver_container[val_iZone][jInst][iMGlevel][FLOW_SOL]->node[iPoint]->GetSolution_Old(iVar);
+                            deltaU = U[iVar] - U_old[iVar];
+                            Source[iVar] += deltaU*D[iInst][jInst];
+                        }
+
+                    }
+
+                    else {
+                        Psi[iVar] = solver_container[val_iZone][jInst][iMGlevel][ADJFLOW_SOL]->node[iPoint]->GetSolution(iVar);
+                        Source[iVar] += Psi[iVar]*D[jInst][iInst];
+
+                        if (implicit) {
+                            Psi_old[iVar] = solver_container[val_iZone][jInst][iMGlevel][ADJFLOW_SOL]->node[iPoint]->GetSolution_Old(iVar);
+                            deltaPsi = Psi[iVar] - Psi_old[iVar];
+                            Source[iVar] += deltaPsi*D[jInst][iInst];
+                        }
+                    }
+                }
+
+                /*--- Store sources for current row ---*/
+                for (iVar = 0; iVar < nVar; iVar++) {
+                    if (!adjoint) {
+                        solver_container[val_iZone][iInst][iMGlevel][FLOW_SOL]->node[iPoint]->SetHarmonicBalance_Source(iVar, Source[iVar]);
+                    }
+                    else {
+                        solver_container[val_iZone][iInst][iMGlevel][ADJFLOW_SOL]->node[iPoint]->SetHarmonicBalance_Source(iVar, Source[iVar]);
+                    }
+                }
+
+            }
+        }
+    }
+
+    /*--- Source term for a turbulence model ---*/
+    if (config_container[val_iZone]->GetKind_Solver() == RANS) {
+
+        /*--- Extra variables needed if we have a turbulence model. ---*/
+        unsigned short nVar_Turb = solver_container[val_iZone][INST_0][MESH_0][TURB_SOL]->GetnVar();
+        su2double *U_Turb = new su2double[nVar_Turb];
+        su2double *Source_Turb = new su2double[nVar_Turb];
+
+        /*--- Loop over only the finest mesh level (turbulence is always solved
+         on the original grid only). ---*/
+        for (iPoint = 0; iPoint < geometry_container[val_iZone][INST_0][MESH_0]->GetnPoint(); iPoint++) {
+            for (iVar = 0; iVar < nVar_Turb; iVar++) Source_Turb[iVar] = 0.0;
+            for (jInst = 0; jInst < nInst[val_iZone]; jInst++) {
+
+                /*--- Retrieve solution at this node in current zone ---*/
+                for (iVar = 0; iVar < nVar_Turb; iVar++) {
+                    U_Turb[iVar] = solver_container[val_iZone][jInst][MESH_0][TURB_SOL]->node[iPoint]->GetSolution(iVar);
+                    Source_Turb[iVar] += U_Turb[iVar]*D[iInst][jInst];
+                }
+            }
+
+            /*--- Store sources for current iZone ---*/
+            for (iVar = 0; iVar < nVar_Turb; iVar++)
+                solver_container[val_iZone][iInst][MESH_0][TURB_SOL]->node[iPoint]->SetHarmonicBalance_Source(iVar, Source_Turb[iVar]);
+        }
+
+        delete [] U_Turb;
+        delete [] Source_Turb;
+    }
+
+    delete [] Source;
+    delete [] U;
+    delete [] U_old;
+    delete [] Psi;
+    delete [] Psi_old;
+
+}
+
+void CMultizoneDriver::ComputeHB_Operator(unsigned short val_iZone) {
+
+    const   complex<su2double> J(0.0,1.0);
+    unsigned short i, j, k, iInst;
+
+    su2double *Omega_HB       = new su2double[nInst[val_iZone]];
+    complex<su2double> **E    = new complex<su2double>*[nInst[val_iZone]];
+    complex<su2double> **Einv = new complex<su2double>*[nInst[val_iZone]];
+    complex<su2double> **DD   = new complex<su2double>*[nInst[val_iZone]];
+    for (iInst = 0; iInst < nInst[val_iZone]; iInst++) {
+        E[iInst]    = new complex<su2double>[nInst[val_iZone]];
+        Einv[iInst] = new complex<su2double>[nInst[val_iZone]];
+        DD[iInst]   = new complex<su2double>[nInst[val_iZone]];
+    }
+
+    /*--- Get simualation period from config file ---*/
+    su2double Period = config_container[val_iZone]->GetHarmonicBalance_Period();
+
+    /*--- Non-dimensionalize the input period, if necessary.      */
+    Period /= config_container[val_iZone]->GetTime_Ref();
+
+    /*--- Build the array containing the selected frequencies to solve ---*/
+    for (iInst = 0; iInst < nInst[val_iZone]; iInst++) {
+        Omega_HB[iInst]  = config_container[val_iZone]->GetOmega_HB()[iInst];
+        Omega_HB[iInst] /= config_container[val_iZone]->GetOmega_Ref(); //TODO: check
+    }
+
+    /*--- Build the diagonal matrix of the frequencies DD ---*/
+    for (i = 0; i < nInst[val_iZone]; i++) {
+        for (k = 0; k < nInst[val_iZone]; k++) {
+            if (k == i ) {
+                DD[i][k] = J*Omega_HB[k];
+            }
+        }
+    }
+
+
+    /*--- Build the harmonic balance inverse matrix ---*/
+    for (i = 0; i < nInst[val_iZone]; i++) {
+        for (k = 0; k < nInst[val_iZone]; k++) {
+            Einv[i][k] = complex<su2double>(cos(Omega_HB[k]*(i*Period/nInst[val_iZone]))) + J*complex<su2double>(sin(Omega_HB[k]*(i*Period/nInst[val_iZone])));
+        }
+    }
+
+    /*---  Invert inverse harmonic balance Einv with Gauss elimination ---*/
+
+    /*--  A temporary matrix to hold the inverse, dynamically allocated ---*/
+    complex<su2double> **temp = new complex<su2double>*[nInst[val_iZone]];
+    for (i = 0; i < nInst[val_iZone]; i++) {
+        temp[i] = new complex<su2double>[2 * nInst[val_iZone]];
+    }
+
+    /*---  Copy the desired matrix into the temporary matrix ---*/
+    for (i = 0; i < nInst[val_iZone]; i++) {
+        for (j = 0; j < nInst[val_iZone]; j++) {
+            temp[i][j] = Einv[i][j];
+            temp[i][nInst[val_iZone] + j] = 0;
+        }
+        temp[i][nInst[val_iZone] + i] = 1;
+    }
+
+    su2double max_val;
+    unsigned short max_idx;
+
+    /*---  Pivot each column such that the largest number possible divides the other rows  ---*/
+    for (k = 0; k < nInst[val_iZone] - 1; k++) {
+        max_idx = k;
+        max_val = abs(temp[k][k]);
+        /*---  Find the largest value (pivot) in the column  ---*/
+        for (j = k; j < nInst[val_iZone]; j++) {
+            if (abs(temp[j][k]) > max_val) {
+                max_idx = j;
+                max_val = abs(temp[j][k]);
+            }
+        }
+        /*---  Move the row with the highest value up  ---*/
+        for (j = 0; j < (nInst[val_iZone] * 2); j++) {
+            complex<su2double> d = temp[k][j];
+            temp[k][j] = temp[max_idx][j];
+            temp[max_idx][j] = d;
+        }
+        /*---  Subtract the moved row from all other rows ---*/
+        for (i = k + 1; i < nInst[val_iZone]; i++) {
+            complex<su2double> c = temp[i][k] / temp[k][k];
+            for (j = 0; j < (nInst[val_iZone] * 2); j++) {
+                temp[i][j] = temp[i][j] - temp[k][j] * c;
+            }
+        }
+    }
+    /*---  Back-substitution  ---*/
+    for (k = nInst[val_iZone] - 1; k > 0; k--) {
+        if (temp[k][k] != complex<su2double>(0.0)) {
+            for (int i = k - 1; i > -1; i--) {
+                complex<su2double> c = temp[i][k] / temp[k][k];
+                for (j = 0; j < (nInst[val_iZone] * 2); j++) {
+                    temp[i][j] = temp[i][j] - temp[k][j] * c;
+                }
+            }
+        }
+    }
+    /*---  Normalize the inverse  ---*/
+    for (i = 0; i < nInst[val_iZone]; i++) {
+        complex<su2double> c = temp[i][i];
+        for (j = 0; j < nInst[val_iZone]; j++) {
+            temp[i][j + nInst[val_iZone]] = temp[i][j + nInst[val_iZone]] / c;
+        }
+    }
+    /*---  Copy the inverse back to the main program flow ---*/
+    for (i = 0; i < nInst[val_iZone]; i++) {
+        for (j = 0; j < nInst[val_iZone]; j++) {
+            E[i][j] = temp[i][j + nInst[val_iZone]];
+        }
+    }
+    /*---  Delete dynamic template  ---*/
+    for (i = 0; i < nInst[val_iZone]; i++) {
+        delete[] temp[i];
+    }
+    delete[] temp;
+
+
+    /*---  Temporary matrix for performing product  ---*/
+    complex<su2double> **Temp    = new complex<su2double>*[nInst[val_iZone]];
+
+    /*---  Temporary complex HB operator  ---*/
+    complex<su2double> **Dcpx    = new complex<su2double>*[nInst[val_iZone]];
+
+    for (iInst = 0; iInst < nInst[val_iZone]; iInst++){
+        Temp[iInst]    = new complex<su2double>[nInst[val_iZone]];
+        Dcpx[iInst]   = new complex<su2double>[nInst[val_iZone]];
+    }
+
+
+    /*---  Calculation of the HB operator matrix ---*/
+    for (int row = 0; row < nInst[val_iZone]; row++) {
+        for (int col = 0; col < nInst[val_iZone]; col++) {
+            for (int inner = 0; inner < nInst[val_iZone]; inner++) {
+                Temp[row][col] += Einv[row][inner] * DD[inner][col];
+            }
+        }
+    }
+
+    unsigned short row, col, inner;
+
+    for (row = 0; row < nInst[val_iZone]; row++) {
+        for (col = 0; col < nInst[val_iZone]; col++) {
+            for (inner = 0; inner < nInst[val_iZone]; inner++) {
+                Dcpx[row][col] += Temp[row][inner] * E[inner][col];
+            }
+        }
+    }
+
+    /*---  Take just the real part of the HB operator matrix ---*/
+    for (i = 0; i < nInst[val_iZone]; i++) {
+        for (k = 0; k < nInst[val_iZone]; k++) {
+            D[i][k] = real(Dcpx[i][k]);
+        }
+    }
+
+    /*--- Deallocate dynamic memory ---*/
+    for (iInst = 0; iInst < nInst[val_iZone]; iInst++){
+        delete [] E[iInst];
+        delete [] Einv[iInst];
+        delete [] DD[iInst];
+        delete [] Temp[iInst];
+        delete [] Dcpx[iInst];
+    }
+    delete [] E;
+    delete [] Einv;
+    delete [] DD;
+    delete [] Temp;
+    delete [] Dcpx;
+    delete [] Omega_HB;
+
 }

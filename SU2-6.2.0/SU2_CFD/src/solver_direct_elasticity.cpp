@@ -5247,36 +5247,11 @@ CModalSolver::CModalSolver(CGeometry *geometry, CConfig *config) : CSolver() {
     // restart solution, i.e. generalized displacements for now???
     SolRest = new su2double[nVar];
 
-// <<<<<<< HEAD
-//     if (config->GetDynamic_Analysis()){
-//         cout<<"Dynamic Analysis \n";
-//         if (config->GetDynamic_Method() == MODAL_HARMONIC_BALANCE)
-//         {
-//             unsigned short nInst = 3;
-//             su2double HB_Period =  0.05891103435003335;
-//             HB_Period /= config->GetTime_Ref();
-//             su2double deltaT = HB_Period/(su2double)(nInst);
-// //            su2double HB_Omega[3]={0,106.69842,-106.69842};
-//             su2double HB_Const = 2.0*PI_NUMBER/(su2double)(nInst);
-//             su2double HB_t[3]={HB_Const*0,HB_Const*1,HB_Const*2};
-//             // EInv Matrix
-//             Initialize_Transformation_Matrix(nModes, nInst);
-//             // E Matrix
-//             Initialize_Transformation_Matrix_Inv(nModes, nInst);
-//             // A Matrix
-// //            Initialize_A_Matrix(nModes, nInst);
-//             // D Matrix
-//             Initialize_HB_Operator(nModes, nInst);
-//             // As Matrix
-//             Initialize_As_Matrix(nModes,nInst);
-//         }
-//     }
-// =======
     if (config->GetDynamic_Analysis()){
         cout<<"Dynamic Analysis \n";
         if (config->GetDynamic_Method() == MODAL_HARMONIC_BALANCE)
         {
-            unsigned short nInst = 3, i, j, k;
+            unsigned short nInst = 1, i, j, k;
             nModes = 1;
             nVar *= nInst;
             su2double HB_Period =  0.05891103435003335;
@@ -5298,13 +5273,12 @@ CModalSolver::CModalSolver(CGeometry *geometry, CConfig *config) : CSolver() {
             HB_Omega[3] = 0; HB_Omega[4] = 106.69842; HB_Omega[5] = -106.69842;
             su2double HB_t[3]={HB_Const*0,HB_Const*1,HB_Const*2};
             // EInv Matrix
-            InitializeHBMatrices(nModes, nInst);
+//            InitializeHBMatrices(nModes, nInst);
 
             // EqnOfMotion
-            Initialize_EqnOfMotion(nModes, nInst, QSolVector);
+//            Initialize_EqnOfMotion(nModes, nInst, QSolVector);
         }
     }
-// >>>>>>> acac050e3cb0912cefc312ff94a8c162d39c5666
 
     /*--- Initialize from zero everywhere. ---*/
     for (iVar = 0; iVar < nVar; iVar++) SolRest[iVar] = 0.0;
@@ -5517,8 +5491,9 @@ void CModalSolver::ReadCSD_Mesh_Nastran(CConfig *config,CGeometry *geometry){
 	char cstr[200];
 
     mesh_file.close();
-	Uinf = config->GetMach()*pow(config->GetGamma()*config->GetGas_Constant()*config->GetTemperature_FreeStream(),0.5);
-    Qinf = ONE2 * config->GetGamma()*config->GetPressure_FreeStream()*config->GetMach()*config->GetMach();
+    //config->GetMach()
+	Uinf = 0.96*pow(config->GetGamma()*config->GetGas_Constant()*config->GetTemperature_FreeStream(),0.5);
+    Qinf = ONE2 * config->GetGamma()*config->GetPressure_FreeStream()*0.96*0.96;//config->GetMach()*config->GetMach();
 //     massrat = config->GetPressure_FreeStream()/(config->GetGas_Constant()*config->GetTemperature_FreeStream())*pow(refLength,5);
     su2double flutter_index = config->GetAeroelastic_Flutter_Speed_Index();
 	cout<< " Mach Inf       :: "<<config->GetMach()<<endl;
@@ -6049,12 +6024,14 @@ void CModalSolver::ComputeModalFluidForces(CGeometry *geometry, CConfig *config)
       su2double force[3] = {0.0, 0.0, 0.0};
 
     for (iNode = 0; iNode < nNode; ++iNode)
-        for (iDim = 0; iDim < nDim; ++iDim) force[iDim] += weight*area*node[nodes[iNode]]->Get_FlowTraction(iDim);
+        for (iDim = 0; iDim < nDim; ++iDim)
+            force[iDim] += weight*area*node[nodes[iNode]]->Get_FlowTraction(iDim);
         for (iDim = 0; iDim < nDim; ++iDim) {
           forces.push_back(force[iDim]);
-// 	  cout << force[0] << "\t"  << force[1] << "\t" << force[2] << endl;
       }
+//        cout <<"GetFlowTraction :: "<< force[0] << "\t"  << force[1] << "\t" << force[2] << endl;
     }
+
   }
   /*--- 2nd pass to set values. This is to account for overlap in the markers. ---*/
   /*--- By putting the integrated values back into the nodes no changes have to be made elsewhere. ---*/

@@ -100,8 +100,8 @@ protected:
   CSurfaceMovement **surface_movement;          /*!< \brief Surface movement classes of the problem. */
   CVolumetricMovement ***grid_movement;          /*!< \brief Volume grid movement classes of the problem. */
   CFreeFormDefBox*** FFDBox;                    /*!< \brief FFD FFDBoxes of the problem. */
-  CInterpolator ***interpolator_container;      /*!< \brief Definition of the interpolation method between non-matching discretizations of the interface. */
-  CTransfer ***transfer_container;              /*!< \brief Definition of the transfer of information and the physics involved in the interface. */
+  CInterpolator ****interpolator_container;      /*!< \brief Definition of the interpolation method between non-matching discretizations of the interface. */
+  CTransfer ****transfer_container;              /*!< \brief Definition of the transfer of information and the physics involved in the interface. */
   su2double PyWrapVarCoord[3],                  /*!< \brief This is used to store the VarCoord of each vertex. */
             PyWrapNodalForce[3],                /*!< \brief This is used to store the force at each vertex. */
             PyWrapNodalForceDensity[3],         /*!< \brief This is used to store the force density at each vertex. */
@@ -1609,6 +1609,10 @@ protected:
 
   bool *prefixed_motion;     /*!< \brief Determines if a fixed motion is imposed in the config file. */
 
+private:
+    su2double **D; /*!< \brief Harmonic Balance operator. */
+
+
 public:
 
   /*!
@@ -1658,6 +1662,16 @@ public:
    */
   void Update();
 
+    /*!
+   * \brief Update the fluid harmonic balance within multiple zones.
+   */
+    void FluidHBUpdate(unsigned short val_iZone);
+
+    /*!
+     * \brief Update the Modal harmonic balance within multiple zones.
+     */
+    void ModalHBUpdate(unsigned short val_iZone);
+
   /*!
    * \brief Output the solution in solution file.
    */
@@ -1683,6 +1697,10 @@ public:
    * \return Boolean that determines whether the mesh needs to be updated for this particular transfer
    */
   bool Transfer_Data(unsigned short donorZone, unsigned short targetZone);
+
+    void SetHarmonicBalance(unsigned short val_iZone, unsigned short val_iInst);
+
+    void ComputeHB_Operator(unsigned short val_iZone);
 
 };
 

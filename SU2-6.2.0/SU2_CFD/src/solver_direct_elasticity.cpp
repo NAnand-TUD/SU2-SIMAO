@@ -5520,7 +5520,7 @@ void CModalSolver::ReadCSD_Mesh_Nastran(CConfig *config,CGeometry *geometry){
 	Uinf = config->GetMach()*pow(config->GetGamma()*config->GetGas_Constant()*config->GetTemperature_FreeStream(),0.5);
     Qinf = ONE2 * config->GetGamma()*config->GetPressure_FreeStream()*config->GetMach()*config->GetMach();
 //     massrat = config->GetPressure_FreeStream()/(config->GetGas_Constant()*config->GetTemperature_FreeStream())*pow(refLength,5);
-    su2double flutter_index = config->GetAeroelastic_Flutter_Speed_Index();
+//     su2double flutter_index = config->GetAeroelastic_Flutter_Speed_Index();
 	cout<< " Mach Inf       :: "<<config->GetMach()<<endl;
     cout<< " Gamma          :: "<<config->GetGamma()<<endl;
     cout<< " Temperature    :: "<<config->GetTemperature_FreeStream() << endl;
@@ -5723,7 +5723,8 @@ void CModalSolver::HB_RK4(CGeometry *geometry, CSolver **solver_container, CConf
     su2double dt = 0.005;
     unsigned short i, j; // iMode;
     unsigned short nVars = (nModes*nInst*nEqn);
-
+    su2double flutter_index = config->GetAeroelastic_Flutter_Speed_Index();
+    
     QSol_RK = new su2double[nVars];
 
     ComputeModalFluidForces(geometry, config);
@@ -5787,6 +5788,7 @@ void CModalSolver::RK4(CGeometry *geometry, CSolver **solver_container, CConfig 
     su2double rkcoeff[4] = {0.0, 0.0, 0.0, 0.0};
     bool trans = false;
     su2double dt = config->GetTime_Step();
+    su2double flutter_index = config->GetAeroelastic_Flutter_Speed_Index();
     
     qsol    = new su2double[2*nModes];
     dy      = new su2double[2*nModes];
@@ -5830,7 +5832,7 @@ void CModalSolver::RK4(CGeometry *geometry, CSolver **solver_container, CConfig 
 
     for(iMode = 0; iMode < nModes; ++iMode) {
         ForceVec[iMode]             = 0;
-        ForceVec[iMode+nModes]      = modalForce[iMode]*Bss[nModes+iMode + iMode*2*nModes];
+        ForceVec[iMode+nModes]      = flutter_index*modalForce[iMode]*Bss[nModes+iMode + iMode*2*nModes]; //(modalForce[iMode]-modalForceLast[iMode])*Bss[nModes+iMode + iMode*2*nModes];
     }
 
     //rk1    

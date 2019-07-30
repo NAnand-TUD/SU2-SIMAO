@@ -178,8 +178,7 @@ void CIteration::SetGrid_Movement(CGeometry ****geometry_container,
           /*--- Update the multigrid structure after moving the finest grid,
            including computing the grid velocities on the coarser levels. ---*/
 
-          grid_movement[val_iZone][val_iInst]->UpdateMultiGrid(geometry_container[val_iZone][val_iInst],
-                                                               config_container[val_iZone]);
+          grid_movement[val_iZone][val_iInst]->UpdateMultiGrid(geometry_container[val_iZone][val_iInst],config_container[val_iZone]);
 
           break;
 
@@ -267,10 +266,7 @@ void CIteration::SetGrid_Movement(CGeometry ****geometry_container,
                   cout << endl << " Solving aeroelastic equations and updating surface positions." << endl;
 
               /*--- Solve the aeroelastic equations for the new node locations of the moving markers(surfaces) ---*/
-              solver_container[val_iZone][val_iInst][MESH_0][FLOW_SOL]->Aeroelastic(surface_movement[val_iZone],
-                                                                                    geometry_container[val_iZone][val_iInst][MESH_0],
-                                                                                    config_container[val_iZone],
-                                                                                    ExtIter);
+              solver_container[val_iZone][val_iInst][MESH_0][FLOW_SOL]->Aeroelastic(surface_movement[val_iZone],geometry_container[val_iZone][val_iInst][MESH_0],config_container[val_iZone],ExtIter);
 
               /*--- Deform the volume grid around the new boundary locations ---*/
 
@@ -1449,6 +1445,7 @@ void CModalIteration::Iterate(COutput *output,
     unsigned long IntIter = 0; config_container[val_iZone]->SetIntIter(IntIter);
     unsigned long ExtIter = config_container[val_iZone]->GetExtIter();
     
+    cout << "iterating0" << endl;
     integration_container[val_iZone][val_iInst][MODAL_SOL]->SetConvergence(false);
     
     config_container[val_iZone]->SetGlobalParam(FEM_MODAL, RUNTIME_MODAL_SYS, ExtIter); //TODO: Check

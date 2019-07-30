@@ -273,16 +273,18 @@ void CMultizoneDriver::Run_GaussSeidel() {
 
   /*--- Loop over the number of outer iterations ---*/
   for (iOuter_Iter = 0; iOuter_Iter < driver_config->GetnOuter_Iter(); iOuter_Iter++){
-    cout << "\n\n run GS main outer iteration " << iOuter_Iter <<"\n\n";
+    
+      cout << "\n\n run GS main outer iteration " << iOuter_Iter <<"\n\n";
+      
     /*--- Loop over the number of zones (IZONE) ---*/
     for (iZone = 0; iZone < nZone; iZone++){
 
       /*--- In principle, the mesh does not need to be updated ---*/
-      UpdateMesh = 0;
-    cout << "\n\n run GS: zone --> " << iZone <<"\n(Fluid: zone 0; Structure: zone 1)\n\n";
+        UpdateMesh = 0;
+        cout << "\n\n run GS: zone --> " << iZone <<"\n(Fluid: zone 0; Structure: zone 1)\n\n";
 
-      /*--- Set the OuterIter ---*/
-      config_container[iZone]->SetOuterIter(iOuter_Iter);
+        /*--- Set the OuterIter ---*/
+        config_container[iZone]->SetOuterIter(iOuter_Iter);
         cout << "completed SetOuterIter\n";
 //         if(iOuter_Iter > 1) exit(0);
         
@@ -672,9 +674,8 @@ bool CMultizoneDriver::Transfer_Data(unsigned short donorZone, unsigned short ta
     " transfer: " << transfer_types[donorZone][targetZone] << endl;
 
   if (transfer_types[donorZone][targetZone] == SLIDING_INTERFACE) {
-    transfer_container[donorZone][targetZone]->Broadcast_InterfaceData(solver_container[donorZone][INST_0][MESH_0][FLOW_SOL],solver_container[targetZone][INST_0][MESH_0][FLOW_SOL],
-                                                                       geometry_container[donorZone][INST_0][MESH_0],geometry_container[targetZone][INST_0][MESH_0],
-                                                                       config_container[donorZone], config_container[targetZone]);
+    transfer_container[donorZone][targetZone]->Broadcast_InterfaceData(solver_container[donorZone][INST_0][MESH_0][FLOW_SOL],solver_container[targetZone][INST_0][MESH_0][FLOW_SOL], geometry_container[donorZone][INST_0][MESH_0],geometry_container[targetZone][INST_0][MESH_0],config_container[donorZone], config_container[targetZone]);
+
     if (config_container[targetZone]->GetKind_Solver() == RANS)
       transfer_container[donorZone][targetZone]->Broadcast_InterfaceData(solver_container[donorZone][INST_0][MESH_0][TURB_SOL],solver_container[targetZone][INST_0][MESH_0][TURB_SOL],
                                                                          geometry_container[donorZone][INST_0][MESH_0],geometry_container[targetZone][INST_0][MESH_0],
@@ -702,8 +703,11 @@ bool CMultizoneDriver::Transfer_Data(unsigned short donorZone, unsigned short ta
   }
   else if (transfer_types[donorZone][targetZone] == STRUCTURAL_DISPLACEMENTS){
       if(config_container[donorZone]->GetKind_Solver() == FEM_MODAL) {
-        cout << "\n\ntransfer data: CSD structural displacements" << endl;
-        
+        cout << "\n\ntransfer data: CSD structural displacements\n Disp \t\t Vels\n" << endl;
+        for (unsigned short iMode=0; iMode < 4; ++iMode){
+            cout << solver_container[donorZone][INST_0][MESH_0][MODAL_SOL]->getGeneralizedDisplacement(iMode) <<
+            "\t" << solver_container[donorZone][INST_0][MESH_0][MODAL_SOL]->getGeneralizedVelocity(iMode) << endl;
+        }
         transfer_container[donorZone][targetZone]->Broadcast_InterfaceData(solver_container[donorZone][INST_0][MESH_0][MODAL_SOL],solver_container[targetZone][INST_0][MESH_0][FLOW_SOL],
                 geometry_container[donorZone][INST_0][MESH_0],geometry_container[targetZone][INST_0][MESH_0],
                 config_container[donorZone], config_container[targetZone]);

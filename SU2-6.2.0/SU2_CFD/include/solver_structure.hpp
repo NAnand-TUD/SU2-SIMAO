@@ -676,8 +676,7 @@ public:
    * \param[in] config - Definition of the particular problem.
    * \param[in] iMesh - Index of the mesh in multigrid computations.
    */
-  virtual void Postprocessing(CGeometry *geometry, CSolver **solver_container, CConfig *config,
-                              unsigned short iMesh);
+  virtual void Postprocessing(CGeometry *geometry, CSolver **solver_container, CConfig *config,unsigned short iMesh);
   
   /*!
    * \brief A virtual member, overloaded.a
@@ -3427,7 +3426,7 @@ public:
   virtual void SetInitialCondition(CGeometry **geometry,
                                    CSolver ***solver_container,
                                    CConfig *config, unsigned long ExtIter);
-  
+//   InitializeCSDVars
   /*!
    * \brief A virtual member.
    * \param[in] geometry - Geometrical definition of the problem.
@@ -4418,9 +4417,9 @@ public:
    * \param[in] solver_container - Container vector with all the solutions.
    * \param[in] config - Definition of the particular problem.
    */
-  virtual void RK2(CGeometry *geometry, CSolver **solver_container, CConfig *config);
+//   virtual void RK2(CGeometry *geometry, CSolver **solver_container, CConfig *config);
 
-  virtual void RK4(CGeometry *geometry, CSolver **solver_container, CConfig *config);
+  virtual void RungeKutta_TimeInt(CGeometry *geometry, CSolver **solver_container, CConfig *config);
     
 };
 
@@ -12181,8 +12180,7 @@ public:
    * \param[in] config - Definition of the particular problem.
    * \param[in] iMesh - Index of the mesh in multigrid computations.
    */
-  void Postprocessing(CGeometry *geometry, CSolver **solver_container, CConfig *config,  CNumerics **numerics,
-                      unsigned short iMesh);
+  void Postprocessing(CGeometry *geometry, CSolver **solver_container, CConfig *config,  CNumerics **numerics, unsigned short iMesh);
   
   /*!
    * \brief Routine to solve the Jacobian-Residual linearized system.
@@ -15968,9 +15966,9 @@ public:
     
     void Initialize_StateSpace_Matrices(unsigned short);
 
-    void RK2(CGeometry *geometry, CSolver **solver_container, CConfig *config);
+//     void RK2(CGeometry *geometry, CSolver **solver_container, CConfig *config);
 
-    void RK4(CGeometry *geometry, CSolver **solver_container, CConfig *config);
+    void RungeKutta_TimeInt(CGeometry *geometry, CSolver **solver_container, CConfig *config);
     
     /*!
     * \brief Step to map fluid forces and project them onto structural mode shapes.
@@ -15993,7 +15991,14 @@ public:
     void UpdateStructuralNodes(void);
     
     void SetInitialCondition(CGeometry **geometry, CSolver ***solver_container, CConfig *config, unsigned long ExtIter);
-
+    
+  /*!
+   * \brief 
+   * \param[in] geometry - Geometrical definition of the problem.
+   * \param[in] config - Definition of the particular problem.
+   */
+    void InitializeCSDVars(CGeometry *geometry, CConfig *config);
+    
     void ComputeResidual_Multizone(CGeometry *geometry, CConfig *config);
     
     /*!

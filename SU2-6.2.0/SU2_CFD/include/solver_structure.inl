@@ -2533,9 +2533,9 @@ inline su2double CDiscAdjFEASolver::GetVal_DVFEA(unsigned short iVal) { return D
 
 inline void CSolver::ReadCSD_Mesh(CConfig *config) {}
 
-inline void CSolver::RK2(CGeometry *geometry, CSolver **solver_container, CConfig *config) {}
+// inline void CSolver::RK2(CGeometry *geometry, CSolver **solver_container, CConfig *config) {}
 
-inline void CSolver::RK4(CGeometry *geometry, CSolver **solver_container, CConfig *config) {}
+inline void CSolver::RungeKutta_TimeInt(CGeometry *geometry, CSolver **solver_container, CConfig *config) {}
 
 inline su2double CModalSolver::getGeneralizedDisplacement(unsigned short iMode) {return generalizedDisplacement[iMode][0];}
 

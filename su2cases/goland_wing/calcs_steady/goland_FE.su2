@@ -1,11 +1,3 @@
-%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%% 
-% SU2 mesh file - exported from gmsh 
-% Case description: Regression test for structural adjoints             
-% Author: Ruben Sanchez Fernandez 
-% Institution: Imperial College London 
-% Date: 2017.11.29
-%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%  
-
 % Problem dimension 
 NDIME= 3
 % Inner element connectivity 
@@ -54,7 +46,7 @@ NELEM= 40
 %% 
 % List of points 
 % 
-NPOIN= 66
+NPOIN= 66	66
 %
 0.00000000	0.00000000	0.05080010
 0.60960000	0.00000000	0.05080010
@@ -125,7 +117,7 @@ NPOIN= 66
 % 
 % Boundary elements 
 % 
-NMARK= 4
+NMARK= 2
 MARKER_TAG= TOP
 MARKER_ELEMS= 20
 0	1	7	6
@@ -148,8 +140,6 @@ MARKER_ELEMS= 20
 49	50	56	55
 54	55	61	60
 55	56	62	61
-%
-NMARK= 4
 MARKER_TAG= BOTTOM
 MARKER_ELEMS= 20
 3	4	10	9

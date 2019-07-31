@@ -10779,7 +10779,6 @@ void CPhysicalGeometry::Read_SU2_Format_Parallel(CConfig *config, string val_mes
             }
             
             /*--- Update config information storing the boundary information in the right place ---*/
-            cout << "next marker: " << Marker_Tag << endl;
             Tag_to_Marker[config->GetMarker_CfgFile_TagBound(Marker_Tag)] = Marker_Tag;
             config->SetMarker_All_TagBound(iMarker, Marker_Tag);
             config->SetMarker_All_KindBC(iMarker, config->GetMarker_CfgFile_KindBC(Marker_Tag));
@@ -17267,13 +17266,12 @@ void CPhysicalGeometry::SetGridVelocity(CConfig *config, unsigned long iter) {
   /*--- Compute the velocity of each node in the volume mesh ---*/
   
   for (iPoint = 0; iPoint < GetnPoint(); iPoint++) {
-    
     /*--- Coordinates of the current point at n+1, n, & n-1 time levels ---*/
     
     Coord_nM1 = node[iPoint]->GetCoord_n1();
     Coord_n   = node[iPoint]->GetCoord_n();
     Coord_nP1 = node[iPoint]->GetCoord();
-
+    
     /*--- Unsteady time step ---*/
     
     TimeStep = config->GetDelta_UnstTimeND();

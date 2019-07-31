@@ -737,21 +737,15 @@ bool CMultizoneDriver::Transfer_Data(unsigned short donorZone, unsigned short ta
   }
   else if (transfer_types[donorZone][targetZone] == STRUCTURAL_DISPLACEMENTS){
       if(config_container[donorZone]->GetKind_Solver() == FEM_MODAL) {
-<<<<<<< HEAD
-        cout << "\n\ntransfer data: CSD structural displacements" << endl;
-
-        for (iInst = 0; iInst<nInst[donorZone]; iInst++){
-        transfer_container[donorZone][targetZone][iInst]->Broadcast_InterfaceData(solver_container[donorZone][iInst][MESH_0][MODAL_SOL],solver_container[targetZone][iInst][MESH_0][FLOW_SOL],
-                geometry_container[donorZone][iInst][MESH_0],geometry_container[targetZone][iInst][MESH_0],
-=======
         cout << "\n\ntransfer data: CSD structural displacements\n Disp \t\t Vels\n" << endl;
         for (unsigned short iMode=0; iMode < 4; ++iMode){
             cout << solver_container[donorZone][INST_0][MESH_0][MODAL_SOL]->getGeneralizedDisplacement(iMode) <<
             "\t" << solver_container[donorZone][INST_0][MESH_0][MODAL_SOL]->getGeneralizedVelocity(iMode) << endl;
         }
-        transfer_container[donorZone][targetZone]->Broadcast_InterfaceData(solver_container[donorZone][INST_0][MESH_0][MODAL_SOL],solver_container[targetZone][INST_0][MESH_0][FLOW_SOL],
-                geometry_container[donorZone][INST_0][MESH_0],geometry_container[targetZone][INST_0][MESH_0],
->>>>>>> 7fc6349b818d12abd0401e20db034e6872994fc6
+
+        for (iInst = 0; iInst<nInst[donorZone]; iInst++){
+        transfer_container[donorZone][targetZone][iInst]->Broadcast_InterfaceData(solver_container[donorZone][iInst][MESH_0][MODAL_SOL],solver_container[targetZone][iInst][MESH_0][FLOW_SOL],
+                geometry_container[donorZone][iInst][MESH_0],geometry_container[targetZone][iInst][MESH_0],
                 config_container[donorZone], config_container[targetZone]);
         }
           UpdateMesh = true;

@@ -5249,7 +5249,7 @@ CModalSolver::CModalSolver(CGeometry *geometry, CConfig *config) : CSolver() {
 
     if (config->GetDynamic_Analysis()){
         cout<<"Dynamic Analysis \n";
-        if (config->GetDynamic_Method() == MODAL_HARMONIC_BALANCE)
+        if (config->GetDynamic_Method() == NO)
         {
             unsigned short nInst = 1, i, j, k;
             nModes = 1;
@@ -5492,8 +5492,8 @@ void CModalSolver::ReadCSD_Mesh_Nastran(CConfig *config,CGeometry *geometry){
 
     mesh_file.close();
     //config->GetMach()
-	Uinf = 0.96*pow(config->GetGamma()*config->GetGas_Constant()*config->GetTemperature_FreeStream(),0.5);
-    Qinf = ONE2 * config->GetGamma()*config->GetPressure_FreeStream()*0.96*0.96;//config->GetMach()*config->GetMach();
+	Uinf = config->GetMach()*pow(config->GetGamma()*config->GetGas_Constant()*config->GetTemperature_FreeStream(),0.5);
+    Qinf = ONE2 * config->GetGamma()*config->GetPressure_FreeStream()*config->GetMach()*config->GetMach();//config->GetMach()*config->GetMach();
 //     massrat = config->GetPressure_FreeStream()/(config->GetGas_Constant()*config->GetTemperature_FreeStream())*pow(refLength,5);
     su2double flutter_index = config->GetAeroelastic_Flutter_Speed_Index();
 	cout<< " Mach Inf       :: "<<config->GetMach()<<endl;
@@ -6422,13 +6422,13 @@ void CModalSolver::SetInitialCondition(CGeometry **geometry, CSolver ***solver_c
   for(iMode = 0; iMode < nModes; ++iMode) generalizedVelocity[iMode][1] = 1e-2;
 
   if (config->GetDynamic_Method()==MODAL_HARMONIC_BALANCE){
-      QSolVector = new su2double[2*nModes*nInst];
-      QSolVector_Old = new su2double[2*nModes*nInst];
-      for (i =0; i < (nModes*nInst); i++) {
+      QSolVector = new su2double[2*nModes];
+      QSolVector_Old = new su2double[2*nModes];
+      for (i =0; i < (nModes); i++) {
           QSolVector[i] = 0.0;
-          QSolVector[nModes * nInst + i] = 1e-2;
+          QSolVector[nModes + i] = 1e-2;
           QSolVector_Old[i] = 0.0;
-          QSolVector_Old[nModes * nInst + i] = 1e-2;
+          QSolVector_Old[nModes + i] = 1e-2;
       }
   }
 
@@ -6439,18 +6439,18 @@ void CModalSolver::InitializeCSDVars(CGeometry *geometry,CConfig *config) {
   unsigned short iMode, i, j;
   
   //perturb all modes velocities
-  for(iMode = 0; iMode < nModes; ++iMode) generalizedVelocity[iMode][0] = 1e-2;
-  for(iMode = 0; iMode < nModes; ++iMode) generalizedVelocity[iMode][1] = 1e-2;
-  for(iMode = 0; iMode < nModes; ++iMode) generalizedVelocity[iMode][2] = 1e-2;
+  for(iMode = 0; iMode < nModes; ++iMode) generalizedVelocity[iMode][0] = 1e-1;
+  for(iMode = 0; iMode < nModes; ++iMode) generalizedVelocity[iMode][1] = 1e-1;
+  for(iMode = 0; iMode < nModes; ++iMode) generalizedVelocity[iMode][2] = 1e-1;
     
   if (config->GetDynamic_Method()==MODAL_HARMONIC_BALANCE){
-      QSolVector = new su2double[2*nModes*nInst];
-      QSolVector_Old = new su2double[2*nModes*nInst];
-      for (i =0; i < (nModes*nInst); i++) {
+      QSolVector = new su2double[2*nModes];
+      QSolVector_Old = new su2double[2*nModes];
+      for (i =0; i < (nModes); i++) {
           QSolVector[i] = 0.0;
-          QSolVector[nModes * nInst + i] = 1e-2;
+          QSolVector[nModes + i] = 1e-2;
           QSolVector_Old[i] = 0.0;
-          QSolVector_Old[nModes * nInst + i] = 1e-2;
+          QSolVector_Old[nModes  + i] = 1e-2;
       }
   }
 

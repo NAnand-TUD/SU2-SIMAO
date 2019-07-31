@@ -326,12 +326,15 @@ void CMultizoneDriver::Run_GaussSeidel() {
               config_container[1]->GetKind_Solver() != FEM_MODAL)
               Corrector(iZone);
       }
-
+    cout<<"iZone :: "<<iZone<<" Modal :: "<<(config_container[iZone][INST_0].GetDynamic_Method() == MODAL_HARMONIC_BALANCE)<<
+            "  Fluid :: "<<(config_container[iZone][INST_0].GetUnsteady_Simulation() == HARMONIC_BALANCE)<<endl;
     // Solver Update
     if (config_container[iZone][INST_0].GetUnsteady_Simulation() == HARMONIC_BALANCE)
         FluidHBUpdate(iZone,FLOW_SOL);
-    else if (config_container[iZone][INST_0].GetUnsteady_Simulation() == MODAL_HARMONIC_BALANCE)
+    else if (config_container[iZone][INST_0].GetDynamic_Method() == MODAL_HARMONIC_BALANCE){
+        cout<<"I was called HB Modal Update \n";
         FluidHBUpdate(iZone,MODAL_SOL);
+    }
     else
         continue;
     }
@@ -558,6 +561,8 @@ void CMultizoneDriver::Update() {
     if (UpdateMesh > 0) DynamicMeshUpdate(iZone, ExtIter);
 
     // Update harmonic Balance
+    cout<<"Modal :: "<<(config_container[iZone][INST_0].GetDynamic_Method() == MODAL_HARMONIC_BALANCE)<<
+    "Fluid :: "<<(config_container[iZone][INST_0].GetUnsteady_Simulation() == HARMONIC_BALANCE)<<endl;
     if (config_container[iZone][INST_0].GetUnsteady_Simulation() == HARMONIC_BALANCE)
         FluidHBUpdate(iZone,FLOW_SOL);
     else if (config_container[iZone][INST_0].GetDynamic_Method() == MODAL_HARMONIC_BALANCE)
@@ -695,7 +700,6 @@ void CMultizoneDriver::DynamicMeshUpdate(unsigned short val_iZone, unsigned long
         iteration_container[val_iZone][iInst]->SetGrid_Movement(geometry_container, surface_movement, grid_movement, FFDBox,
                                                                 solver_container, config_container, val_iZone, iInst, 0,
                                                                 ExtIter);
-        cout << "++++++Dynamic Mesh update 2 Completed :: iInst "<<iInst<<"++++++\t\t";
     }
 }
 
@@ -769,7 +773,6 @@ bool CMultizoneDriver::Transfer_Data(unsigned short donorZone, unsigned short ta
   else if (transfer_types[donorZone][targetZone] == FLOW_TRACTION) {
                 cout << "\n\ntransfer data: fluid forces" << endl;
         for (iInst=0; iInst<nInst[donorZone]; iInst++) {
-            cout<< "++++++++++ Transfer Data iInst :: "<<iInst<<"++++++++++"<<endl;
             cout<<transfer_container[donorZone][targetZone][iInst]<<endl;
             transfer_container[donorZone][targetZone][iInst]->Broadcast_InterfaceData(
                     solver_container[donorZone][iInst][MESH_0][FLOW_SOL],

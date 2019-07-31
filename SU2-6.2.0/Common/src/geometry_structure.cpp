@@ -5813,7 +5813,11 @@ void CPhysicalGeometry::DistributeColoring(CConfig *config,
   map<unsigned long, unsigned long>::iterator MI;
   
   vector<unsigned long>::iterator it;
-
+  
+  if(config->GetKind_Solver() == FEM_MODAL) cout << "\nsolver FEM_MODAL: " << config->GetKind_Solver() << endl;
+  
+  cout << "nElem: " << geometry->GetnElem() << endl;
+      
   SU2_MPI::Request *colorSendReq = NULL, *idSendReq = NULL;
   SU2_MPI::Request *colorRecvReq = NULL, *idRecvReq = NULL;
   int iProc, iSend, iRecv, myStart, myFinal;
@@ -5826,6 +5830,8 @@ void CPhysicalGeometry::DistributeColoring(CConfig *config,
     for (iNode = 0; iNode < geometry->elem[iElem]->GetnNodes(); iNode++) {
       iPoint = geometry->elem[iElem]->GetNode(iNode);
       Point_Map[iPoint] = iPoint;
+//       cout << "ielem: " << iElem << "\tnPoints: " << geometry->elem[iElem]->GetnNodes();
+//       cout << "\t iPoint: " << iPoint << "\t" << Point_Map[iPoint] << endl;
     }
   }
 
@@ -9002,6 +9008,7 @@ void CPhysicalGeometry::Read_SU2_Format_Parallel(CConfig *config, string val_mes
       if (position != string::npos) {
         text_line.erase (0,6); nDim = atoi(text_line.c_str());
       }
+      cout << "NDIME= " << nDim << endl;
       
       position = text_line.find ("NPOIN=",0);
       if (position != string::npos) {

@@ -10779,7 +10779,7 @@ void CPhysicalGeometry::Read_SU2_Format_Parallel(CConfig *config, string val_mes
             }
             
             /*--- Update config information storing the boundary information in the right place ---*/
-            
+            cout << "next marker: " << Marker_Tag << endl;
             Tag_to_Marker[config->GetMarker_CfgFile_TagBound(Marker_Tag)] = Marker_Tag;
             config->SetMarker_All_TagBound(iMarker, Marker_Tag);
             config->SetMarker_All_KindBC(iMarker, config->GetMarker_CfgFile_KindBC(Marker_Tag));

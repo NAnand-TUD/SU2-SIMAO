@@ -5799,70 +5799,100 @@ void CModalSolver::RungeKutta_TimeInt(CGeometry *geometry, CSolver **solver_cont
     // R-K number of stages and coefficients
     cout << "rk scheme: " << config->GetKind_TimeIntScheme_FEA() << endl;
     switch (config->GetKind_TimeIntScheme_FEA()){
-        case (RK4):
-            rkcoeff[0]  = rkcoeff[3] = 0.16666666666666666;
-            rkcoeff[1]  = rkcoeff[2] = 0.33333333333333;
-            irk1         = new su2double[2*nModes];
-            irk2         = new su2double[2*nModes];
-            irk3         = new su2double[2*nModes];
-            irk4         = new su2double[2*nModes];
-            
+        case (RK4): {
+            rkcoeff[0] = rkcoeff[3] = 0.16666666666666666;
+            rkcoeff[1] = rkcoeff[2] = 0.33333333333333;
+            irk1 = new su2double[2 * nModes];
+            irk2 = new su2double[2 * nModes];
+            irk3 = new su2double[2 * nModes];
+            irk4 = new su2double[2 * nModes];
+
             //rk1    
-            dgemv(trans,2*nModes,2*nModes,1.0,Ass,2*nModes,qsol,1,0.,yout, 1 );
-            for(iMode = 0; iMode < 2*nModes; ++iMode) irk1[iMode] = yout[iMode] + ForceVec[iMode];
-            for(iMode = 0; iMode < 2*nModes; ++iMode) yout[iMode] = 0;
-            
+            dgemv(trans, 2 * nModes, 2 * nModes, 1.0, Ass, 2 * nModes, qsol, 1, 0., yout, 1);
+            for (iMode = 0; iMode < 2 * nModes; ++iMode) irk1[iMode] = yout[iMode] + ForceVec[iMode];
+            for (iMode = 0; iMode < 2 * nModes; ++iMode) yout[iMode] = 0;
+
             //rk2
-            for(iMode = 0; iMode < 2*nModes; ++iMode) dy[iMode] = qsol[iMode] + ONE2*dt*irk1[iMode];
-            dgemv(false,2*nModes,2*nModes,1.0,Ass,2*nModes,dy,1,0.,yout, 1 );
-            for(iMode = 0; iMode < 2*nModes; ++iMode) irk2[iMode] = yout[iMode] + ForceVec[iMode];
-            for(iMode = 0; iMode < 2*nModes; ++iMode) yout[iMode] = 0;
+            for (iMode = 0; iMode < 2 * nModes; ++iMode) dy[iMode] = qsol[iMode] + ONE2 * dt * irk1[iMode];
+            dgemv(false, 2 * nModes, 2 * nModes, 1.0, Ass, 2 * nModes, dy, 1, 0., yout, 1);
+            for (iMode = 0; iMode < 2 * nModes; ++iMode) irk2[iMode] = yout[iMode] + ForceVec[iMode];
+            for (iMode = 0; iMode < 2 * nModes; ++iMode) yout[iMode] = 0;
 
             //rk3
-            for(iMode = 0; iMode < 2*nModes; ++iMode) dy[iMode] = qsol[iMode] + ONE2*dt*irk2[iMode];
-            dgemv(false,2*nModes,2*nModes,1.0,Ass,2*nModes,dy,1,0.,yout, 1 );
-            for(iMode = 0; iMode < 2*nModes; ++iMode) irk3[iMode] = yout[iMode] + ForceVec[iMode];
-            for(iMode = 0; iMode < 2*nModes; ++iMode) yout[iMode] = 0;
-            
+            for (iMode = 0; iMode < 2 * nModes; ++iMode) dy[iMode] = qsol[iMode] + ONE2 * dt * irk2[iMode];
+            dgemv(false, 2 * nModes, 2 * nModes, 1.0, Ass, 2 * nModes, dy, 1, 0., yout, 1);
+            for (iMode = 0; iMode < 2 * nModes; ++iMode) irk3[iMode] = yout[iMode] + ForceVec[iMode];
+            for (iMode = 0; iMode < 2 * nModes; ++iMode) yout[iMode] = 0;
+
             //rk4
-            for(iMode = 0; iMode < 2*nModes; ++iMode) dy[iMode] = qsol[iMode] + ONE2*dt*irk3[iMode];
-            dgemv(false,2*nModes,2*nModes,1.0,Ass,2*nModes,dy,1,0.,yout, 1 );
-            for(iMode = 0; iMode < 2*nModes; ++iMode) irk4[iMode] = yout[iMode] + ForceVec[iMode];    
-            
-            for( iMode = 0; iMode < nModes; ++iMode) {
-                generalizedDisplacement[iMode][1]   = generalizedDisplacement[iMode][0];
-                generalizedVelocity[iMode][1]       = generalizedVelocity[iMode][0];
-        //         
-                generalizedDisplacement[iMode][0] += dt*(rkcoeff[0]*irk1[iMode] + 
-                rkcoeff[1]*irk2[iMode] + rkcoeff[2]*irk3[iMode] + rkcoeff[3]*irk4[iMode]);
-                ind = iMode+nModes;
-                generalizedVelocity[iMode][0] += dt*(rkcoeff[0]*irk1[ind] + 
-                rkcoeff[1]*irk2[ind] + rkcoeff[2]*irk3[ind] + rkcoeff[3]*irk4[ind]);
+            for (iMode = 0; iMode < 2 * nModes; ++iMode) dy[iMode] = qsol[iMode] + ONE2 * dt * irk3[iMode];
+            dgemv(false, 2 * nModes, 2 * nModes, 1.0, Ass, 2 * nModes, dy, 1, 0., yout, 1);
+            for (iMode = 0; iMode < 2 * nModes; ++iMode) irk4[iMode] = yout[iMode] + ForceVec[iMode];
+
+            for (iMode = 0; iMode < nModes; ++iMode) {
+                generalizedDisplacement[iMode][1] = generalizedDisplacement[iMode][0];
+                generalizedVelocity[iMode][1] = generalizedVelocity[iMode][0];
+
+                generalizedDisplacement[iMode][0] += dt * (rkcoeff[0] * irk1[iMode] +
+                                                           rkcoeff[1] * irk2[iMode] + rkcoeff[2] * irk3[iMode] +
+                                                           rkcoeff[3] * irk4[iMode]);
+                ind = iMode + nModes;
+                generalizedVelocity[iMode][0] += dt * (rkcoeff[0] * irk1[ind] +
+                                                       rkcoeff[1] * irk2[ind] + rkcoeff[2] * irk3[ind] +
+                                                       rkcoeff[3] * irk4[ind]);
             }
-        case (RK2):
+            delete [] irk1;
+            delete [] irk2;
+            delete [] irk3;
+            delete [] irk4;
+        }
+            break;
+        case (RK2): {
             rkcoeff[0] = 0.5;
             rkcoeff[1] = 0.5;
-            irk1         = new su2double[2*nModes];
-            irk2         = new su2double[2*nModes];
+            irk1 = new su2double[2 * nModes];
+            irk2 = new su2double[2 * nModes];
             su2double DampingRatio = 0;
-            su2double massRatio = 0.065*refLength*refLength*refLength*refLength*refLength;
-            for( iMode = 0; iMode < nModes; ++iMode) {
+            su2double massRatio = 0.065 * refLength * refLength * refLength * refLength * refLength;
+            for (iMode = 0; iMode < nModes; ++iMode) {
                 irk1[0] = generalizedVelocity[iMode][1];
-                irk1[1] = massRatio*modalForceLast[iMode] - omega[iMode]*omega[iMode]*generalizedDisplacement[iMode][1] - DampingRatio*omega[iMode]*omega[iMode]*generalizedVelocity[iMode][1];
+                irk1[1] = massRatio * modalForceLast[iMode] -
+                          omega[iMode] * omega[iMode] * generalizedDisplacement[iMode][1] -
+                          DampingRatio * omega[iMode] * omega[iMode] * generalizedVelocity[iMode][1];
 
                 irk2[0] = generalizedVelocity[iMode][0];
-                irk2[1] = massRatio*modalForce[iMode] - omega[iMode]*omega[iMode]*generalizedDisplacement[iMode][0] - DampingRatio*omega[iMode]*omega[iMode]*generalizedVelocity[iMode][0];
-                
-                qsol[2*iMode]   = generalizedDisplacement[iMode][1] + ONE2*dt*(irk2[0] + irk1[0]);
-                qsol[2*iMode+1] = generalizedVelocity[iMode][1] + ONE2*dt*(irk2[1] + irk1[1]);
+                irk2[1] = massRatio * modalForce[iMode] -
+                          omega[iMode] * omega[iMode] * generalizedDisplacement[iMode][0] -
+                          DampingRatio * omega[iMode] * omega[iMode] * generalizedVelocity[iMode][0];
+
+                qsol[2 * iMode] = generalizedDisplacement[iMode][1] + ONE2 * dt * (irk2[0] + irk1[0]);
+                qsol[2 * iMode + 1] = generalizedVelocity[iMode][1] + ONE2 * dt * (irk2[1] + irk1[1]);
             }
             // Update old and new solution
+            for (iMode = 0; iMode < nModes; ++iMode) {
+                generalizedDisplacement[iMode][1] = generalizedDisplacement[iMode][0];
+                generalizedVelocity[iMode][1] = generalizedVelocity[iMode][0];
+                generalizedDisplacement[iMode][0] = qsol[2 * iMode];
+                generalizedVelocity[iMode][0] = qsol[2 * iMode + 1];
+            }
+        }
+            delete [] irk1;
+            delete [] irk2;
+            break;
+
+        case (IMPLICIT):
+        {
+            dgemv(trans,2*nModes,2*nModes,1.0,Ass,2*nModes,qsol,1,0.,yout, 1 );
+            for(iMode = 0; iMode < 2*nModes; ++iMode) qsol[iMode] = yout[iMode] + ForceVec[iMode];
             for( iMode = 0; iMode < nModes; ++iMode) {
                 generalizedDisplacement[iMode][1]   = generalizedDisplacement[iMode][0];
                 generalizedVelocity[iMode][1]       = generalizedVelocity[iMode][0];
                 generalizedDisplacement[iMode][0]   = qsol[2*iMode];
                 generalizedVelocity[iMode][0]       = qsol[2*iMode+1];
             }
+        }
+            break;
+
         }
 
         UpdateStructuralNodes();
@@ -5871,71 +5901,9 @@ void CModalSolver::RungeKutta_TimeInt(CGeometry *geometry, CSolver **solver_cont
 //     for( iMode = 0; iMode < nModes; ++iMode) generalizedVelocity[iMode][0] = 0;
     
     delete [] qsol;
-    delete [] irk1;
-    delete [] irk2;
-    delete [] irk3;
-    delete [] irk4;
     delete [] dy;
     delete [] yout;
 }
-
-// void CModalSolver::RK4(CGeometry *geometry, CSolver **solver_container, CConfig *config){
-// 
-//     unsigned short iMode,iDim;
-//     su2double *qsol;
-//     su2double dy[8] = {0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0};
-// 
-//     su2double dt = 0.025;
-//     qsol = new su2double[2*nModes];
-// 
-//     cout << "solving structural equations of motion using two-stage RK method "<< endl;
-//     // solution array includes X, Y, Z displacements, obtained from gen. vars;
-//     // and must be parsed to node variable
-//     // generalizedXXX contains solution from state-space modal problem
-// 
-//     // Get the modal forces from the interpolation
-//     ComputeModalFluidForces(geometry, config);
-// 
-//     for( iMode = 0; iMode < nModes; ++iMode) {
-// 
-//         // RK Step 1
-//         // K1  = dt * f (Tn, Yn)
-//         dy[0] = dt*generalizedVelocity[iMode][0];
-//         dy[1] = dt*(modalForceLast[iMode] - omega[iMode]*omega[iMode]*generalizedDisplacement[iMode][0]);
-// 
-//         // RK Step 2
-//         // K2  = dt * f (Tn + dt/2, Yn + K1/2)
-//         dy[2] = dt * (generalizedVelocity[iMode][0] + ONE2*dt*dy[1]) ;
-//         dy[3] = dt * (modalForce[iMode] - omega[iMode]*omega[iMode]*(generalizedDisplacement[iMode][0]+ONE2*dt*dy[1])) ;
-// 
-//         // RK Step 3
-//         // K3  = dt * f (Tn + dt/2, Yn + K2/2)
-//         dy[4] = dt *(generalizedVelocity[iMode][0] + ONE2*dt*dy[3] );
-//         dy[5] = dt *(modalForce[iMode] - omega[iMode]*omega[iMode]*(generalizedDisplacement[iMode][0]+ONE2*dt*dy[3]));
-// 
-//         // RK Step 4
-//         // K4  = dt * f (Tn + dt, Yn + K3)
-//         dy[6] = dt *(generalizedVelocity[iMode][0] + dt*dy[5] );
-//         dy[7] = dt *(modalForce[iMode] - omega[iMode]*omega[iMode]*(generalizedDisplacement[iMode][0]+dt*dy[1]));
-// 
-//         // RK4 Solution
-//         // Y N+1 = Y N + 1/6 * (K1 + 2K2 + 2K3 + K4)
-//         qsol[2*iMode]   = generalizedDisplacement[iMode][0] + 0.16666*dt*(dy[0] + 2*dy[2] + 2*dy[4] + dy[6]);
-//         qsol[2*iMode+1] = generalizedVelocity[iMode][0] + 0.16666*(dy[1] + 2*dy[3] + 2*dy[5] + dy[7]);
-//     }
-// 
-//     // Update old and new solution
-//     for( iMode = 0; iMode < nModes; ++iMode) {
-//         generalizedDisplacement[iMode][1]   = generalizedDisplacement[iMode][0];
-//         generalizedVelocity[iMode][1]       = generalizedVelocity[iMode][0];
-//         generalizedDisplacement[iMode][0]   = qsol[2*iMode];
-//         generalizedVelocity[iMode][0]       = qsol[2*iMode+1];
-//     }
-// 
-//     UpdateStructuralNodes();
-// 
-//     delete [] qsol;
-// }
 
 void CModalSolver::UpdateStructuralNodes() {
 

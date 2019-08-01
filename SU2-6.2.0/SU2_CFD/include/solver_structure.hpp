@@ -15969,6 +15969,8 @@ public:
 //     void RK2(CGeometry *geometry, CSolver **solver_container, CConfig *config);
 
     void RungeKutta_TimeInt(CGeometry *geometry, CSolver **solver_container, CConfig *config);
+
+    void SolveStatic(CGeometry *geometry, CSolver **solver_container, CConfig *config);
     
     /*!
     * \brief Step to map fluid forces and project them onto structural mode shapes.

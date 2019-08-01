@@ -255,13 +255,20 @@ void CMultizoneDriver::Preprocess(unsigned long TimeIter) {
 
   cout<<"After dynamic Mesh Update Line 249 driver_direct_multizone \n";
 
+  cout << "unsteady flag1: " << unsteady << endl;
+//   cout << "unsteady flag2: " << config_container[iZone]->GetUnsteady_Simulation() << endl;
   /*--- Updating zone interface communication patterns for unsteady problems with pre-fixed motion in the config file ---*/
-  if ( unsteady || config_container[iZone]->GetUnsteady_Simulation()==HARMONIC_BALANCE) {
+  if ( unsteady /*|| config_container[iZone]->GetUnsteady_Simulation()==HARMONIC_BALANCE*/) {
+    cout << "here mz driver 260\n";
     for (iZone = 0; iZone < nZone; iZone++) {
       for (unsigned short jZone = 0; jZone < nZone; jZone++){
+          cout << "zones: " << iZone << "\t" << jZone << "\n";
           for(iInst=0; iInst<nInst[iZone]; iInst++)
-                if(jZone != iZone && interpolator_container[iZone][jZone][iInst] != NULL && prefixed_motion[iZone])
+                cout << "isnts: " << iInst << "\n";
+                if(jZone != iZone && interpolator_container[iZone][jZone][iInst] != NULL && prefixed_motion[iZone]){
+                    cout << "here mz driver 264\n";
                     interpolator_container[iZone][jZone][iInst]->Set_TransferCoeff(config_container);
+                }
       }
     }
   }

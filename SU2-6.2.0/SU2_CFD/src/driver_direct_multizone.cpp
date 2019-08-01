@@ -913,12 +913,14 @@ void CMultizoneDriver::SetHarmonicBalance(unsigned short val_iZone, unsigned sho
                             Source[iVar] += deltaPsi*D[jInst][iInst];
                         }
                     }
+//                    cout<<"HB Source Term :: "<<U[iVar]<<" "<<D[iInst][jInst]<<" "<<Source[iVar]<<endl;
                 }
 
                 /*--- Store sources for current row ---*/
                 for (iVar = 0; iVar < nVar; iVar++) {
                     if (!adjoint) {
                         solver_container[val_iZone][iInst][iMGlevel][val_Sol]->node[iPoint]->SetHarmonicBalance_Source(iVar, Source[iVar]);
+                        //cout<<solver_container[val_iZone][iInst][iMGlevel][val_Sol]->node[iPoint]->GetHarmonicBalance_Source(iVar);
                     }
                     else {
                         solver_container[val_iZone][iInst][iMGlevel][val_Sol_Adj]->node[iPoint]->SetHarmonicBalance_Source(iVar, Source[iVar]);
@@ -986,12 +988,14 @@ void CMultizoneDriver::ComputeHB_Operator(unsigned short val_iZone) {
     su2double Period = config_container[val_iZone]->GetHarmonicBalance_Period();
 
     /*--- Non-dimensionalize the input period, if necessary.      */
-    Period /= config_container[val_iZone]->GetTime_Ref();
+//    Period /= config_container[val_iZone]->GetTime_Ref();
 
     /*--- Build the array containing the selected frequencies to solve ---*/
     for (iInst = 0; iInst < nInst[val_iZone]; iInst++) {
         Omega_HB[iInst]  = config_container[val_iZone]->GetOmega_HB()[iInst];
-        Omega_HB[iInst] /= config_container[val_iZone]->GetOmega_Ref(); //TODO: check
+//        Omega_HB[iInst] /= config_container[val_iZone]->GetOmega_Ref(); //TODO: check
+        cout<< "Omega HB = "<<Omega_HB[iInst]<<endl;
+//        cout<< "Omega Ref = "<<config_container[val_iZone]->GetOmega_Ref()<<endl;
     }
 
     /*--- Build the diagonal matrix of the frequencies DD ---*/
@@ -1123,6 +1127,13 @@ void CMultizoneDriver::ComputeHB_Operator(unsigned short val_iZone) {
         for (k = 0; k < nInst[val_iZone]; k++) {
             D[i][k] = real(Dcpx[i][k]);
         }
+    }
+
+    cout<<" +++ D Matrix +++\n";
+    for(i=0; i<nInst[val_iZone]; i++) {
+        for (k = 0; k < nInst[val_iZone]; k++)
+            cout << D[i][k] << "\t";
+        cout<<"\n";
     }
 
     /*--- Deallocate dynamic memory ---*/

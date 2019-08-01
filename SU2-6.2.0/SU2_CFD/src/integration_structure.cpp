@@ -460,6 +460,16 @@ void CIntegration::Time_Integration_Modal(CGeometry *geometry, CSolver **solver_
 
 }
 
+void CIntegration::Source_Integration_Modal(CGeometry *geometry, CSolver **solver_container, CNumerics **numerics, CConfig *config, unsigned short RunTime_EqSystem, unsigned long Iteration) {
+
+    unsigned short iMarker;
+
+    cout << "time integration modal solver type: " << config->GetKind_TimeIntScheme_FEA() << "\n";
+//    solver_container[MainSolver]->RungeKutta_TimeInt(geometry, solver_container, config);
+
+}
+
+
 void CIntegration::Convergence_Monitoring(CGeometry *geometry, CConfig *config, unsigned long Iteration,
                                           su2double monitor, unsigned short iMesh) {
   

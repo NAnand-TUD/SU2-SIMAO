@@ -214,6 +214,7 @@ CModalVariable::CModalVariable(void) : CVariable() {
     Solution_Vel        = NULL;
     Solution_Vel_time_n = NULL;   
     modeShape           = NULL;
+    HB_Source           = NULL;
 
 }
 
@@ -234,6 +235,7 @@ CModalVariable::CModalVariable(su2double *val_csd, unsigned short val_nDim, unsi
     Solution_Pred_Old   = new su2double [nVar];
     FlowTraction        = new su2double [nVar];
     FlowTraction_time_n = new su2double [nVar];
+    HB_Source           = new su2double [nVar];
 
     modeShape           = new su2double [nDim*val_nModes];
     
@@ -246,6 +248,7 @@ CModalVariable::CModalVariable(su2double *val_csd, unsigned short val_nDim, unsi
 
     /*--- Initialization of variables ---*/
     for (iVar = 0; iVar < nVar; iVar++) Solution[iVar] = val_csd[iVar];
+    for (iVar = 0; iVar < nVar; iVar++) HB_Source[iVar] = 0.0;
     for (iVar = 0; iVar < nVar; iVar++) Solution_Old[iVar] = val_csd[iVar];
     for (iVar = 0; iVar < nVar; iVar++) {
         Solution_Vel[iVar]       = val_csd[iVar+nVar];

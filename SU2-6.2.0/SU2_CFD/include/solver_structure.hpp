@@ -15966,8 +15966,6 @@ public:
     
     void Initialize_StateSpace_Matrices(unsigned short);
 
-//     void RK2(CGeometry *geometry, CSolver **solver_container, CConfig *config);
-
     void RungeKutta_TimeInt(CGeometry *geometry, CSolver **solver_container, CConfig *config);
 
     void SolveStatic(CGeometry *geometry, CSolver **solver_container, CConfig *config);

@@ -333,10 +333,13 @@ void CMultizoneDriver::Run_GaussSeidel() {
 
     // Solver Update
     if (config_container[iZone][INST_0].GetUnsteady_Simulation() == HARMONIC_BALANCE)
-        FluidHBUpdate(iZone);
-    else if (config_container[iZone][INST_0].GetUnsteady_Simulation() == MODAL_HARMONIC_BALANCE)
-        ModalHBUpdate(iZone);
-
+        FluidHBUpdate(iZone,FLOW_SOL);
+    else if (config_container[iZone][INST_0].GetDynamic_Method() == MODAL_HARMONIC_BALANCE){
+        cout<<"I was called HB Modal Update \n";
+        FluidHBUpdate(iZone,MODAL_SOL);
+    }
+    else
+        continue;
     }
 
 
@@ -561,10 +564,14 @@ void CMultizoneDriver::Update() {
     if (UpdateMesh > 0) DynamicMeshUpdate(iZone, ExtIter);
 
     // Update harmonic Balance
+    cout<<"Modal :: "<<(config_container[iZone][INST_0].GetDynamic_Method() == MODAL_HARMONIC_BALANCE)<<
+    "Fluid :: "<<(config_container[iZone][INST_0].GetUnsteady_Simulation() == HARMONIC_BALANCE)<<endl;
     if (config_container[iZone][INST_0].GetUnsteady_Simulation() == HARMONIC_BALANCE)
-        FluidHBUpdate(iZone);
-    else if (config_container[iZone][INST_0].GetUnsteady_Simulation() == MODAL_HARMONIC_BALANCE)
-        ModalHBUpdate(iZone);
+        FluidHBUpdate(iZone,FLOW_SOL);
+    else if (config_container[iZone][INST_0].GetDynamic_Method() == MODAL_HARMONIC_BALANCE)
+        FluidHBUpdate(iZone,MODAL_SOL);
+    else
+        continue;
 
     for(iInst=0; iInst<nInst[iZone]; iInst++)
     iteration_container[iZone][iInst]->Update(output, integration_container, geometry_container,
@@ -696,7 +703,6 @@ void CMultizoneDriver::DynamicMeshUpdate(unsigned short val_iZone, unsigned long
         iteration_container[val_iZone][iInst]->SetGrid_Movement(geometry_container, surface_movement, grid_movement, FFDBox,
                                                                 solver_container, config_container, val_iZone, iInst, 0,
                                                                 ExtIter);
-        cout << "++++++Dynamic Mesh update 2 Completed :: iInst "<<iInst<<"++++++\t\t";
     }
 }
 
@@ -770,7 +776,6 @@ bool CMultizoneDriver::Transfer_Data(unsigned short donorZone, unsigned short ta
   else if (transfer_types[donorZone][targetZone] == FLOW_TRACTION) {
                 cout << "\n\ntransfer data: fluid forces" << endl;
         for (iInst=0; iInst<nInst[donorZone]; iInst++) {
-            cout<< "++++++++++ Transfer Data iInst :: "<<iInst<<"++++++++++"<<endl;
             cout<<transfer_container[donorZone][targetZone][iInst]<<endl;
             transfer_container[donorZone][targetZone][iInst]->Broadcast_InterfaceData(
                     solver_container[donorZone][iInst][MESH_0][FLOW_SOL],
@@ -790,17 +795,21 @@ bool CMultizoneDriver::Transfer_Data(unsigned short donorZone, unsigned short ta
   return UpdateMesh;
 }
 
-void CMultizoneDriver::FluidHBUpdate(unsigned short val_iZone){
-    cout<<"Fluid_Harmonic_Balance Update \n";
+void CMultizoneDriver::FluidHBUpdate(unsigned short val_iZone, unsigned short val_Sol){
+    if (val_Sol == FLOW_SOL)
+        cout<<"Fluid_Harmonic_Balance Update \n";
+    else if (val_Sol == MODAL_SOL)
+        cout<<"Modal Hamronic Balance Update \n";
+
     for (iInst = 0; iInst < nInst[val_iZone]; iInst++) {
         /*--- Compute the harmonic balance terms across all zones ---*/
-        SetHarmonicBalance(val_iZone, iInst);
+        SetHarmonicBalance(val_iZone, iInst, val_Sol);
 
     }
 
     /*--- Precondition the harmonic balance source terms ---*/
     if (config_container[val_iZone]->GetHB_Precondition() == YES) {
-        StabilizeHarmonicBalance(val_iZone);
+        StabilizeHarmonicBalance(val_iZone, val_Sol);
 
     }
 
@@ -820,13 +829,22 @@ void CMultizoneDriver::ModalHBUpdate(unsigned short val_iZone) {
     cout<<"Modal_Harmonic_Balance Update \n";
 }
 
-void CMultizoneDriver::SetHarmonicBalance(unsigned short val_iZone, unsigned short iInst) {
+void CMultizoneDriver::SetHarmonicBalance(unsigned short val_iZone, unsigned short iInst, unsigned short val_Sol) {
 
     cout<<"++++++ Setting Harmonic Balance +++++ \n";
 
-    unsigned short iVar, jInst, iMGlevel;
-    unsigned short nVar = solver_container[val_iZone][INST_0][MESH_0][FLOW_SOL]->GetnVar();
+    unsigned short iVar, jInst, iMGlevel, val_Sol_Adj;
+
+    if (val_Sol == FLOW_SOL)
+        val_Sol_Adj = ADJFLOW_SOL;
+    else if (val_Sol == MODAL_SOL)
+        val_Sol_Adj = ADJFLOW_SOL;
+    else
+        exit(1);
+
+    unsigned short nVar = solver_container[val_iZone][INST_0][MESH_0][val_Sol]->GetnVar();
     unsigned long iPoint;
+
     bool implicit = (config_container[val_iZone]->GetKind_TimeIntScheme_Flow() == EULER_IMPLICIT);
     bool adjoint = (config_container[val_iZone]->GetContinuous_Adjoint());
     if (adjoint) {
@@ -870,11 +888,11 @@ void CMultizoneDriver::SetHarmonicBalance(unsigned short val_iZone, unsigned sho
                 for (iVar = 0; iVar < nVar; iVar++) {
 
                     if (!adjoint) {
-                        U[iVar] = solver_container[val_iZone][jInst][iMGlevel][FLOW_SOL]->node[iPoint]->GetSolution(iVar);
+                        U[iVar] = solver_container[val_iZone][jInst][iMGlevel][val_Sol]->node[iPoint]->GetSolution(iVar);
                         Source[iVar] += U[iVar]*D[iInst][jInst];
 
                         if (implicit) {
-                            U_old[iVar] = solver_container[val_iZone][jInst][iMGlevel][FLOW_SOL]->node[iPoint]->GetSolution_Old(iVar);
+                            U_old[iVar] = solver_container[val_iZone][jInst][iMGlevel][val_Sol]->node[iPoint]->GetSolution_Old(iVar);
                             deltaU = U[iVar] - U_old[iVar];
                             Source[iVar] += deltaU*D[iInst][jInst];
                         }
@@ -882,24 +900,26 @@ void CMultizoneDriver::SetHarmonicBalance(unsigned short val_iZone, unsigned sho
                     }
 
                     else {
-                        Psi[iVar] = solver_container[val_iZone][jInst][iMGlevel][ADJFLOW_SOL]->node[iPoint]->GetSolution(iVar);
+                        Psi[iVar] = solver_container[val_iZone][jInst][iMGlevel][val_Sol_Adj]->node[iPoint]->GetSolution(iVar);
                         Source[iVar] += Psi[iVar]*D[jInst][iInst];
 
                         if (implicit) {
-                            Psi_old[iVar] = solver_container[val_iZone][jInst][iMGlevel][ADJFLOW_SOL]->node[iPoint]->GetSolution_Old(iVar);
+                            Psi_old[iVar] = solver_container[val_iZone][jInst][iMGlevel][val_Sol_Adj]->node[iPoint]->GetSolution_Old(iVar);
                             deltaPsi = Psi[iVar] - Psi_old[iVar];
                             Source[iVar] += deltaPsi*D[jInst][iInst];
                         }
                     }
+//                    cout<<"HB Source Term :: "<<U[iVar]<<" "<<D[iInst][jInst]<<" "<<Source[iVar]<<endl;
                 }
 
                 /*--- Store sources for current row ---*/
                 for (iVar = 0; iVar < nVar; iVar++) {
                     if (!adjoint) {
-                        solver_container[val_iZone][iInst][iMGlevel][FLOW_SOL]->node[iPoint]->SetHarmonicBalance_Source(iVar, Source[iVar]);
+                        solver_container[val_iZone][iInst][iMGlevel][val_Sol]->node[iPoint]->SetHarmonicBalance_Source(iVar, Source[iVar]);
+                        //cout<<solver_container[val_iZone][iInst][iMGlevel][val_Sol]->node[iPoint]->GetHarmonicBalance_Source(iVar);
                     }
                     else {
-                        solver_container[val_iZone][iInst][iMGlevel][ADJFLOW_SOL]->node[iPoint]->SetHarmonicBalance_Source(iVar, Source[iVar]);
+                        solver_container[val_iZone][iInst][iMGlevel][val_Sol_Adj]->node[iPoint]->SetHarmonicBalance_Source(iVar, Source[iVar]);
                     }
                 }
 
@@ -964,12 +984,14 @@ void CMultizoneDriver::ComputeHB_Operator(unsigned short val_iZone) {
     su2double Period = config_container[val_iZone]->GetHarmonicBalance_Period();
 
     /*--- Non-dimensionalize the input period, if necessary.      */
-    Period /= config_container[val_iZone]->GetTime_Ref();
+//    Period /= config_container[val_iZone]->GetTime_Ref();
 
     /*--- Build the array containing the selected frequencies to solve ---*/
     for (iInst = 0; iInst < nInst[val_iZone]; iInst++) {
         Omega_HB[iInst]  = config_container[val_iZone]->GetOmega_HB()[iInst];
-        Omega_HB[iInst] /= config_container[val_iZone]->GetOmega_Ref(); //TODO: check
+//        Omega_HB[iInst] /= config_container[val_iZone]->GetOmega_Ref(); //TODO: check
+        cout<< "Omega HB = "<<Omega_HB[iInst]<<endl;
+//        cout<< "Omega Ref = "<<config_container[val_iZone]->GetOmega_Ref()<<endl;
     }
 
     /*--- Build the diagonal matrix of the frequencies DD ---*/
@@ -1103,6 +1125,13 @@ void CMultizoneDriver::ComputeHB_Operator(unsigned short val_iZone) {
         }
     }
 
+    cout<<" +++ D Matrix +++\n";
+    for(i=0; i<nInst[val_iZone]; i++) {
+        for (k = 0; k < nInst[val_iZone]; k++)
+            cout << D[i][k] << "\t";
+        cout<<"\n";
+    }
+
     /*--- Deallocate dynamic memory ---*/
     for (iInst = 0; iInst < nInst[val_iZone]; iInst++){
         delete [] E[iInst];
@@ -1120,11 +1149,19 @@ void CMultizoneDriver::ComputeHB_Operator(unsigned short val_iZone) {
 
 }
 
-void CMultizoneDriver::StabilizeHarmonicBalance(unsigned short val_iZone){
+void CMultizoneDriver::StabilizeHarmonicBalance(unsigned short val_iZone, unsigned short val_Sol){
 
     unsigned short nInstHB = nInst[val_iZone];
-    unsigned short i, j, k, iVar, iInst, jInst, iMGlevel;
-    unsigned short nVar = solver_container[val_iZone][INST_0][MESH_0][FLOW_SOL]->GetnVar();
+    unsigned short i, j, k, iVar, iInst, jInst, iMGlevel, val_Sol_Adj;
+
+    if (val_Sol == FLOW_SOL)
+        val_Sol_Adj = ADJFLOW_SOL;
+    else if (val_Sol == MODAL_SOL)
+        val_Sol_Adj = ADJFLOW_SOL;
+    else
+        exit(1);
+
+    unsigned short nVar = solver_container[val_iZone][INST_0][MESH_0][val_Sol]->GetnVar();
     unsigned long iPoint;
     bool adjoint = (config_container[val_iZone]->GetContinuous_Adjoint());
 
@@ -1147,7 +1184,7 @@ void CMultizoneDriver::StabilizeHarmonicBalance(unsigned short val_iZone){
         for (iPoint = 0; iPoint < geometry_container[val_iZone][INST_0][iMGlevel]->GetnPoint(); iPoint++) {
 
             /*--- Get time step for current node ---*/
-            Delta = solver_container[val_iZone][INST_0][iMGlevel][FLOW_SOL]->node[iPoint]->GetDelta_Time();
+            Delta = solver_container[val_iZone][INST_0][iMGlevel][val_Sol]->node[iPoint]->GetDelta_Time();
 
             /*--- Setup stabilization matrix for this node ---*/
             for (iInst = 0; iInst < nInstHB; iInst++) {
@@ -1246,7 +1283,7 @@ void CMultizoneDriver::StabilizeHarmonicBalance(unsigned short val_iZone){
 
                 /*--- Get current source terms (not yet preconditioned) and zero source array to prepare preconditioning ---*/
                 for (iInst = 0; iInst < nInstHB; iInst++) {
-                    Source_old[iInst] = solver_container[ZONE_0][iInst][iMGlevel][FLOW_SOL]->node[iPoint]->GetHarmonicBalance_Source(iVar);
+                    Source_old[iInst] = solver_container[ZONE_0][iInst][iMGlevel][val_Sol]->node[iPoint]->GetHarmonicBalance_Source(iVar);
                     Source[iInst] = 0;
                 }
 
@@ -1258,10 +1295,10 @@ void CMultizoneDriver::StabilizeHarmonicBalance(unsigned short val_iZone){
 
                     /*--- Store updated source terms for current node ---*/
                     if (!adjoint) {
-                        solver_container[val_iZone][iInst][iMGlevel][FLOW_SOL]->node[iPoint]->SetHarmonicBalance_Source(iVar, Source[iInst]);
+                        solver_container[val_iZone][iInst][iMGlevel][val_Sol]->node[iPoint]->SetHarmonicBalance_Source(iVar, Source[iInst]);
                     }
                     else {
-                        solver_container[val_iZone][iInst][iMGlevel][ADJFLOW_SOL]->node[iPoint]->SetHarmonicBalance_Source(iVar, Source[iInst]);
+                        solver_container[val_iZone][iInst][iMGlevel][val_Sol_Adj]->node[iPoint]->SetHarmonicBalance_Source(iVar, Source[iInst]);
                     }
                 }
 

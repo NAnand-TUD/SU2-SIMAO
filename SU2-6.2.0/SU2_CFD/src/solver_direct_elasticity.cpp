@@ -5249,7 +5249,7 @@ CModalSolver::CModalSolver(CGeometry *geometry, CConfig *config) : CSolver() {
 
     if (config->GetDynamic_Analysis()){
         cout<<"Dynamic Analysis \n";
-        if (config->GetDynamic_Method() == MODAL_HARMONIC_BALANCE)
+        if (config->GetDynamic_Method() == NO)
         {
             unsigned short nInst = 1, i, j, k;
             nModes = 1;
@@ -5492,8 +5492,8 @@ void CModalSolver::ReadCSD_Mesh_Nastran(CConfig *config,CGeometry *geometry){
 
     mesh_file.close();
     //config->GetMach()
-	Uinf = 0.96*pow(config->GetGamma()*config->GetGas_Constant()*config->GetTemperature_FreeStream(),0.5);
-    Qinf = ONE2 * config->GetGamma()*config->GetPressure_FreeStream()*0.96*0.96;//config->GetMach()*config->GetMach();
+	Uinf = config->GetMach()*pow(config->GetGamma()*config->GetGas_Constant()*config->GetTemperature_FreeStream(),0.5);
+    Qinf = ONE2 * config->GetGamma()*config->GetPressure_FreeStream()*config->GetMach()*config->GetMach();//config->GetMach()*config->GetMach();
 //     massrat = config->GetPressure_FreeStream()/(config->GetGas_Constant()*config->GetTemperature_FreeStream())*pow(refLength,5);
     su2double flutter_index = config->GetAeroelastic_Flutter_Speed_Index();
 	cout<< " Mach Inf       :: "<<config->GetMach()<<endl;
@@ -5542,10 +5542,11 @@ void CModalSolver::ReadCSD_Mesh_Nastran(CConfig *config,CGeometry *geometry){
     
     generalizedDisplacement   = new su2double *[nModes];
     generalizedVelocity       = new su2double *[nModes];
+    StructRes                 = new su2double [2*nModes];
     
     for (iMode=0; iMode < nModes; ++iMode) generalizedDisplacement[iMode]   = new su2double [3];
     for (iMode=0; iMode < nModes; ++iMode) generalizedVelocity[iMode]       = new su2double [3];
-
+    
     InitializeCSDVars(geometry,config);
     
     for (iPoint = 0; iPoint < nPoint; iPoint++) {
@@ -5695,71 +5696,9 @@ void CModalSolver::ReadCSD_Mesh_Nastran(CConfig *config,CGeometry *geometry){
 //     delete [] qsol;
 // }
 
-void CModalSolver::HB_RK4(CGeometry *geometry, CSolver **solver_container, CConfig *config){
-
-    su2double *k1, *k2, *k3, *k4, *QSol_RK;
-    su2double coeff1 = 1.0/6.0, coeff2 = 2.0/6.0, coeff3 = 2.0/6.0, coeff4 = 1.0/6.0;
-    su2double dt = 0.005;
-    unsigned short i, j; // iMode;
-    unsigned short nVars = (nModes*nInst*nEqn);
-    su2double flutter_index = config->GetAeroelastic_Flutter_Speed_Index();
-    
-    QSol_RK = new su2double[nVars];
-
-    ComputeModalFluidForces(geometry, config);
-
-    k1 = new su2double[nVars];
-    k2 = new su2double[nVars];
-    k3 = new su2double[nVars];
-    k4 = new su2double[nVars];
-    for (i=0; i<nVars; i++){
-        // RK Stage 1
-        k1[i] = dt * SystemVector[i] ;
-        k2[i] = 0.0 ;
-        k3[i] = 0.0 ;
-        k4[i] = 0.0 ;
-    }
-
-    // RK Stage 2
-    for(i=0; i<nVars; i++)
-        QSol_RK[i] = QSolVector[i]+(k1[i]*0.5);
-    Initialize_EqnOfMotion(nModes, nInst, QSol_RK);
-    for (i=0; i<nVars; i++)
-        k2[i] = dt * dt * 0.5 * SystemVector[i];
-
-    // RK Stage 3
-    for(i=0; i<nVars; i++)
-        QSol_RK[i] = QSolVector[i]+(k2[i]*0.5);
-    Initialize_EqnOfMotion(nModes, nInst, QSol_RK);
-    for (i=0; i<nVars; i++)
-        k2[i] = dt * dt * 0.5 * SystemVector[i];
-
-    // RK Stage 4
-    for(i=0; i<nVars; i++)
-        QSol_RK[i] = QSolVector[i]+(k3[i]*0.5);
-    Initialize_EqnOfMotion(nModes, nInst, QSol_RK);
-    for (i=0; i<nVars; i++)
-        k2[i] = dt * dt *  SystemVector[i];
-
-    for (i = 0; i< nVars; i++){
-        QSolVector[i] = QSolVector_Old[i] + (coeff1*k1[1]+coeff2*k1[2]+coeff3*k1[3]+coeff4*k1[4]);
-    }
-
-//     for( iMode = 0; iMode < nModes; ++iMode) {
-//         generalizedDisplacement[iMode][1]   = generalizedDisplacement[iMode][0];
-//         generalizedVelocity[iMode][1]       = generalizedVelocity[iMode][0];
-//         generalizedDisplacement[iMode][0]   = qsol[2*iMode];
-//         generalizedVelocity[iMode][0]       = qsol[2*iMode+1];
-//     }
-
-    UpdateStructuralNodes();
-
-
-}
 
 void CModalSolver::RungeKutta_TimeInt(CGeometry *geometry, CSolver **solver_container, CConfig *config){
 
-// <<<<<<< HEAD
     unsigned short iMode, iDim, irk, nStage,ind;
     su2double *qsol,*dy,*ForceVec;
     su2double *irk1,*irk2,*irk3,*irk4,*yout;
@@ -5799,71 +5738,100 @@ void CModalSolver::RungeKutta_TimeInt(CGeometry *geometry, CSolver **solver_cont
     // R-K number of stages and coefficients
     cout << "rk scheme: " << config->GetKind_TimeIntScheme_FEA() << endl;
     switch (config->GetKind_TimeIntScheme_FEA()){
-        case (5):
-            cout << "rk here0\n";
-            rkcoeff[0]  = rkcoeff[3] = 0.16666666666666666;
-            rkcoeff[1]  = rkcoeff[2] = 0.33333333333333;
-            irk1         = new su2double[2*nModes];
-            irk2         = new su2double[2*nModes];
-            irk3         = new su2double[2*nModes];
-            irk4         = new su2double[2*nModes];
-            cout << "rk here\n";
+        case (RK4): {
+            rkcoeff[0] = rkcoeff[3] = 0.16666666666666666;
+            rkcoeff[1] = rkcoeff[2] = 0.33333333333333;
+            irk1 = new su2double[2 * nModes];
+            irk2 = new su2double[2 * nModes];
+            irk3 = new su2double[2 * nModes];
+            irk4 = new su2double[2 * nModes];
+
             //rk1    
-            dgemv(trans,2*nModes,2*nModes,1.0,Ass,2*nModes,qsol,1,0.,yout, 1 );
-            for(iMode = 0; iMode < 2*nModes; ++iMode) irk1[iMode] = yout[iMode] + ForceVec[iMode];
-            for(iMode = 0; iMode < 2*nModes; ++iMode) yout[iMode] = 0;
-            
+            dgemv(trans, 2 * nModes, 2 * nModes, 1.0, Ass, 2 * nModes, qsol, 1, 0., yout, 1);
+            for (iMode = 0; iMode < 2 * nModes; ++iMode) irk1[iMode] = yout[iMode] + ForceVec[iMode];
+            for (iMode = 0; iMode < 2 * nModes; ++iMode) yout[iMode] = 0;
+
             //rk2
-            for(iMode = 0; iMode < 2*nModes; ++iMode) dy[iMode] = qsol[iMode] + ONE2*dt*irk1[iMode];
-            dgemv(false,2*nModes,2*nModes,1.0,Ass,2*nModes,dy,1,0.,yout, 1 );
-            for(iMode = 0; iMode < 2*nModes; ++iMode) irk2[iMode] = yout[iMode] + ForceVec[iMode];
-            for(iMode = 0; iMode < 2*nModes; ++iMode) yout[iMode] = 0;
+            for (iMode = 0; iMode < 2 * nModes; ++iMode) dy[iMode] = qsol[iMode] + ONE2 * dt * irk1[iMode];
+            dgemv(false, 2 * nModes, 2 * nModes, 1.0, Ass, 2 * nModes, dy, 1, 0., yout, 1);
+            for (iMode = 0; iMode < 2 * nModes; ++iMode) irk2[iMode] = yout[iMode] + ForceVec[iMode];
+            for (iMode = 0; iMode < 2 * nModes; ++iMode) yout[iMode] = 0;
 
             //rk3
-            for(iMode = 0; iMode < 2*nModes; ++iMode) dy[iMode] = qsol[iMode] + ONE2*dt*irk2[iMode];
-            dgemv(false,2*nModes,2*nModes,1.0,Ass,2*nModes,dy,1,0.,yout, 1 );
-            for(iMode = 0; iMode < 2*nModes; ++iMode) irk3[iMode] = yout[iMode] + ForceVec[iMode];
-            for(iMode = 0; iMode < 2*nModes; ++iMode) yout[iMode] = 0;
-            
+            for (iMode = 0; iMode < 2 * nModes; ++iMode) dy[iMode] = qsol[iMode] + ONE2 * dt * irk2[iMode];
+            dgemv(false, 2 * nModes, 2 * nModes, 1.0, Ass, 2 * nModes, dy, 1, 0., yout, 1);
+            for (iMode = 0; iMode < 2 * nModes; ++iMode) irk3[iMode] = yout[iMode] + ForceVec[iMode];
+            for (iMode = 0; iMode < 2 * nModes; ++iMode) yout[iMode] = 0;
+
             //rk4
-            for(iMode = 0; iMode < 2*nModes; ++iMode) dy[iMode] = qsol[iMode] + ONE2*dt*irk3[iMode];
-            dgemv(false,2*nModes,2*nModes,1.0,Ass,2*nModes,dy,1,0.,yout, 1 );
-            for(iMode = 0; iMode < 2*nModes; ++iMode) irk4[iMode] = yout[iMode] + ForceVec[iMode];    
-            
-            for( iMode = 0; iMode < nModes; ++iMode) {
-                generalizedDisplacement[iMode][1]   = generalizedDisplacement[iMode][0];
-                generalizedVelocity[iMode][1]       = generalizedVelocity[iMode][0];
-        //         
-                generalizedDisplacement[iMode][0] += dt*(rkcoeff[0]*irk1[iMode] + 
-                rkcoeff[1]*irk2[iMode] + rkcoeff[2]*irk3[iMode] + rkcoeff[3]*irk4[iMode]);
-                ind = iMode+nModes;
-                generalizedVelocity[iMode][0] += dt*(rkcoeff[0]*irk1[ind] + 
-                rkcoeff[1]*irk2[ind] + rkcoeff[2]*irk3[ind] + rkcoeff[3]*irk4[ind]);
+            for (iMode = 0; iMode < 2 * nModes; ++iMode) dy[iMode] = qsol[iMode] + ONE2 * dt * irk3[iMode];
+            dgemv(false, 2 * nModes, 2 * nModes, 1.0, Ass, 2 * nModes, dy, 1, 0., yout, 1);
+            for (iMode = 0; iMode < 2 * nModes; ++iMode) irk4[iMode] = yout[iMode] + ForceVec[iMode];
+
+            for (iMode = 0; iMode < nModes; ++iMode) {
+                generalizedDisplacement[iMode][1] = generalizedDisplacement[iMode][0];
+                generalizedVelocity[iMode][1] = generalizedVelocity[iMode][0];
+
+                generalizedDisplacement[iMode][0] += dt * (rkcoeff[0] * irk1[iMode] +
+                                                           rkcoeff[1] * irk2[iMode] + rkcoeff[2] * irk3[iMode] +
+                                                           rkcoeff[3] * irk4[iMode]);
+                ind = iMode + nModes;
+                generalizedVelocity[iMode][0] += dt * (rkcoeff[0] * irk1[ind] +
+                                                       rkcoeff[1] * irk2[ind] + rkcoeff[2] * irk3[ind] +
+                                                       rkcoeff[3] * irk4[ind]);
             }
-        case (4):
+            delete [] irk1;
+            delete [] irk2;
+            delete [] irk3;
+            delete [] irk4;
+        }
+            break;
+        case (RK2): {
             rkcoeff[0] = 0.5;
             rkcoeff[1] = 0.5;
-            irk1         = new su2double[2*nModes];
-            irk2         = new su2double[2*nModes];
+            irk1 = new su2double[2 * nModes];
+            irk2 = new su2double[2 * nModes];
             su2double DampingRatio = 0;
-            su2double massRatio = 0.065*refLength*refLength*refLength*refLength*refLength;
-            for( iMode = 0; iMode < nModes; ++iMode) {
+            su2double massRatio = 0.065 * refLength * refLength * refLength * refLength * refLength;
+            for (iMode = 0; iMode < nModes; ++iMode) {
                 irk1[0] = generalizedVelocity[iMode][1];
-                irk1[1] = massRatio*modalForceLast[iMode] - omega[iMode]*omega[iMode]*generalizedDisplacement[iMode][1] - DampingRatio*omega[iMode]*omega[iMode]*generalizedVelocity[iMode][1];
+                irk1[1] = massRatio * modalForceLast[iMode] -
+                          omega[iMode] * omega[iMode] * generalizedDisplacement[iMode][1] -
+                          DampingRatio * omega[iMode] * omega[iMode] * generalizedVelocity[iMode][1];
 
                 irk2[0] = generalizedVelocity[iMode][0];
-                irk2[1] = massRatio*modalForce[iMode] - omega[iMode]*omega[iMode]*generalizedDisplacement[iMode][0] - DampingRatio*omega[iMode]*omega[iMode]*generalizedVelocity[iMode][0];
-                
-                qsol[2*iMode]   = generalizedDisplacement[iMode][1] + ONE2*dt*(irk2[0] + irk1[0]);
-                qsol[2*iMode+1] = generalizedVelocity[iMode][1] + ONE2*dt*(irk2[1] + irk1[1]);
+                irk2[1] = massRatio * modalForce[iMode] -
+                          omega[iMode] * omega[iMode] * generalizedDisplacement[iMode][0] -
+                          DampingRatio * omega[iMode] * omega[iMode] * generalizedVelocity[iMode][0];
+
+                qsol[2 * iMode] = generalizedDisplacement[iMode][1] + ONE2 * dt * (irk2[0] + irk1[0]);
+                qsol[2 * iMode + 1] = generalizedVelocity[iMode][1] + ONE2 * dt * (irk2[1] + irk1[1]);
             }
             // Update old and new solution
+            for (iMode = 0; iMode < nModes; ++iMode) {
+                generalizedDisplacement[iMode][1] = generalizedDisplacement[iMode][0];
+                generalizedVelocity[iMode][1] = generalizedVelocity[iMode][0];
+                generalizedDisplacement[iMode][0] = qsol[2 * iMode];
+                generalizedVelocity[iMode][0] = qsol[2 * iMode + 1];
+            }
+        }
+            delete [] irk1;
+            delete [] irk2;
+            break;
+
+        case (IMPLICIT):
+        {
+            dgemv(trans,2*nModes,2*nModes,1.0,Ass,2*nModes,qsol,1,0.,yout, 1 );
+            for(iMode = 0; iMode < 2*nModes; ++iMode) qsol[iMode] = yout[iMode] + ForceVec[iMode];
             for( iMode = 0; iMode < nModes; ++iMode) {
                 generalizedDisplacement[iMode][1]   = generalizedDisplacement[iMode][0];
                 generalizedVelocity[iMode][1]       = generalizedVelocity[iMode][0];
                 generalizedDisplacement[iMode][0]   = qsol[2*iMode];
                 generalizedVelocity[iMode][0]       = qsol[2*iMode+1];
             }
+        }
+            break;
+
         }
 
         UpdateStructuralNodes();
@@ -5872,10 +5840,6 @@ void CModalSolver::RungeKutta_TimeInt(CGeometry *geometry, CSolver **solver_cont
 //     for( iMode = 0; iMode < nModes; ++iMode) generalizedVelocity[iMode][0] = 0;
     
     delete [] qsol;
-    delete [] irk1;
-    delete [] irk2;
-    delete [] irk3;
-    delete [] irk4;
     delete [] dy;
     delete [] yout;
 }
@@ -5884,10 +5848,10 @@ void CModalSolver::SolveStatic(CGeometry *geometry, CSolver **solver_container, 
 
     unsigned short iMode, iDim, irk, nStage,ind;
     su2double *qsol,*dy,*ForceVec;
-    su2double *irk1,*irk2,*irk3,*irk4,*yout;
-    su2double rkcoeff[4] = {0.0, 0.0, 0.0, 0.0};
-    bool trans = false;
-    su2double dt = config->GetTime_Step();
+//     su2double *irk1,*irk2,*irk3,*irk4,*yout;
+//     su2double rkcoeff[4] = {0.0, 0.0, 0.0, 0.0};
+//     bool trans = false;
+//     su2double dt = config->GetTime_Step();
     su2double flutter_index = config->GetAeroelastic_Flutter_Speed_Index();
     
 //     qsol    = new su2double[2*nModes];
@@ -5902,88 +5866,32 @@ void CModalSolver::SolveStatic(CGeometry *geometry, CSolver **solver_container, 
 
     su2double massRatio = 0.065*refLength*refLength*refLength*refLength*refLength;
     su2double DampingRatio = 0.0;
-    
+        cout << "compute structural residual\n";
+        
     for(iMode = 0; iMode < nModes; ++iMode) {
         StructRes[2*iMode]  = generalizedVelocity[iMode][0];
         StructRes[2*iMode+1]= massRatio*(modalForce[iMode] - modalForceLast[iMode]) - omega[iMode]*omega[iMode]*generalizedDisplacement[iMode][0] - DampingRatio*omega[iMode]*generalizedVelocity[iMode][0];
     }
-    
+    cout << "compute new displacement\n";
     for (iMode = 0; iMode < nModes; ++iMode){
         generalizedDisplacement[iMode][0] = 0.95*generalizedDisplacement[iMode][0] + 0.05*massRatio*modalForce[iMode]/(omega[iMode]*omega[iMode]);
         cout << "mode\tdisp\tvel\tfreq\tforce\tmass ratio\n"; 
         cout << iMode << generalizedDisplacement[iMode][0] << generalizedVelocity[iMode][0] << omega[iMode] << modalForce[iMode] << massRatio << endl;
 	}
     
+    cout << "update previous solution\n";
     // Update old and new solution
     for( iMode = 0; iMode < nModes; ++iMode) {
         generalizedDisplacement[iMode][1]   = generalizedDisplacement[iMode][0];
         generalizedVelocity[iMode][1]       = generalizedVelocity[iMode][0];
     }
-
+    cout << "update nodes" << endl;
     UpdateStructuralNodes();
-    
+    cout << "nodes position updated" << endl;
 //     delete [] qsol;
 //     delete [] dy;
 //     delete [] yout;
 }
-
-// void CModalSolver::RK4(CGeometry *geometry, CSolver **solver_container, CConfig *config){
-// 
-//     unsigned short iMode,iDim;
-//     su2double *qsol;
-//     su2double dy[8] = {0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0};
-// 
-//     su2double dt = 0.025;
-//     qsol = new su2double[2*nModes];
-// 
-//     cout << "solving structural equations of motion using two-stage RK method "<< endl;
-//     // solution array includes X, Y, Z displacements, obtained from gen. vars;
-//     // and must be parsed to node variable
-//     // generalizedXXX contains solution from state-space modal problem
-// 
-//     // Get the modal forces from the interpolation
-//     ComputeModalFluidForces(geometry, config);
-// 
-//     for( iMode = 0; iMode < nModes; ++iMode) {
-// 
-//         // RK Step 1
-//         // K1  = dt * f (Tn, Yn)
-//         dy[0] = dt*generalizedVelocity[iMode][0];
-//         dy[1] = dt*(modalForceLast[iMode] - omega[iMode]*omega[iMode]*generalizedDisplacement[iMode][0]);
-// 
-//         // RK Step 2
-//         // K2  = dt * f (Tn + dt/2, Yn + K1/2)
-//         dy[2] = dt * (generalizedVelocity[iMode][0] + ONE2*dt*dy[1]) ;
-//         dy[3] = dt * (modalForce[iMode] - omega[iMode]*omega[iMode]*(generalizedDisplacement[iMode][0]+ONE2*dt*dy[1])) ;
-// 
-//         // RK Step 3
-//         // K3  = dt * f (Tn + dt/2, Yn + K2/2)
-//         dy[4] = dt *(generalizedVelocity[iMode][0] + ONE2*dt*dy[3] );
-//         dy[5] = dt *(modalForce[iMode] - omega[iMode]*omega[iMode]*(generalizedDisplacement[iMode][0]+ONE2*dt*dy[3]));
-// 
-//         // RK Step 4
-//         // K4  = dt * f (Tn + dt, Yn + K3)
-//         dy[6] = dt *(generalizedVelocity[iMode][0] + dt*dy[5] );
-//         dy[7] = dt *(modalForce[iMode] - omega[iMode]*omega[iMode]*(generalizedDisplacement[iMode][0]+dt*dy[1]));
-// 
-//         // RK4 Solution
-//         // Y N+1 = Y N + 1/6 * (K1 + 2K2 + 2K3 + K4)
-//         qsol[2*iMode]   = generalizedDisplacement[iMode][0] + 0.16666*dt*(dy[0] + 2*dy[2] + 2*dy[4] + dy[6]);
-//         qsol[2*iMode+1] = generalizedVelocity[iMode][0] + 0.16666*(dy[1] + 2*dy[3] + 2*dy[5] + dy[7]);
-//     }
-// 
-//     // Update old and new solution
-//     for( iMode = 0; iMode < nModes; ++iMode) {
-//         generalizedDisplacement[iMode][1]   = generalizedDisplacement[iMode][0];
-//         generalizedVelocity[iMode][1]       = generalizedVelocity[iMode][0];
-//         generalizedDisplacement[iMode][0]   = qsol[2*iMode];
-//         generalizedVelocity[iMode][0]       = qsol[2*iMode+1];
-//     }
-// 
-//     UpdateStructuralNodes();
-// 
-//     delete [] qsol;
-// }
 
 void CModalSolver::UpdateStructuralNodes() {
 
@@ -5992,16 +5900,20 @@ void CModalSolver::UpdateStructuralNodes() {
     su2double delta, solutionValue;
 
     // Initialization of the Solution variables
-    for(iPoint = 0; iPoint < nPoint; ++iPoint) node[iPoint]->SetSolution_time_n();
-    for(iPoint = 0; iPoint < nPoint; ++iPoint) node[iPoint]->SetSolution_Vel_time_n();
+    cout << "update nodes0" << endl;
+//     for(iPoint = 0; iPoint < nPoint; ++iPoint) node[iPoint]->SetSolution_time_n();
+//     for(iPoint = 0; iPoint < nPoint; ++iPoint) node[iPoint]->SetSolution_Vel_time_n();
     for(iPoint = 0; iPoint < nPoint; ++iPoint)
         for(iDim = 0; iDim < nDim; ++iDim) node[iPoint]->SetSolution(iDim,0.0);
     for(iPoint = 0; iPoint < nPoint; ++iPoint)
         for(iDim = 0; iDim < nDim; ++iDim) node[iPoint]->SetSolution_Vel(iDim,0.0);
 
+    cout << "update nodes0" << endl;
+
     // Loop over nodes to calculate the Gen. Disp. and Gen. Vel.
     for(iMode = 0; iMode < nModes; ++iMode) {
         delta = generalizedDisplacement[iMode][0] - generalizedDisplacement[iMode][1];
+        cout << "delta= " << delta << endl;
         for(iPoint = 0; iPoint < nPoint; ++iPoint) {
             for(iDim = 0; iDim < nDim; ++iDim) {
                 solutionValue = delta*node[iPoint]->GetModeVector(iMode,iDim);
@@ -6010,6 +5922,7 @@ void CModalSolver::UpdateStructuralNodes() {
         }
         // repeat to update velocities
         delta = generalizedVelocity[iMode][0] - generalizedVelocity[iMode][1];
+        cout << "delta2= " << delta << endl;
         for(iPoint = 0; iPoint < nPoint; ++iPoint) {
             for(iDim = 0; iDim < nDim; ++iDim) {
                 solutionValue = delta*node[iPoint]->GetModeVector(iMode,iDim);
@@ -6135,6 +6048,7 @@ void CModalSolver::ComputeModalFluidForces(CGeometry *geometry, CConfig *config)
       }
     }
   }
+  cout << "finished with points\n";
 #ifdef HAVE_MPI
   /*--- Perform a global reduction, every rank will get the nodal values of all halo elements ---*/
   /*--- This should be cheaper than the "normal" way, since very few points are both halo and interface ---*/
@@ -6217,8 +6131,9 @@ void CModalSolver::ComputeModalFluidForces(CGeometry *geometry, CConfig *config)
         modalForce[iMode] = 0.0;
     }
 
-    su2double ScaleFactor = 1.225 *  pow(0.463,5);
+//     su2double ScaleFactor = 1.225 *  pow(0.463,5);
         // compute new value
+          cout << "projecting force\n";
     for(iMode = 0; iMode < nModes; ++iMode){
         for(iPoint = 0; iPoint < nPoint; ++iPoint){
              for(iDim = 0; iDim < nDim; ++iDim){      
@@ -6226,213 +6141,7 @@ void CModalSolver::ComputeModalFluidForces(CGeometry *geometry, CConfig *config)
             }
         }
     }
-}
-
-void CModalSolver::ComputeModalFluidDamp(CGeometry *geometry, CConfig *config) {
-
-  unsigned short iDim, iNode, nNode, iMode;
-  unsigned long iPoint, iElem, nElem;
-
-  unsigned short iMarkerInt, nMarkerInt = config->GetMarker_n_ZoneInterface()/2,
-                 iMarker, nMarker = config->GetnMarker_All();
-
-  /*--- Temporary storage to store the forces on the element faces ---*/
-  vector<su2double> forces;
-  vector<unsigned long> npointcheck;
-
-  cout << "getting fluid damping\n";
-  /*--- Loop through the FSI interface pairs ---*/
-  /*--- 1st pass to compute forces ---*/
-  for (iMarkerInt = 1; iMarkerInt <= nMarkerInt; ++iMarkerInt) {
-    /*--- Find the marker index associated with the pair ---*/
-    for (iMarker = 0; iMarker < nMarker; ++iMarker)
-      if (config->GetMarker_All_ZoneInterface(iMarker) == iMarkerInt)
-        break;
-    /*--- The current mpi rank may not have this marker ---*/
-    if (iMarker == nMarker) continue;
-
-    nElem = geometry->GetnElem_Bound(iMarker);
-
-    for (iElem = 0; iElem < nElem; ++iElem) {
-      /*--- Define the boundary element ---*/
-      unsigned long nodes[4];
-      su2double coords[4][3];
-      bool quad = geometry->bound[iMarker][iElem]->GetVTK_Type() == QUADRILATERAL;
-      nNode = quad? 4 : nDim;
-
-      for (iNode = 0; iNode < nNode; ++iNode) {
-          //getting pointer to stored node variable
-        nodes[iNode] = geometry->bound[iMarker][iElem]->GetNode(iNode);
-        //current location?
-        for (iDim = 0; iDim < nDim; ++iDim){
-            coords[iNode][iDim] = geometry->node[nodes[iNode]]->GetCoord(iDim)+
-                                node[nodes[iNode]]->GetSolution(iDim);
-        }
-      }
-
-      /*--- Compute the area ---*/
-      su2double area = 0.0;
-
-      if (nDim == 2)
-        area = (coords[0][0]-coords[1][0])*(coords[0][0]-coords[1][0])+
-               (coords[0][1]-coords[1][1])*(coords[0][1]-coords[1][1]);
-
-      if (nDim == 3) {
-        su2double a[3], b[3], Ni, Nj, Nk;
-
-        if (!quad) { // sides of the triangle
-          for (iDim = 0; iDim < 3; iDim++) {
-            a[iDim] = coords[1][iDim]-coords[0][iDim];
-            b[iDim] = coords[2][iDim]-coords[0][iDim];
-          }
-        }
-        else { // diagonals of the quadrilateral
-          for (iDim = 0; iDim < 3; iDim++) {
-            a[iDim] = coords[2][iDim]-coords[0][iDim];
-            b[iDim] = coords[3][iDim]-coords[1][iDim];
-          }
-        }
-        /*--- Area = 0.5*||a x b|| ---*/
-        Ni = a[1]*b[2]-a[2]*b[1];
-        Nj =-a[0]*b[2]+a[2]*b[0];
-        Nk = a[0]*b[1]-a[1]*b[0];
-
-        area = 0.25*(Ni*Ni+Nj*Nj+Nk*Nk);
-      }
-      area = sqrt(area);
-
-      /*--- Integrate ---*/
-      passivedouble weight = 1.0/nNode;
-      su2double force[3] = {0.0, 0.0, 0.0};
-
-    for (iNode = 0; iNode < nNode; ++iNode)
-        for (iDim = 0; iDim < nDim; ++iDim) force[iDim] += weight*area*node[nodes[iNode]]->Get_FlowTraction(iDim);
-        for (iDim = 0; iDim < nDim; ++iDim) {
-          forces.push_back(force[iDim]);
-      }
-    }
-  }
-  /*--- 2nd pass to set values. This is to account for overlap in the markers. ---*/
-  /*--- By putting the integrated values back into the nodes no changes have to be made elsewhere. ---*/
-  for (iPoint = 0; iPoint < geometry->GetnPoint(); ++iPoint) node[iPoint]->Clear_FlowTraction();
-
-  vector<su2double>::iterator force_it = forces.begin();
-  cout << "list points from elements\n";
-  for (iMarkerInt = 1; iMarkerInt <= nMarkerInt; ++iMarkerInt) {
-    /*--- Find the marker index associated with the pair ---*/
-    for (iMarker = 0; iMarker < nMarker; ++iMarker)
-      if (config->GetMarker_All_ZoneInterface(iMarker) == iMarkerInt) break;
-    /*--- The current mpi rank may not have this marker ---*/
-    if (iMarker == nMarker) continue;
-
-    nElem = geometry->GetnElem_Bound(iMarker);
-
-    for (iElem = 0; iElem < nElem; ++iElem) {
-      bool quad = geometry->bound[iMarker][iElem]->GetVTK_Type() == QUADRILATERAL;
-      nNode = quad? 4 : nDim;
-      passivedouble weight = 1.0/nNode;
-
-      su2double force[3];
-      for (iDim = 0; iDim < nDim; ++iDim) force[iDim] = *(force_it++)*weight;
-
-      for (iNode = 0; iNode < nNode; ++iNode) {
-        iPoint = geometry->bound[iMarker][iElem]->GetNode(iNode);
-        node[iPoint]->Add_FlowTraction(force);
-      }
-    }
-  }
-#ifdef HAVE_MPI
-  /*--- Perform a global reduction, every rank will get the nodal values of all halo elements ---*/
-  /*--- This should be cheaper than the "normal" way, since very few points are both halo and interface ---*/
-  vector<unsigned long> halo_point_loc, halo_point_glb;
-  vector<su2double> halo_force;
-
-  for (iMarkerInt = 1; iMarkerInt <= nMarkerInt; ++iMarkerInt) {
-    /*--- Find the marker index associated with the pair ---*/
-    for (iMarker = 0; iMarker < nMarker; ++iMarker)
-      if (config->GetMarker_All_ZoneInterface(iMarker) == iMarkerInt)
-        break;
-    /*--- The current mpi rank may not have this marker ---*/
-    if (iMarker == nMarker) continue;
-
-    nElem = geometry->GetnElem_Bound(iMarker);
-
-    for (iElem = 0; iElem < nElem; ++iElem) {
-      bool quad = geometry->bound[iMarker][iElem]->GetVTK_Type() == QUADRILATERAL;
-      nNode = quad? 4 : nDim;
-
-      /*--- If this is an halo element we share the nodal forces ---*/
-      for (iNode = 0; iNode < nNode; ++iNode)
-        if (!geometry->node[geometry->bound[iMarker][iElem]->GetNode(iNode)]->GetDomain())
-          break;
-
-      if (iNode < nNode) {
-        for (iNode = 0; iNode < nNode; ++iNode) {
-          iPoint = geometry->bound[iMarker][iElem]->GetNode(iNode);
-          /*--- local is for when later we update the values in this rank ---*/
-          halo_point_loc.push_back(iPoint);
-          halo_point_glb.push_back(geometry->node[iPoint]->GetGlobalIndex());
-          for (iDim = 0; iDim < nDim; ++iDim)
-            halo_force.push_back(node[iPoint]->Get_FlowTraction(iDim));
-        }
-      }
-    }
-  }
-  /*--- Determine the size of the arrays we need ---*/
-  unsigned long nHaloLoc = halo_point_loc.size();
-  unsigned long nHaloMax;
-  MPI_Allreduce(&nHaloLoc,&nHaloMax,1,MPI_UNSIGNED_LONG,MPI_MAX,MPI_COMM_WORLD);
-
-  /*--- Shared arrays, all the: number of halo points; halo point global indices; respective forces ---*/
-  unsigned long *halo_point_num = new unsigned long[size];
-  unsigned long *halo_point_all = new unsigned long[size*nHaloMax];
-  su2double *halo_force_all = new su2double[size*nHaloMax*nDim];
-
-  /*--- If necessary put dummy values in halo_point_glb to get a valid pointer ---*/
-  if (halo_point_glb.empty()) halo_point_glb.resize(1);
-  /*--- Pad halo_force to avoid (observed) issues in the adjoint when nHaloLoc!=nHaloMax ---*/
-  while (halo_force.size() < nHaloMax*nDim) halo_force.push_back(0.0);
-
-  MPI_Allgather(&nHaloLoc,1,MPI_UNSIGNED_LONG,halo_point_num,1,MPI_UNSIGNED_LONG,MPI_COMM_WORLD);
-  MPI_Allgather(&halo_point_glb[0],nHaloLoc,MPI_UNSIGNED_LONG,halo_point_all,nHaloMax,MPI_UNSIGNED_LONG,MPI_COMM_WORLD);
-  SU2_MPI::Allgather(&halo_force[0],nHaloMax*nDim,MPI_DOUBLE,halo_force_all,nHaloMax*nDim,MPI_DOUBLE,MPI_COMM_WORLD);
-
-  /*--- Find shared points with other ranks and update our values ---*/
-  for (int proc = 0; proc < size; ++proc)
-  if (proc != rank) {
-    unsigned long offset = proc*nHaloMax;
-    for (iPoint = 0; iPoint < halo_point_num[proc]; ++iPoint) {
-      unsigned long iPoint_glb = halo_point_all[offset+iPoint];
-      ptrdiff_t pos = find(halo_point_glb.begin(),halo_point_glb.end(),iPoint_glb)-halo_point_glb.begin();
-      if (pos < long(halo_point_glb.size())) {
-        unsigned long iPoint_loc = halo_point_loc[pos];
-        node[iPoint_loc]->Add_FlowTraction(&halo_force_all[(offset+iPoint)*nDim]);
-      }
-    }
-  }
-
-  delete [] halo_point_num;
-  delete [] halo_point_all;
-  delete [] halo_force_all;
-#endif
-
-  /* --- project force onto modes---*/
-
-    for(iMode = 0; iMode < nModes; ++iMode){
-        modalForceLast[iMode] = modalForce[iMode];
-        modalForce[iMode] = 0.0;
-    }
-    
-    
-    // compute new value
-    for(iMode = 0; iMode < nModes; ++iMode){
-        for( iPoint = 0; iPoint < nPoint; ++iPoint){
-             for(iDim = 0; iDim < nDim; ++iDim){
-                modalForce[iMode] += node[iPoint]->GetModeVector(iMode,iDim)*node[iPoint]->Get_FlowTraction(iDim);
-            }
-        }
-    }
-
+    cout << "projecting force end\n";
 }
 
 void CModalSolver::Postprocessing(CGeometry *geometry, CSolver **solver_container, CConfig *config,  CNumerics **numerics,unsigned short iMesh) {
@@ -6470,13 +6179,13 @@ void CModalSolver::SetInitialCondition(CGeometry **geometry, CSolver ***solver_c
   for(iMode = 0; iMode < nModes; ++iMode) generalizedVelocity[iMode][1] = 1e-2;
 
   if (config->GetDynamic_Method()==MODAL_HARMONIC_BALANCE){
-      QSolVector = new su2double[2*nModes*nInst];
-      QSolVector_Old = new su2double[2*nModes*nInst];
-      for (i =0; i < (nModes*nInst); i++) {
+      QSolVector = new su2double[2*nModes];
+      QSolVector_Old = new su2double[2*nModes];
+      for (i =0; i < (nModes); i++) {
           QSolVector[i] = 0.0;
-          QSolVector[nModes * nInst + i] = 1e-2;
+          QSolVector[nModes + i] = 1e-2;
           QSolVector_Old[i] = 0.0;
-          QSolVector_Old[nModes * nInst + i] = 1e-2;
+          QSolVector_Old[nModes + i] = 1e-2;
       }
   }
 
@@ -6491,16 +6200,16 @@ void CModalSolver::InitializeCSDVars(CGeometry *geometry,CConfig *config) {
   for(iMode = 0; iMode < nModes; ++iMode) generalizedVelocity[iMode][1] = 1e-4;
   for(iMode = 0; iMode < nModes; ++iMode) generalizedVelocity[iMode][2] = 1e-4;
 
-//   for(i = 0; i < 2*nModes; ++i) StructRes[i] = 0;
+  for(i = 0; i < 2*nModes; ++i) StructRes[i] = 0;
   
   if (config->GetDynamic_Method()==MODAL_HARMONIC_BALANCE){
-      QSolVector = new su2double[2*nModes*nInst];
-      QSolVector_Old = new su2double[2*nModes*nInst];
-      for (i =0; i < (nModes*nInst); i++) {
+      QSolVector = new su2double[2*nModes];
+      QSolVector_Old = new su2double[2*nModes];
+      for (i =0; i < (nModes); i++) {
           QSolVector[i] = 0.0;
-          QSolVector[nModes * nInst + i] = 1e-2;
+          QSolVector[nModes + i] = 1e-2;
           QSolVector_Old[i] = 0.0;
-          QSolVector_Old[nModes * nInst + i] = 1e-2;
+          QSolVector_Old[nModes  + i] = 1e-2;
       }
   }
 
@@ -6928,44 +6637,6 @@ void CModalSolver::Initialize_Transformation_Matrix(unsigned short nMode, unsign
         cout<<endl;
     }
 }
-
-// void CModalSolver::Initialize_As_Matrix(unsigned short nMode, unsigned short nInst) {
-//     /*!             |   0       I   |
-//      * AsMatrix =   |               |
-//      *              |   K/M     D/M |
-//      */
-//     unsigned short Asij = nMode*nInst*2;
-//     unsigned short i,j;
-// 
-//     // Initialize Matrix
-//     AsMatrix = new su2double*[Asij];
-// 
-//     for(i=0; i<Asij; i++)
-//         AsMatrix[i] = new su2double[Asij];
-// 
-//     for(i=0; i<Asij; i++)
-//         for(j=0; j<Asij; j++)
-//             AsMatrix[i][j] = 0.0;
-// 
-//     // I Matrix
-//     for(i = 0; i < Asij/2; i++)
-//         AsMatrix[i][i+(Asij/2)] = -1.0;
-// 
-//     // K/M Matrix
-//     for (i=0; i< Asij/2; i++)
-//         AsMatrix[i+(Asij/2)][i] = 2.0; // K/M terms
-// 
-//     // D/M Matrix
-//     for (i=0; i< Asij/2; i++)
-//         AsMatrix[i+(Asij/2)][i+(Asij/2)] = 3.0; // D/M terms
-// 
-//     cout<<" +++ As Matrix +++ \n";
-//     cout<<" Asij :: "<<Asij<<endl;
-//     for (i=0; i < Asij; i++)
-//         for (j=0; j < Asij; j++)
-//             cout<<AsMatrix[i][j]<<"\t";
-//         cout<<endl;
-// }
 
 void CModalSolver::dgemm( char transa, char transb, unsigned long m, unsigned long n, unsigned long k, 
   su2double alpha, su2double a[],  unsigned long lda, su2double b[],  unsigned long ldb, su2double beta, su2double c[],  unsigned long ldc ){

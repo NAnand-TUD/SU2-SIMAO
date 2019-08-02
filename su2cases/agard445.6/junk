@@ -1,0 +1,737 @@
+SU2_CFD nzone=
+2
+ 
+
+
+Mach Inf       :: 0
+
+-------------------------------------------------------------------------
+|    ___ _   _ ___                                                      |
+|   / __| | | |_  )   Release 6.2.0  "Falcon"                           |
+|   \__ \ |_| |/ /                                                      |
+|   |___/\___//___|   Suite (Computational Fluid Dynamics Code)         |
+|                                                                       |
+-------------------------------------------------------------------------
+| The current SU2 release has been coordinated by the                   |
+| SU2 International Developers Society <www.su2devsociety.org>          |
+| with selected contributions from the open-source community.           |
+-------------------------------------------------------------------------
+| The main research teams contributing to the current release are:      |
+| - Prof. Juan J. Alonso's group at Stanford University.                |
+| - Prof. Piero Colonna's group at Delft University of Technology.      |
+| - Prof. Nicolas R. Gauger's group at Kaiserslautern U. of Technology. |
+| - Prof. Alberto Guardone's group at Polytechnic University of Milan.  |
+| - Prof. Rafael Palacios' group at Imperial College London.            |
+| - Prof. Vincent Terrapon's group at the University of Liege.          |
+| - Prof. Edwin van der Weide's group at the University of Twente.      |
+| - Lab. of New Concepts in Aeronautics at Tech. Inst. of Aeronautics.  |
+-------------------------------------------------------------------------
+| Copyright 2012-2019, Francisco D. Palacios, Thomas D. Economon,       |
+|                      Tim Albring, and the SU2 contributors.           |
+|                                                                       |
+| SU2 is free software; you can redistribute it and/or                  |
+| modify it under the terms of the GNU Lesser General Public            |
+| License as published by the Free Software Foundation; either          |
+| version 2.1 of the License, or (at your option) any later version.    |
+|                                                                       |
+| SU2 is distributed in the hope that it will be useful,                |
+| but WITHOUT ANY WARRANTY; without even the implied warranty of        |
+| MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE. See the GNU      |
+| Lesser General Public License for more details.                       |
+|                                                                       |
+| You should have received a copy of the GNU Lesser General Public      |
+| License along with SU2. If not, see <http://www.gnu.org/licenses/>.   |
+-------------------------------------------------------------------------
+
+------------------------ Physical Case Definition -----------------------
+Compressible Euler equations.
+Mach number: 0.96.
+Angle of attack (AoA): 0 deg, and angle of sideslip (AoS): 0 deg.
+Performing a dynamic mesh simulation: No restart solution, use the values at infinity (freestream).
+Non-Dimensional simulation (P=1.0, Rho=1.0, T=1.0 at the farfield).
+The reference area will be computed using y(2D) or z(3D) projection.
+The semi-span will be computed using the max y(3D) value.
+The reference length is 0.463 m.
+Reference origin for moment evaluation is (0.25, 0, 0).
+Surface(s) where the force coefficients are evaluated: WING3D.
+
+Surface(s) where the objective function is evaluated: WING3D.
+Surface(s) plotted in the output file: WING3D.
+Surface(s) affected by the design variables: WING3D.
+Input mesh file name: wing_tetra.3.su2
+
+---------------------- Space Numerical Integration ----------------------
+Jameson-Schmidt-Turkel scheme (2nd order in space) for the flow inviscid terms.
+JST viscous coefficients (2nd & 4th): 0.5, 0.02.
+The method includes a grid stretching correction (p = 0.3).
+Gradient Computation using weighted Least-Squares method.
+
+---------------------- Time Numerical Integration -----------------------
+Unsteady simulation, dual time stepping strategy (second order in time).
+Unsteady time step provided by the user (s): 0.01.
+Total number of internal Dual Time iterations: 2500.
+Euler implicit method for the flow equations.
+FGMRES is used for solving the linear system.
+Using a ILU(0) preconditioning.
+Convergence criteria of the linear solver: 1e-06.
+Max number of linear iterations: 4.
+No CFL adaptation.
+Courant-Friedrichs-Lewy number:      3.5
+
+------------------------- Convergence Criteria --------------------------
+Maximum number of iterations: 2000.
+Reduce the density residual 3 orders of magnitude.
+The minimum bound for the density residual is 10^(-5).
+Start convergence criteria at iteration 10.
+
+-------------------------- Output Information ---------------------------
+Writing a solution file every 1 iterations.
+Writing the convergence history every 1 iterations.
+Writing the dual time flow solution every 1 iterations.
+Writing the dual time convergence history every 1 iterations.
+The output file format is Paraview ASCII legacy (.vtk).
+Convergence history file name: history.
+Forces breakdown file name: forces_breakdown.dat.
+Surface flow coefficients file name: surface_flow.
+Flow variables file name: flow.
+Restart flow file name: restart_flow.dat.
+
+------------------- Config File Boundary Information --------------------
++-----------------------------------------+
+|         Marker Type|         Marker Name|
++-----------------------------------------+
+|          Euler wall|              WING3D|
++-----------------------------------------+
+|           Far-field|            FARFIELD|
++-----------------------------------------+
+|      Symmetry plane|            SYMMETRY|
++-----------------------------------------+
+
+-------------------- Interface Boundary Information ---------------------
+The interface markers are: WING3D.
+
+-------------------- Interface Boundary Information ---------------------
+The interface markers are: wing_s.
+
+---------------------- Read Grid File Information -----------------------
+Three dimensional problem.
+4301 points.
+3 surface markers.
++------------------------------------+
+| Index|        Marker|      Elements|
++------------------------------------+
+|     0|        WING3D|           480|
+|     1|      SYMMETRY|           768|
+|     2|      FARFIELD|           480|
++------------------------------------+
+nElem: 23040
+23040 tetrahedra.
+
+---------------------- Read Grid File Information -----------------------
+Three dimensional problem.
+120 points.
+1 surface markers.
++------------------------------------+
+| Index|        Marker|      Elements|
++------------------------------------+
+|     0|        wing_s|           200|
++------------------------------------+
+
+solver FEM_MODAL: 14
+nElem: 198
+198 triangles.
+
+------------------------- Geometry Preprocessing ------------------------
+
+drive structure 156
+
+Setting point connectivity.
+Renumbering points (Reverse Cuthill McKee Ordering).
+Recomputing point connectivity.
+Setting element connectivity.
+Checking the numerical grid orientation.
+Identifying edges and vertices.
+Computing centers of gravity.
+Setting the control volume structure.
+Volume of the computational grid: 2.06e+06.
+Finding max control volume width.
+Searching for the closest normal neighbors to the surfaces.
+Storing a mapping from global to local point index.
+Compute the surface curvature.
+Max K: 2.33e+04. Mean K: 207. Standard deviation K: 1.17e+03.
+Checking for periodicity.
+Setting point connectivity.
+Renumbering points (Reverse Cuthill McKee Ordering).
+Recomputing point connectivity.
+Setting element connectivity.
+Checking the numerical grid orientation.
+Identifying edges and vertices.
+Volume of the computational grid: 0.
+Searching for the closest normal neighbors to the surfaces.
+Storing a mapping from global to local point index.
+Max K: 586. Mean K: 56.2. Standard deviation K: 100.
+Checking for periodicity.
+Reference area = 1.14 m^2.
+Semi-span length = 1.38 m.
+Wetted area = 2.29 m^2.
+Area projection in the x-plane = 0.0422 m^2, y-plane = 0.029 m^2, z-plane = 1.14 m^2.
+Max. coordinate in the x-direction = 2.02 m, y-direction = 1.38 m, z-direction = 0.0196 m.
+Min coordinate in the x-direction = 0 m, y-direction = -0 m, z-direction = -0.0196 m.
+Semi-span length = -1e+10 m.
+Wetted area = 0 m^2.
+Area projection in the x-plane = 0 m^2, y-plane = 0 m^2, z-plane = 0 m^2.
+Max. coordinate in the x-direction = -1e+10 m, y-direction = -1e+10 m, z-direction = -1e+10 m.
+Min coordinate in the x-direction = 1e+10 m, y-direction = 1e+10 m, z-direction = 1e+10 m.
+
+------------------------- Driver information --------------------------
+3A Dynamic Fluid-Structure Interaction driver has been instantiated.
+For aeroelastic analysis using modal structural solver.
+
+------------------------ Iteration Preprocessing ------------------------
+Zone 1: Euler/Navier-Stokes/RANS fluid iteration.
+
+------------------------- Solver Preprocessing --------------------------
+Inviscid flow: Computing density based on free-stream
+temperature and pressure using the ideal gas law.
+Force coefficients computed using MACH_MOTION.
+
+-- Models:
++------------------------------------------------------------------------------+
+|          Viscosity Model|        Conductivity Model|              Fluid Model|
++------------------------------------------------------------------------------+
+|                        -|                         -|             STANDARD_AIR|
++------------------------------------------------------------------------------+
+-- Fluid properties:
++------------------------------------------------------------------------------+
+|                  Name|    Dim. value|    Ref. value|      Unit|Non-dim. value|
++------------------------------------------------------------------------------+
+|          Gas Constant|       287.058|       287.058|  N.m/kg.K|             1|
+|      Spec. Heat Ratio|             -|             -|         -|           1.4|
++------------------------------------------------------------------------------+
+-- Initial and free-stream conditions:
++------------------------------------------------------------------------------+
+|                  Name|    Dim. value|    Ref. value|      Unit|Non-dim. value|
++------------------------------------------------------------------------------+
+|       Static Pressure|        101325|        101325|        Pa|             1|
+|               Density|       1.36893|       1.36893|    kg/m^3|             1|
+|           Temperature|        257.85|        257.85|         K|             1|
+|          Total Energy|        232795|       74017.9|   m^2/s^2|       3.14512|
+|            Velocity-X|       309.032|       272.062|       m/s|       1.13589|
+|            Velocity-Y|             0|       272.062|       m/s|             0|
+|            Velocity-Z|             0|       272.062|       m/s|             0|
+|    Velocity Magnitude|       309.032|       272.062|       m/s|       1.13589|
++------------------------------------------------------------------------------+
+|           Mach Number|             -|             -|         -|          0.96|
++------------------------------------------------------------------------------+
++------------------------------------------------------------------------------+
+|                  Name|    Dim. value|    Ref. value|      Unit|Non-dim. value|
++------------------------------------------------------------------------------+
+-- Unsteady conditions
+|            Total Time|           0.5|    0.00367563|         s|       136.031|
+|             Time Step|          0.01|    0.00367563|         s|       2.72062|
++------------------------------------------------------------------------------+
+Initialize Jacobian structure (Euler). MG level: 0.
+
+----------------- Integration and Numerics Preprocessing ----------------
+Integration Preprocessing.
+
+
+CFD check - driver structure.cpp (2044): nVar_FLOW = 5
+
+
+FEM check - driver structure.cpp (2044): nVar_FEM = 0
+
+
+CSD check - driver structure.cpp (2044): nVar_CSD = 0	0
+Numerics Preprocessing.
+
+------------------------ Iteration Preprocessing ------------------------
+Zone 2: MODAL iteration.
+
+------------------------- Solver Preprocessing --------------------------
+
+
+initializing CSD solver
+
+nModes here is 4
+modal solver initialized:3	8	120
+Dynamic Analysis 
+ Mach Inf       :: 0.96
+ Gamma          :: 1.4
+ Temperature    :: 257.85
+ Pressure_inf   :: 101325
+ Density_inf    :: -1
+ U_inf          :: 309.032
+ Q              :: 65366.8
+ Density        :: 1.36893
+npoints/nModesPoints: 120	120
+N. of modes = 4
+N. of nodes in CSD mesh = 120
+Reference Length = 0.85778
+vel_inf: 309.032; Omega :: 0.167412 Freq ::9.5992
+vel_inf: 309.032; Omega :: 0.665606 Freq ::38.165
+vel_inf: 309.032; Omega :: 0.88422 Freq ::50.7
+vel_inf: 309.032; Omega :: 1.71786 Freq ::98.5
+Mode 	Frequency	Gen. Displacement	Gen. Velocity
+1	0.167412	6.95023e-310	0.0001
+2	0.665606	6.95023e-310	0.0001
+3	0.88422	6.95023e-310	0.0001
+4	1.71786	6.95023e-310	0.0001
+
+As Matrix
+
+   Col:          0             1             2             3             4             5             6             7       
+  Row
+
+           0             0             0             0             1             0             0             0  
+           0             0             0             0             0             1             0             0  
+           0             0             0             0             0             0             1             0  
+           0             0             0             0             0             0             0             1  
+  -0.0280269             0             0             0            -0             0             0             0  
+           0     -0.443032             0             0             0            -0             0             0  
+           0             0     -0.781844             0             0             0            -0             0  
+           0             0             0      -2.95105             0             0             0            -0  
+ 
+ Bs Matrix 309.032	65366.8
+
+Col:          0             1             2             3       
+  Row
+
+           0             0             0             0  
+           0             0             0             0  
+           0             0             0             0  
+           0             0             0             0  
+    0.684463             0             0             0  
+           0      0.684463             0             0  
+           0             0      0.684463             0  
+           0             0             0      0.684463  
+X0		V0
+X0		V0
+X0		V0
+X0		V0
+6.95023e-310	0.0001
+6.95023e-310	0.0001
+6.95023e-310	0.0001
+6.95023e-310	0.0001
+2-Mode 1 Frequency:	 = 0.167412
+2-Mode 2 Frequency:	 = 0.665606
+2-Mode 3 Frequency:	 = 0.88422
+2-Mode 4 Frequency:	 = 1.71786
+
+----------------- Integration and Numerics Preprocessing ----------------
+Integration Preprocessing.
+
+
+CFD check - driver structure.cpp (2044): nVar_FLOW = 0
+
+
+FEM check - driver structure.cpp (2044): nVar_FEM = 0
+
+
+CSD check - driver structure.cpp (2044): nVar_CSD = 8	1
+Numerics Preprocessing.
+
+------------------- Multizone Interface Preprocessing -------------------
+From zone 1 to zone 0: Setting coupling using a radial basis function approach.
+Transferring structural displacements. 
+From zone 0 to zone 1: Setting coupling using a radial basis function approach.
+Transferring flow tractions. 
+Setting dynamic mesh structure for zone 1.
+Setting moving mesh structure for static FSI problems.
+
+---------------------- Python Interface Preprocessing ---------------------
+Setting customized boundary conditions for zone 0
+Setting customized boundary conditions for zone 1
+
+Opening FSI history file.
+
+------------------------------ Begin Solver -----------------------------
+
+Simulation Run using the Multizone Driver
+
+
+MZ driver timeiter loop -- preprocess
+
+
+mz solver; unsteady= 0
+After dynamic Mesh Update Line 249 driver_direct_multizone 
+unsteady flag1: 0
+
+
+ run gauss-seidel
+
+
+
+ run GS main outer iteration 0
+
+
+
+ run GS: zone --> 0
+(Fluid: zone 0; Structure: zone 1)
+
+completed SetOuterIter
+
+
+ run GS trasfer data: donor=structure; target=fluid
+
+
+
+transfer data: updatemesh = 0	 solver: 14	 transfer: 11
+
+
+transfer data: CSD structural displacements
+ Disp 		 Vels
+
+6.95023e-310	0.0001
+6.95023e-310	0.0001
+6.95023e-310	0.0001
+6.95023e-310	0.0001
+ target processing
+
+collecting target points
+finish data transfer
+
+
+ run GS dynupdatemesh --> 0 updatemesh= 1
+kind of grid movement: 14
+
+Deforming the grid for static Fluid-Structure Interaction applications.
+Deforming the volume grid.
+Set Boundary Dispalcement - 9333. grid_movement_structure.cpp
+CSysSolve::FGMRES(): system solved by initial guess.
+There is no grid velocity.
+Hacked into the code to make it unsteady Iterating Structure.cpp 325.
+Computing grid velocities by finite differencing.
+++++++Dynamic Mesh update 2 Completed :: iInst 0++++++		
+
+ run GS iteration->solve --> 0
+(Fluid: zone 0; Structure: zone 1)
+
+Min DT: 0.000874765.Max DT: 5.95346.Dual Time step: 2.72062.
+----------------------- Residual Evolution Summary ----------------------
+log10[Maximum residual]: -2.40277.
+Maximum residual point 225, located at (1.34067, 0.708675, -0.00920924).
+-------------------------------------------------------------------------
+
+ IntIter ExtIter       0       0    -3.721682     -3.104145      -0.002820       0.008335
+       1       0    -3.887553     -3.270543      -0.001713       0.012744
+       2       0    -4.038526     -3.421421       0.000667       0.014002
+       3       0    -4.056938     -3.442555       0.002097       0.013482
+       4       0    -4.066197     -3.456530       0.002022       0.012304
+       5       0    -4.093199     -3.490974       0.000945       0.011075
+       6       0    -4.117995     -3.525692      -0.000353       0.010013
+       7       0    -4.138652     -3.557948      -0.001360       0.009152
+       8       0    -4.157782     -3.589769      -0.001917       0.008464
+       9       0    -4.172743     -3.617137      -0.002107       0.007919
+
+
+ completed iteration->solve
+
+
+ run GS: zone --> 1
+(Fluid: zone 0; Structure: zone 1)
+
+completed SetOuterIter
+
+
+ run GS trasfer data: donor=fluid; target=structure
+
+
+
+transfer data: updatemesh = 0	 solver: 1	 transfer: 10
+
+
+transfer data: fluid forces
+++++++++++ Transfer Data iInst :: 0++++++++++
+0x560589e05a00
+ target processing
+
+collecting target points
+finish data transfer
+
+
+ run GS dynupdatemesh --> 1 updatemesh= 0
+
+
+ run GS iteration->solve --> 1
+(Fluid: zone 0; Structure: zone 1)
+iterating0
+modal solver Preprocessing completed
+ modal iteration time integration
+time integration modal solver type: 5
+solving structural equations of motion using n-stage RK method 
+getting fluid force
+list points from elements
+rk scheme: 5
+rk here0
+rk here
+After RKmax. displacement/refLength = 8.37514e-08/0.85778
+	Gen. Displacement	Gen. Velocity
+Mode 1	-0.000489915	1.12394
+Mode 2	-3.95513e-05	0.0907375
+Mode 3	-0.000105906	0.242967
+Mode 4	-3.1684e-05	0.0726913
+
+
+ ****iteration completed - writing output body****
+
+
+found 4 modes
+mode: 0	, -0.0029389928, -0.0517530259
+mode: 1	, -0.0029389928, -0.0517530259, -0.0002368086, -0.0040859542
+mode: 2	, -0.0029389928, -0.0517530259, -0.0002368086, -0.0040859542, -0.0006349383, -0.0111082410
+mode: 3	, -0.0029389928, -0.0517530259, -0.0002368086, -0.0040859542, -0.0006349383, -0.0111082410, -0.0001896094, -0.0032524304
+, -0.0029389928, -0.0517530259, -0.0002368086, -0.0040859542, -0.0006349383, -0.0111082410, -0.0001896094, -0.0032524304
+    0   0.000000
+
+ completed iteration->solve
+
+-------------------------- File Output Summary --------------------------
+driver MZ
+
+Writing comma-separated values (CSV) surface files.
+Loading solution output data locally on each rank.
+solver for instance: 0; solver: 1
+loading local data: euler
+*Sorting output data across all ranks.
+4301
+4301
+Writing ASCII SU2 native restart file.
+ Write a slice on a structured mesh if requested. 
+Preparing element connectivity across all ranks.
+Writing Paraview ASCII volume solution file.
+Writing Paraview ASCII surface solution file.
+
+Writing comma-separated values (CSV) surface files.
+Loading solution output data locally on each rank.
+solver for instance: 0; solver: 14
+loading local data: FEM_MODAL
+finished loading MODAL data
+*Sorting output data across all ranks.
+120
+120
+Writing ASCII SU2 native restart file.
+ Write a slice on a structured mesh if requested. 
+Preparing element connectivity across all ranks.
+Writing Paraview ASCII volume solution file.
+Writing Paraview ASCII surface solution file.
+complete writing binary restart files
+-------------------------------------------------------------------------
+
+convergence: 0
+
+
+ run GS main outer iteration 1
+
+
+
+ run GS: zone --> 0
+(Fluid: zone 0; Structure: zone 1)
+
+completed SetOuterIter
+
+
+ run GS trasfer data: donor=structure; target=fluid
+
+
+
+transfer data: updatemesh = 0	 solver: 14	 transfer: 11
+
+
+transfer data: CSD structural displacements
+ Disp 		 Vels
+
+-2.938993e-03	-5.175303e-02
+-2.368086e-04	-4.085954e-03
+-6.349383e-04	-1.110824e-02
+-1.896094e-04	-3.252430e-03
+ target processing
+
+collecting target points
+finish data transfer
+
+
+ run GS dynupdatemesh --> 0 updatemesh= 1
+kind of grid movement: 14
+
+Deforming the grid for static Fluid-Structure Interaction applications.
+Deforming the volume grid.
+Set Boundary Dispalcement - 9333. grid_movement_structure.cpp
+
+# FGMRES residual history
+# Residual tolerance target = 1.000000e-14
+# Initial residual norm     = 7.373309e-01
+     0     1.000000e+00
+     10     8.607479e-05
+     20     6.626487e-06
+     30     2.810619e-06
+     40     6.592292e-07
+     50     1.968364e-07
+     60     4.038190e-08
+     70     1.811411e-09
+     80     1.186254e-10
+     90     2.379856e-12
+     100     9.249554e-14
+# FGMRES final (true) residual:
+# Iteration = 105: |res|/|res0| = 7.736571e-15.
+
+There is no grid velocity.
+Hacked into the code to make it unsteady Iterating Structure.cpp 325.
+Computing grid velocities by finite differencing.
+++++++Dynamic Mesh update 2 Completed :: iInst 0++++++		
+
+ run GS iteration->solve --> 0
+(Fluid: zone 0; Structure: zone 1)
+
+Min DT: 8.845430e-04.Max DT: 5.953463e+00.Dual Time step: 2.720623e+00.
+----------------------- Residual Evolution Summary ----------------------
+log10[Maximum residual]: -3.176448e+00.
+Maximum residual point 3826, located at (8.345725e-01, 7.393223e-01, -2.609705e-01).
+-------------------------------------------------------------------------
+
+ IntIter ExtIter       0       0    -4.180633     -3.635103      -0.002035       0.007498
+       1       0    -4.181766     -3.642651      -0.001912       0.007185
+       2       0    -4.178794     -3.642294      -0.001782       0.006960
+       3       0    -4.175178     -3.638197      -0.001635       0.006802
+       4       0    -4.174073     -3.634609      -0.001454       0.006688
+       5       0    -4.177852     -3.634988      -0.001229       0.006601
+       6       0    -4.187527     -3.641166      -0.000969       0.006524
+       7       0    -4.202817     -3.653432      -0.000689       0.006444
+       8       0    -4.222451     -3.670981      -0.000407       0.006354
+       9       0    -4.244664     -3.692471      -0.000135       0.006246
+
+
+ completed iteration->solve
+
+
+ run GS: zone --> 1
+(Fluid: zone 0; Structure: zone 1)
+
+completed SetOuterIter
+
+
+ run GS trasfer data: donor=fluid; target=structure
+
+
+
+transfer data: updatemesh = 0	 solver: 1	 transfer: 10
+
+
+transfer data: fluid forces
+++++++++++ Transfer Data iInst :: 0++++++++++
+0x560589e05a00
+ target processing
+
+collecting target points
+finish data transfer
+
+
+ run GS dynupdatemesh --> 1 updatemesh= 0
+
+
+ run GS iteration->solve --> 1
+(Fluid: zone 0; Structure: zone 1)
+iterating0
+modal solver Preprocessing completed
+ modal iteration time integration
+time integration modal solver type: 5
+solving structural equations of motion using n-stage RK method 
+getting fluid force
+list points from elements
+rk scheme: 5
+rk here0
+rk here
+After RKmax. displacement/refLength = 1.83144e-07/0.85778
+	Gen. Displacement	Gen. Velocity
+Mode 1	-9.6176e-05	0.16879
+Mode 2	-0.000107636	0.242749
+Mode 3	-0.000147809	0.327895
+Mode 4	-0.000103087	0.233159
+
+
+ ****iteration completed - writing output body****
+
+
+found 4 modes
+
+
+ completed iteration->solve
+
+-------------------------- File Output Summary --------------------------
+driver MZ
+
+Writing comma-separated values (CSV) surface files.
+Loading solution output data locally on each rank.
+solver for instance: 0; solver: 1
+loading local data: euler
+*Sorting output data across all ranks.
+4301
+4301
+Writing ASCII SU2 native restart file.
+ Write a slice on a structured mesh if requested. 
+Preparing element connectivity across all ranks.
+Writing Paraview ASCII volume solution file.
+Writing Paraview ASCII surface solution file.
+
+Writing comma-separated values (CSV) surface files.
+Loading solution output data locally on each rank.
+solver for instance: 0; solver: 14
+loading local data: FEM_MODAL
+finished loading MODAL data
+*Sorting output data across all ranks.
+120
+120
+Writing ASCII SU2 native restart file.
+ Write a slice on a structured mesh if requested. 
+Preparing element connectivity across all ranks.
+Writing Paraview ASCII volume solution file.
+Writing Paraview ASCII surface solution file.
+complete writing binary restart files
+-------------------------------------------------------------------------
+
+convergence: 0
+
+
+ run GS main outer iteration 2
+
+
+
+ run GS: zone --> 0
+(Fluid: zone 0; Structure: zone 1)
+
+completed SetOuterIter
+
+
+ run GS trasfer data: donor=structure; target=fluid
+
+
+
+transfer data: updatemesh = 0	 solver: 14	 transfer: 11
+
+
+transfer data: CSD structural displacements
+ Disp 		 Vels
+
+-3.774814e-03	-1.137852e-01
+-9.030545e-04	-1.966334e-02
+-1.577340e-03	-3.795802e-02
+-8.244136e-04	-1.751073e-02
+ target processing
+
+collecting target points
+finish data transfer
+
+
+ run GS dynupdatemesh --> 0 updatemesh= 1
+kind of grid movement: 14
+
+Deforming the grid for static Fluid-Structure Interaction applications.
+Deforming the volume grid.
+Set Boundary Dispalcement - 9333. grid_movement_structure.cpp
+
+# FGMRES residual history
+# Residual tolerance target = 1.000000e-14
+# Initial residual norm     = 6.263656e-01
+     0     1.000000e+00
+     10     9.311248e-05
+     20     6.611170e-06

@@ -1758,6 +1758,7 @@ void CConfig::SetConfig_Options(unsigned short val_iZone, unsigned short val_nZo
   /* DESCRIPTION: Plunging amplitude (m) in x, y, & z directions (RIGID_MOTION only) */
   addDoubleListOption("PLUNGING_AMPL_Y", nPlunging_Ampl_Y, Plunging_Ampl_Y);
   /* DESCRIPTION: Plunging amplitude (m) in x, y, & z directions (RIGID_MOTION only) */
+  /* DESCRIPTION: Plunging amplitude (m) in x, y, & z directions (RIGID_MOTION only) */
   addDoubleListOption("PLUNGING_AMPL_Z", nPlunging_Ampl_Z, Plunging_Ampl_Z);
   /* DESCRIPTION: Value to move motion origins (1 or 0) */
   addUShortListOption("MOVE_MOTION_ORIGIN", nMoveMotion_Origin, MoveMotion_Origin);
@@ -3556,6 +3557,23 @@ void CConfig::SetPostprocessing(unsigned short val_software, unsigned short val_
       Kind_GridMovement[val_izone] = FLUID_STRUCTURE_STATIC;
       Grid_Movement = false;
     }
+    else if (Dynamic_Analysis == MODAL_HARMONIC_BALANCE){
+            HarmonicBalance_Period = GetHarmonicBalance_Period();
+            if (HarmonicBalance_Period < 0)  {
+                SU2_MPI::Error("Not a valid value for time period!!", CURRENT_FUNCTION);
+            }
+            /* Initialize the Harmonic balance Frequency pointer */
+            if (Omega_HB == NULL) {
+                Omega_HB = new su2double[nOmega_HB];
+                for (iZone = 0; iZone < nOmega_HB; iZone++ )
+                    Omega_HB[iZone] = 0.0;
+            }else {
+                if (nOmega_HB != nTimeInstances) {
+                    SU2_MPI::Error("Length of omega_HB  must match the number TIME_INSTANCES!!" , CURRENT_FUNCTION);
+                }
+            }
+        }
+
     else{
       Kind_GridMovement[val_izone] = FLUID_STRUCTURE;
       Grid_Movement = true;

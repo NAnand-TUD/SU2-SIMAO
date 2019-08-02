@@ -1727,6 +1727,10 @@ inline su2double *CModalVariable::GetSolution_Vel_time_n(void) { return Solution
 inline su2double CModalVariable::GetSolution_Vel_time_n(unsigned short val_var) { return Solution_Vel_time_n[val_var]; }
 
 inline void CModalVariable::Add_DeltaVelSolution(unsigned short val_var, su2double val_solution) { Solution_Vel[val_var] += val_solution; }
+
+inline void CModalVariable::SetHarmonicBalance_Source(unsigned short val_var, su2double val_source) { HB_Source[val_var] = val_source; }
+
+inline su2double CModalVariable::GetHarmonicBalance_Source(unsigned short val_var) { return HB_Source[val_var]; }
 /*
 inline su2double *CFEAVariable::GetSolution_Accel(void) { return Solution_Accel; }
 

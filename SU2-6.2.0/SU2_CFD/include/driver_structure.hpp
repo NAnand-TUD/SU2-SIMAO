@@ -1665,7 +1665,7 @@ public:
     /*!
    * \brief Update the fluid harmonic balance within multiple zones.
    */
-    void FluidHBUpdate(unsigned short val_iZone);
+    void FluidHBUpdate(unsigned short val_iZone, unsigned short val_Sol);
 
     /*!
      * \brief Update the Modal harmonic balance within multiple zones.
@@ -1698,11 +1698,11 @@ public:
    */
   bool Transfer_Data(unsigned short donorZone, unsigned short targetZone);
 
-    void SetHarmonicBalance(unsigned short val_iZone, unsigned short val_iInst);
+    void SetHarmonicBalance(unsigned short val_iZone, unsigned short val_iInst, unsigned short val_Sol);
 
     void ComputeHB_Operator(unsigned short val_iZone);
 
-    void StabilizeHarmonicBalance(unsigned short val_iZone);
+    void StabilizeHarmonicBalance(unsigned short val_iZone, unsigned short val_Sol);
 
 };
 

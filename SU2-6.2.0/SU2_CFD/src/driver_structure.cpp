@@ -211,7 +211,21 @@ CDriver::CDriver(char* confFile,
     if (rank == MASTER_NODE) cout << "A General driver has been instantiated." << endl;
   }
   else if (config_container[ZONE_0]->GetUnsteady_Simulation() == HARMONIC_BALANCE) {
-    if (rank == MASTER_NODE) cout << "A Harmonic Balance driver has been instantiated." << endl;
+      if (fsi){
+          if (rank == MASTER_NODE)
+              cout << "3A Harmonic-Balance Dynamic Fluid-Structure Interaction driver has been instantiated." << endl;
+          if(config_container[0]->GetKind_Solver() == FEM_MODAL) {
+              cout << "For aeroelastic analysis using modal structural solver." << endl;
+              config_container[0]->SetMach(config_container[1]->GetMach());
+          }
+          if(config_container[1]->GetKind_Solver() == FEM_MODAL) {
+              cout << "For aeroelastic analysis using modal structural solver." << endl;
+              config_container[1]->SetMach(config_container[0]->GetMach());
+          }
+      }
+      else
+        if (rank == MASTER_NODE) cout << "A Harmonic Balance driver has been instantiated." << endl;
+
   }
   else if (nZone == 2 && fsi) {
     if (disc_adj_fsi) {

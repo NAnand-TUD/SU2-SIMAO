@@ -990,6 +990,7 @@ enum ENUM_TIME_INT_FEA {
   GENERALIZED_ALPHA = 3,   	/*!< \brief Support for implementing another implicit method. */
   RK2 = 4,                  /*!< \brief Support for implementing Rung-Kutta 2nd order method. */
   RK4 = 5,                  /*!< \brief Support for implementing Rung-Kutta 4th order method. */
+  IMPLICIT = 7,
   EXPONENTIAL = 6           /*!< \brief Support for implementing another implicit exponential matrix method. */
 };
 static const map<string, ENUM_TIME_INT_FEA> Time_Int_Map_FEA = CCreateMap<string, ENUM_TIME_INT_FEA>
@@ -998,6 +999,7 @@ static const map<string, ENUM_TIME_INT_FEA> Time_Int_Map_FEA = CCreateMap<string
 ("GENERALIZED_ALPHA", GENERALIZED_ALPHA)
 ("RK2", RK2)
 ("RK4", RK4)
+("IMPLICIT", IMPLICIT)
 ("EXPONENTIAL", EXPONENTIAL);
 
 /*!

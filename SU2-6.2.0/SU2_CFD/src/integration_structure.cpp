@@ -453,10 +453,16 @@ void CIntegration::Time_Integration_Modal(CGeometry *geometry, CSolver **solver_
     cout << "time integration modal solver type: " << config->GetKind_TimeIntScheme_FEA() << "\n";
     // cout << "csd time step: " << 
     switch (config->GetDynamic_Analysis()){
-        case(YES):
+        case(YES):{
+            cout << "dyn. problem" << endl;
             solver_container[MainSolver]->RungeKutta_TimeInt(geometry, solver_container, config);
-        case(NO):
+        }
+        break;
+        case(NO):{
+            cout << "static problem" << endl;
             solver_container[MainSolver]->SolveStatic(geometry, solver_container,config);
+        }
+        break;
     }
     cout<< "After RK";
     
@@ -465,6 +471,16 @@ void CIntegration::Time_Integration_Modal(CGeometry *geometry, CSolver **solver_
 //    solver_container[MainSolver]->Set_MPI_Solution(geometry, config); //TODO: check this function for modal
 
 }
+
+void CIntegration::Source_Integration_Modal(CGeometry *geometry, CSolver **solver_container, CNumerics **numerics, CConfig *config, unsigned short RunTime_EqSystem, unsigned long Iteration) {
+
+    unsigned short iMarker;
+
+    cout << "time integration modal solver type: " << config->GetKind_TimeIntScheme_FEA() << "\n";
+//    solver_container[MainSolver]->RungeKutta_TimeInt(geometry, solver_container, config);
+
+}
+
 
 void CIntegration::Convergence_Monitoring(CGeometry *geometry, CConfig *config, unsigned long Iteration,
                                           su2double monitor, unsigned short iMesh) {

@@ -145,6 +145,18 @@ public:
    */
   void Time_Integration_Modal(CGeometry *geometry, CSolver **solver_container, CNumerics **numerics, CConfig *config,unsigned short RunTime_EqSystem, unsigned long Iteration);
 
+
+    /*!
+   * \brief Do the time integration (explicit or implicit) of the numerical system on a FEM framework.
+   * \author S. Marques
+   * \param[in] geometry - Geometrical definition of the problem.
+   * \param[in] solver_container - Container vector with all the solutions.
+   * \param[in] config - Definition of the particular problem.
+   * \param[in] RunTime_EqSystem - System of equations which is going to be solved.
+   * \param[in] Iteration - Current iteration.
+   */
+
+  void Source_Integration_Modal(CGeometry *geometry, CSolver **solver_container, CNumerics **numerics, CConfig *config,unsigned short RunTime_EqSystem, unsigned long Iteration);
   /*!
    * \brief Initialize the adjoint solution using the primal problem.
    * \param[in] geometry - Geometrical definition of the problem.
@@ -153,6 +165,7 @@ public:
    * \param[in] RunTime_EqSystem - System of equations which is going to be solved.
    * \param[in] Iteration - Current iteration.
    */
+
   void Adjoint_Setup(CGeometry ****geometry, CSolver *****solver_container, CConfig **config,
                      unsigned short RunTime_EqSystem, unsigned long Iteration, unsigned short iZone);
 

@@ -15970,14 +15970,20 @@ public:
     void Initialize_StateSpace_Matrices(unsigned short);
 
     /*!
+    * \brief Structural solution for dynamic aeroelastic case
+    * \param[in] geometry - Geometrical definition of the problem.
+    * \param[in] solver - solver
+    * \param[in] config - Definition of the particular problem.
+    */
+    void RungeKutta_TimeInt(CGeometry *geometry, CSolver **solver_container, CConfig *config);
+    
+    /*!
     * \brief Structural solution for aerostatic case
     * \param[in] geometry - Geometrical definition of the problem.
     * \param[in] solver - solver
     * \param[in] config - Definition of the particular problem.
     */
     void SolveStatic(CGeometry *geometry, CSolver **solver_container, CConfig *config);
-
-    void RungeKutta_TimeInt(CGeometry *geometry, CSolver **solver_container, CConfig *config);
     
     /*!
     * \brief Step to map fluid forces and project them onto structural mode shapes.

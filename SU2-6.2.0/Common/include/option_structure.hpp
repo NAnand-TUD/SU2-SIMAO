@@ -987,7 +987,7 @@ static const map<string, ENUM_HEAT_TIMESTEP> Heat_TimeStep_Map = CCreateMap<stri
 enum ENUM_TIME_INT_FEA {
   CD_EXPLICIT = 1,			/*!< \brief Support for implementing an explicit method. */
   NEWMARK_IMPLICIT = 2,   	/*!< \brief Implicit Newmark integration definition. */
-  GENERALIZED_ALPHA = 3,   		/*!< \brief Support for implementing another implicit method. */
+  GENERALIZED_ALPHA = 3,   	/*!< \brief Support for implementing another implicit method. */
   RK2 = 4,                  /*!< \brief Support for implementing Rung-Kutta 2nd order method. */
   RK4 = 5,                  /*!< \brief Support for implementing Rung-Kutta 4th order method. */
   EXPONENTIAL = 6           /*!< \brief Support for implementing another implicit exponential matrix method. */

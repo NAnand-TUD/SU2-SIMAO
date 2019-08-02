@@ -5185,6 +5185,7 @@ CModalSolver::CModalSolver(void) : CSolver() {
     nMarker                 = 0;
     nPoint                  = 0;
 	nModes	                = 0;
+    qsol	                = NULL;
 	omega 	                = NULL;
 	damping	                = NULL;
     modalForceLast          = NULL;
@@ -5699,7 +5700,7 @@ void CModalSolver::ReadCSD_Mesh_Nastran(CConfig *config,CGeometry *geometry){
 void CModalSolver::RungeKutta_TimeInt(CGeometry *geometry, CSolver **solver_container, CConfig *config){
 
     unsigned short iMode, iDim, irk, nStage,ind;
-    su2double *qsol,*dy,*ForceVec;
+    su2double *dy,*ForceVec;
     su2double *irk1,*irk2,*irk3,*irk4,*yout;
 //     su2double dy[4] = {0.0, 0.0, 0.0, 0.0};
     su2double rkcoeff[4] = {0.0, 0.0, 0.0, 0.0};
@@ -7228,4 +7229,8 @@ void CModalSolver::InitializeHBMatrices(unsigned short nMode, unsigned short nIn
         FMatrix[i][i] = 1.0;
     }
 
+}
+
+su2double CModalSolver::Get_QSol(unsigned short val_ivar) {
+    return (qsol[val_ivar]);
 }

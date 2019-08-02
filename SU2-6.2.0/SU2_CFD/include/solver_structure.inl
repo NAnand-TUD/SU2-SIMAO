@@ -2537,6 +2537,8 @@ inline void CSolver::ReadCSD_Mesh(CConfig *config) {}
 
 inline void CSolver::RungeKutta_TimeInt(CGeometry *geometry, CSolver **solver_container, CConfig *config) {}
 
+inline su2double CSolver::Get_QSol(unsigned short val_ivar){}
+
 inline su2double CModalSolver::getGeneralizedDisplacement(unsigned short iMode) {return generalizedDisplacement[iMode][0];}
 
 inline su2double CModalSolver::getGeneralizedVelocity(unsigned short iMode) {return generalizedVelocity[iMode][0];}

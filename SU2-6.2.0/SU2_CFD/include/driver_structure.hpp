@@ -1700,6 +1700,9 @@ public:
 
     void SetHarmonicBalance(unsigned short val_iZone, unsigned short val_iInst, unsigned short val_Sol);
 
+    void SetHarmonicBalance_Modal(unsigned short val_iZone, unsigned short val_iInst, unsigned short val_Sol);
+
+
     void ComputeHB_Operator(unsigned short val_iZone);
 
     void StabilizeHarmonicBalance(unsigned short val_iZone, unsigned short val_Sol);

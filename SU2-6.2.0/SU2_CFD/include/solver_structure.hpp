@@ -4420,6 +4420,8 @@ public:
 //   virtual void RK2(CGeometry *geometry, CSolver **solver_container, CConfig *config);
 
   virtual void RungeKutta_TimeInt(CGeometry *geometry, CSolver **solver_container, CConfig *config);
+
+  virtual su2double Get_QSol(unsigned short val_ivar);
     
 };
 
@@ -15904,6 +15906,7 @@ private:
     *HVector,
     **FMatrix,
     *HB_Omega,
+    *qsol,
     *QSolVector,
     *QSolVector_Old,
     *SystemVector;
@@ -16052,7 +16055,9 @@ public:
 
     su2double Get_EqnOfMotion(unsigned short nMode, unsigned short nInst);
 
-    void HB_RK4(CGeometry *geometry, CSolver **solver_container, CConfig *config);
+    void Set_QSol(su2double *QSol);
+
+    su2double Get_QSol(unsigned short val_ivar);
 
     /*!
     * \brief matrix-vector multiplication utility based on BLAS function.

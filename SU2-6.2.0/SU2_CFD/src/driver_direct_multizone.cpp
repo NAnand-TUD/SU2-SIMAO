@@ -969,6 +969,138 @@ void CMultizoneDriver::SetHarmonicBalance(unsigned short val_iZone, unsigned sho
 
 }
 
+void CMultizoneDriver::SetHarmonicBalance_Modal(unsigned short val_iZone, unsigned short iInst, unsigned short val_Sol) {
+
+    cout<<"++++++ Setting Harmonic Balance +++++ \n";
+
+    unsigned short iVar, jInst, iMGlevel, val_Sol_Adj;
+
+    if (val_Sol == FLOW_SOL)
+        val_Sol_Adj = ADJFLOW_SOL;
+    else if (val_Sol == MODAL_SOL)
+        val_Sol_Adj = ADJFLOW_SOL;
+    else
+        exit(1);
+
+    unsigned short nVar = solver_container[val_iZone][INST_0][MESH_0][val_Sol]->GetnVar();
+    unsigned long iPoint;
+
+    bool implicit = (config_container[val_iZone]->GetKind_TimeIntScheme_Flow() == EULER_IMPLICIT);
+    bool adjoint = (config_container[val_iZone]->GetContinuous_Adjoint());
+    if (adjoint) {
+        implicit = (config_container[val_iZone]->GetKind_TimeIntScheme_AdjFlow() == EULER_IMPLICIT);
+    }
+
+    unsigned long ExtIter = config_container[val_iZone]->GetExtIter();
+
+    /*--- Retrieve values from the config file ---*/
+    su2double *U = new su2double[nVar];
+    su2double *U_old = new su2double[nVar];
+    su2double *Psi = new su2double[nVar];
+    su2double *Psi_old = new su2double[nVar];
+    su2double *Source = new su2double[nVar];
+    su2double deltaU, deltaPsi;
+
+    /*--- Compute period of oscillation ---*/
+    su2double period = config_container[val_iZone]->GetHarmonicBalance_Period();
+
+    /*--- Non-dimensionalize the input period, if necessary.  */
+    period /= config_container[val_iZone]->GetTime_Ref();
+
+    if (ExtIter == 0)
+        ComputeHB_Operator(val_iZone);
+
+    /*--- Compute various source terms for explicit direct, implicit direct, and adjoint problems ---*/
+    /*--- Loop over all grid levels ---*/
+    for (iMGlevel = 0; iMGlevel <= config_container[val_iZone]->GetnMGLevels(); iMGlevel++) {
+
+            for (iVar = 0; iVar < nVar; iVar++) {
+                Source[iVar] = 0.0;
+            }
+
+            /*--- Step across the columns ---*/
+            for (jInst = 0; jInst < nInst[val_iZone]; jInst++) {
+
+                /*--- Retrieve solution at this node in current zone ---*/
+                for (iVar = 0; iVar < nVar; iVar++) {
+
+                    if (!adjoint) {
+                        U[iVar] = solver_container[val_iZone][jInst][iMGlevel][val_Sol]->Get_QSol(iVar);
+                        Source[iVar] += U[iVar]*D[iInst][jInst];
+
+                        if (implicit) {
+                            U_old[iVar] = solver_container[val_iZone][jInst][iMGlevel][val_Sol]->node[iPoint]->GetSolution_Old(iVar);
+                            deltaU = U[iVar] - U_old[iVar];
+                            Source[iVar] += deltaU*D[iInst][jInst];
+                        }
+
+                    }
+
+                    else {
+                        Psi[iVar] = solver_container[val_iZone][jInst][iMGlevel][val_Sol_Adj]->node[iPoint]->GetSolution(iVar);
+                        Source[iVar] += Psi[iVar]*D[jInst][iInst];
+
+                        if (implicit) {
+                            Psi_old[iVar] = solver_container[val_iZone][jInst][iMGlevel][val_Sol_Adj]->node[iPoint]->GetSolution_Old(iVar);
+                            deltaPsi = Psi[iVar] - Psi_old[iVar];
+                            Source[iVar] += deltaPsi*D[jInst][iInst];
+                        }
+                    }
+//                    cout<<"HB Source Term :: "<<U[iVar]<<" "<<D[iInst][jInst]<<" "<<Source[iVar]<<endl;
+                }
+
+                /*--- Store sources for current row ---*/
+                for (iVar = 0; iVar < nVar; iVar++) {
+                    if (!adjoint) {
+                        solver_container[val_iZone][iInst][iMGlevel][val_Sol]->node[iPoint]->SetHarmonicBalance_Source(iVar, Source[iVar]);
+                        //cout<<solver_container[val_iZone][iInst][iMGlevel][val_Sol]->node[iPoint]->GetHarmonicBalance_Source(iVar);
+                    }
+                    else {
+                        solver_container[val_iZone][iInst][iMGlevel][val_Sol_Adj]->node[iPoint]->SetHarmonicBalance_Source(iVar, Source[iVar]);
+                    }
+                }
+
+            }
+    }
+
+    /*--- Source term for a turbulence model ---*/
+    if (config_container[val_iZone]->GetKind_Solver() == RANS) {
+
+        /*--- Extra variables needed if we have a turbulence model. ---*/
+        unsigned short nVar_Turb = solver_container[val_iZone][INST_0][MESH_0][TURB_SOL]->GetnVar();
+        su2double *U_Turb = new su2double[nVar_Turb];
+        su2double *Source_Turb = new su2double[nVar_Turb];
+
+        /*--- Loop over only the finest mesh level (turbulence is always solved
+         on the original grid only). ---*/
+        for (iPoint = 0; iPoint < geometry_container[val_iZone][INST_0][MESH_0]->GetnPoint(); iPoint++) {
+            for (iVar = 0; iVar < nVar_Turb; iVar++) Source_Turb[iVar] = 0.0;
+            for (jInst = 0; jInst < nInst[val_iZone]; jInst++) {
+
+                /*--- Retrieve solution at this node in current zone ---*/
+                for (iVar = 0; iVar < nVar_Turb; iVar++) {
+                    U_Turb[iVar] = solver_container[val_iZone][jInst][MESH_0][TURB_SOL]->node[iPoint]->GetSolution(iVar);
+                    Source_Turb[iVar] += U_Turb[iVar]*D[iInst][jInst];
+                }
+            }
+
+            /*--- Store sources for current iZone ---*/
+            for (iVar = 0; iVar < nVar_Turb; iVar++)
+                solver_container[val_iZone][iInst][MESH_0][TURB_SOL]->node[iPoint]->SetHarmonicBalance_Source(iVar, Source_Turb[iVar]);
+        }
+
+        delete [] U_Turb;
+        delete [] Source_Turb;
+    }
+
+    delete [] Source;
+    delete [] U;
+    delete [] U_old;
+    delete [] Psi;
+    delete [] Psi_old;
+
+}
+
 void CMultizoneDriver::ComputeHB_Operator(unsigned short val_iZone) {
 
     const   complex<su2double> J(0.0,1.0);
@@ -1129,12 +1261,12 @@ void CMultizoneDriver::ComputeHB_Operator(unsigned short val_iZone) {
         }
     }
 
-    cout<<" +++ D Matrix +++\n";
-    for(i=0; i<nInst[val_iZone]; i++) {
-        for (k = 0; k < nInst[val_iZone]; k++)
-            cout << D[i][k] << "\t";
-        cout<<"\n";
-    }
+    //    cout<<" +++ D Matrix +++\n";
+    //    for(i=0; i<nInst[val_iZone]; i++) {
+    //        for (k = 0; k < nInst[val_iZone]; k++)
+    //            cout << D[i][k] << "\t";
+    //        cout<<"\n";
+    //    }
 
     /*--- Deallocate dynamic memory ---*/
     for (iInst = 0; iInst < nInst[val_iZone]; iInst++){

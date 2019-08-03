@@ -2097,7 +2097,6 @@ void COutput::WriteParaViewASCII_Parallel(CConfig *config, CGeometry *geometry, 
           if (nDim == 2) Paraview_File << scientific << "0.0" << "\t";
         }
       } else {
-
         for (iPoint = 0; iPoint < nParallel_Poin; iPoint++) {
           for (iDim = 0; iDim < nDim; iDim++)
             Paraview_File << scientific << Parallel_Data[iDim][iPoint] << "\t";
@@ -2356,8 +2355,14 @@ found = Variable_Names[iField].find("_z");
             }
           } else {
             for (iPoint = 0; iPoint < nParallel_Poin; iPoint++) {
+                cout << "var count: " << VarCounter << endl;
               Paraview_File << scientific << Parallel_Data[VarCounter+0][iPoint] << "\t" << Parallel_Data[VarCounter+1][iPoint] << "\t";
-              if (nDim == 3) Paraview_File << scientific << "0.0" << "\t";//<< Parallel_Data[VarCounter+2][iPoint] << "\t";
+              if (nDim == 3 && Kind_Solver != FEM_MODAL) {
+                  Paraview_File << scientific << "0.0" << "\t";
+              }
+              else{
+                  Paraview_File << Parallel_Data[VarCounter+2][iPoint] << "\t";
+              }
               if (nDim == 2) Paraview_File << scientific << "0.0" << "\t";
             }
           }

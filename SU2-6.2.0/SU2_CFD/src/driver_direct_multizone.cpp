@@ -287,7 +287,6 @@ void CMultizoneDriver::Run_GaussSeidel() {
   unsigned long OuterIter = 0; 
   for (iZone = 0; iZone < nZone; iZone++) config_container[iZone]->SetOuterIter(OuterIter);
 
-
   /*--- Loop over the number of outer iterations ---*/
   for (iOuter_Iter = 0; iOuter_Iter < driver_config->GetnOuter_Iter(); iOuter_Iter++){
     cout << "\n\n run GS main outer iteration " << iOuter_Iter <<"\n\n";

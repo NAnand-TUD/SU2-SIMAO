@@ -8334,8 +8334,7 @@ void COutput::SpecialOutput_ForcesBreakdown(CSolver *****solver, CGeometry ****g
   
 }
 
-void COutput::SetResult_Files(CSolver *****solver_container, CGeometry ****geometry, CConfig **config,
-                              unsigned long iExtIter, unsigned short val_nZone) {
+void COutput::SetResult_Files(CSolver *****solver_container, CGeometry ****geometry, CConfig **config,unsigned long iExtIter, unsigned short val_nZone) {
   
   unsigned short iZone;
   
@@ -14616,6 +14615,7 @@ void COutput::LoadLocalData_Base(CConfig *config, CGeometry *geometry, CSolver *
 }
 
 void COutput::LoadLocalData_Modal(CConfig *config, CGeometry *geometry, CSolver **solver, unsigned short val_iZone) {
+//     TODO:: if this is only for modal solutions, it should be streamlined
     unsigned short iDim;
 
     unsigned long iVar, jVar;
@@ -14755,8 +14755,7 @@ void COutput::LoadLocalData_Modal(CConfig *config, CGeometry *geometry, CSolver 
 
                 for (iVertex = 0; iVertex < geometry->nVertex[iMarker]; iVertex++) {
                     iPoint = geometry->vertex[iMarker][iVertex]->GetNode();
-                    isPeriodic = ((geometry->vertex[iMarker][iVertex]->GetRotation_Type() > 0) &&
-                                  (geometry->vertex[iMarker][iVertex]->GetRotation_Type() % 2 == 1));
+                    isPeriodic = ((geometry->vertex[iMarker][iVertex]->GetRotation_Type() > 0) && (geometry->vertex[iMarker][iVertex]->GetRotation_Type() % 2 == 1));
                     if (isPeriodic) Local_Halo[iPoint] = false;
                 }
             }
@@ -14780,7 +14779,7 @@ void COutput::LoadLocalData_Modal(CConfig *config, CGeometry *geometry, CSolver 
     for (iPoint = 0; iPoint < geometry->GetnPoint(); iPoint++) {
 
         /*--- Check for halos & write only if requested ---*/
-
+//         cout << "point["<<iPoint<<"]=>";
         if (!Local_Halo[iPoint] || Wrt_Halo) {
 
             /*--- Restart the column index with each new point. ---*/
@@ -14791,35 +14790,23 @@ void COutput::LoadLocalData_Modal(CConfig *config, CGeometry *geometry, CSolver 
 
             for (iDim = 0; iDim < geometry->GetnDim(); iDim++) {
                 Local_Data[jPoint][iVar] = geometry->node[iPoint]->GetCoord(iDim);
-                if (config->GetSystemMeasurements() == US)
-                    Local_Data[jPoint][iVar] *= 12.0;
+                if (config->GetSystemMeasurements() == US) Local_Data[jPoint][iVar] *= 12.0;
                 iVar++;
             }
 
             /*--- Load the conservative variable states for the mean flow variables.
              If requested, load the limiters and residuals as well. ---*/
-
-            for (jVar = 0; jVar < nVar_First; jVar++) {
-                Local_Data[jPoint][iVar] = solver[FirstIndex]->node[iPoint]->GetSolution(jVar);
+            cout << "local data - " << jPoint << "\t" ;
+            for (jVar = 0; jVar < geometry->GetnDim(); jVar++) {
+                Local_Data[jPoint][iVar] = solver[FirstIndex]->node[iPoint]->GetSolution(jVar); //displacements
+                cout << iVar << "\t" << Local_Data[jPoint][iVar]  << "\t";
                 iVar++;
             }
-
-            if (!config->GetLow_MemoryOutput()) {
-                if (config->GetWrt_Residuals()) {
-                    for (jVar = 0; jVar < nVar_First; jVar++) {
-                        Local_Data[jPoint][iVar] = solver[FirstIndex]->LinSysRes.GetBlock(iPoint, jVar);
-                        iVar++;
-                    }
-                }
-            }
-
-            /*--- Increment the point counter, as there may have been halos we
-             skipped over during the data loading. ---*/
-
+            cout << endl;
             jPoint++;
         }
     }
-
+    
     /*--- Free memory for auxiliary vectors. ---*/
     delete [] Local_Halo;
     cout << "finished loading MODAL data\n";
@@ -16295,14 +16282,16 @@ void COutput::SortOutputData(CConfig *config, CGeometry *geometry) {
         
         for (unsigned short kk = 0; kk < VARS_PER_POINT; kk++) {
           connSend[nn] = Local_Data[iPoint][kk]; nn++;
+//           cout << Local_Data[iPoint][kk] << "\t";
         }
-        
+//         cout << endl;
         /*--- Load the global ID (minus offset) for sorting the
          points once they all reach the correct processor. ---*/
         
         nn = idIndex[iProcessor];
         idSend[nn] = Global_Index - starting_node[iProcessor];
-        
+//         cout << "iPoint= " << iPoint << "; global index= " << Global_Index << "\t" <<
+//         idSend[nn] << endl;
         /*--- Increment the index by the message length ---*/
         
         index[iProcessor]  += VARS_PER_POINT;
@@ -16407,7 +16396,12 @@ void COutput::SortOutputData(CConfig *config, CGeometry *geometry) {
   int ll = VARS_PER_POINT*nPoint_Send[rank];
   int kk = VARS_PER_POINT*nPoint_Send[rank+1];
   
-  for (int nn=ll; nn<kk; nn++, mm++) connRecv[mm] = connSend[nn];
+//   cout << "connRecv\n";
+  for (int nn=ll; nn<kk; nn++, mm++) {
+      connRecv[mm] = connSend[nn];
+//       cout << connRecv[mm] << "\n";
+  }
+//   cout << endl << endl;
   
   mm = nPoint_Recv[rank];
   ll = nPoint_Send[rank];
@@ -16434,11 +16428,13 @@ void COutput::SortOutputData(CConfig *config, CGeometry *geometry) {
    structure before post-processing below. First, allocate the
    appropriate amount of memory for this section. ---*/
   
+//   cout << "parallel data\n";
   Parallel_Data = new su2double*[VARS_PER_POINT];
   for (int jj = 0; jj < VARS_PER_POINT; jj++) {
     Parallel_Data[jj] = new su2double[nPoint_Recv[size]];
     for (int ii = 0; ii < nPoint_Recv[size]; ii++) {
       Parallel_Data[jj][idRecv[ii]] = connRecv[ii*VARS_PER_POINT+jj];
+//       cout << jj<< "\t" << idRecv[ii] << "\t" << Parallel_Data[jj][idRecv[ii]] << endl;
     }
   }
   
@@ -16475,7 +16471,7 @@ void COutput::SortOutputData(CConfig *config, CGeometry *geometry) {
   delete [] starting_node;
   delete [] ending_node;
   delete [] nPoint_Linear;
-  
+//   exit(0);
 }
 
 void COutput::SortOutputData_Surface(CConfig *config, CGeometry *geometry) {
@@ -21679,7 +21675,6 @@ void COutput::SortOutputData_FEM(CConfig *config, CGeometry *geometry) {
       idSend[nn] = Global_Index - beg_node[iProcessor];
 
       /*--- Increment the index by the message length ---*/
-
       index[iProcessor]  += VARS_PER_POINT;
       idIndex[iProcessor]++;
 
@@ -21840,7 +21835,7 @@ void COutput::SortOutputData_FEM(CConfig *config, CGeometry *geometry) {
   delete [] nPoint_Recv;
   delete [] nPoint_Send;
   delete [] nPoint_Flag;
-  
+
   for (iPoint = 0; iPoint < nLocalPoint_Sort; iPoint++)
     delete [] Local_Data[iPoint];
   delete [] Local_Data;

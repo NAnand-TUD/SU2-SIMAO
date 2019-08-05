@@ -451,9 +451,21 @@ void CIntegration::Time_Integration_Modal(CGeometry *geometry, CSolver **solver_
 
   /*--- Set the Jacobian according to the different time integration methods ---*/
     cout << "time integration modal solver type: " << config->GetKind_TimeIntScheme_FEA() << "\n";
-//     cout << "cfd time step: " << 
-    solver_container[MainSolver]->RungeKutta_TimeInt(geometry, solver_container, config);
+    // cout << "csd time step: " << 
+    switch (config->GetDynamic_Analysis()){
+        case(YES):{
+            cout << "dyn. problem" << endl;
+            solver_container[MainSolver]->RungeKutta_TimeInt(geometry, solver_container, config);
+        }
+        break;
+        case(NO):{
+            cout << "static problem" << endl;
+            solver_container[MainSolver]->SolveStatic(geometry, solver_container,config);
+        }
+        break;
+    }
     cout<< "After RK";
+    
     solver_container[MainSolver]->ImplicitNewmark_Update(geometry, solver_container, config);
     /*--- Perform the MPI communication of the solution ---*/
 //    solver_container[MainSolver]->Set_MPI_Solution(geometry, config); //TODO: check this function for modal

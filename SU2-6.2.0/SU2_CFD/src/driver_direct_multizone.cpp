@@ -287,7 +287,6 @@ void CMultizoneDriver::Run_GaussSeidel() {
   unsigned long OuterIter = 0; 
   for (iZone = 0; iZone < nZone; iZone++) config_container[iZone]->SetOuterIter(OuterIter);
 
-
   /*--- Loop over the number of outer iterations ---*/
   for (iOuter_Iter = 0; iOuter_Iter < driver_config->GetnOuter_Iter(); iOuter_Iter++){
     cout << "\n\n run GS main outer iteration " << iOuter_Iter <<"\n\n";
@@ -295,46 +294,42 @@ void CMultizoneDriver::Run_GaussSeidel() {
     for (iZone = 0; iZone < nZone; iZone++){
 
       /*--- In principle, the mesh does not need to be updated ---*/
-      UpdateMesh = 0;
-    cout << "\n\n run GS: zone --> " << iZone <<"\n(Fluid: zone 0; Structure: zone 1)\n\n";
+        UpdateMesh = 0;
+        cout << "\n\n run GS: zone --> " << iZone <<"\n(Fluid: zone 0; Structure: zone 1)\n\n";
 
-      /*--- Set the OuterIter ---*/
-      config_container[iZone]->SetOuterIter(iOuter_Iter);
+        /*--- Set the OuterIter ---*/
+        config_container[iZone]->SetOuterIter(iOuter_Iter);
         cout << "completed SetOuterIter\n";
 //         if(iOuter_Iter > 1) exit(0);
         
-      /*--- Transfer from all the remaining zones ---*/
-      for (jZone = 0; jZone < nZone; jZone++){
-        /*--- The target zone is iZone ---*/
-        if (jZone != iZone){
-            cout << "\n\n run GS trasfer data:";
-            if(jZone == 0) cout << " donor=fluid; target=structure\n\n";
-            if(jZone == 1) cout << " donor=structure; target=fluid\n\n";
-            DeformMesh = Transfer_Data(jZone, iZone);
-            cout << "finish data transfer\n";
-            if (DeformMesh) UpdateMesh+=1;
+        /*--- Transfer from all the remaining zones ---*/
+        for (jZone = 0; jZone < nZone; jZone++){
+            /*--- The target zone is iZone ---*/
+            if (jZone != iZone){
+                cout << "\n\n run GS trasfer data:";
+                if(jZone == 0) cout << " donor=fluid; target=structure\n\n";
+                if(jZone == 1) cout << " donor=structure; target=fluid\n\n";
+                DeformMesh = Transfer_Data(jZone, iZone);
+                cout << "finish data transfer\n";
+                if (DeformMesh) UpdateMesh+=1;
+            }
         }
-      }
-      /*--- If a mesh update is required due to the transfer of data ---*/
-    cout << "\n\n run GS dynupdatemesh --> " << iZone <<" updatemesh= " << UpdateMesh <<"\n";
-      if (UpdateMesh > 0) DynamicMeshUpdate(iZone, ExtIter);
+        /*--- If a mesh update is required due to the transfer of data ---*/
+        cout << "\n\n run GS dynupdatemesh --> " << iZone <<" updatemesh= " << UpdateMesh <<"\n";
+        if (UpdateMesh > 0) DynamicMeshUpdate(iZone, ExtIter);
 
 
-      /*--- Iterate the zone as a block, either to convergence or to a max number of iterations ---*/
-      for (iInst = 0; iInst < nInst[iZone]; iInst++) {
-          cout << "\n\n run GS iteration->solve --> " << iZone << "\n(Fluid: zone 0; Structure: zone 1)\n";
-          iteration_container[iZone][iInst]->Solve(output, integration_container, geometry_container, solver_container,
-                                                   numerics_container, config_container, surface_movement,
-                                                   grid_movement, FFDBox, iZone, iInst);
-          cout << "\n\n completed iteration->solve\n";
+        /*--- Iterate the zone as a block, either to convergence or to a max number of iterations ---*/
+        for (iInst = 0; iInst < nInst[iZone]; iInst++) {
+            cout << "\n\n run GS iteration->solve --> " << iZone << "\n(Fluid: zone 0; Structure: zone 1)\n";
+            iteration_container[iZone][iInst]->Solve(output, integration_container, geometry_container, solver_container,numerics_container, config_container, surface_movement,grid_movement, FFDBox, iZone, iInst);
+            cout << "\n\n completed iteration->solve\n";
 
-          /*--- A corrector step can help preventing numerical instabilities ---*/
-          if (config_container[0]->GetKind_Solver() != FEM_MODAL &&
-              config_container[1]->GetKind_Solver() != FEM_MODAL)
-              Corrector(iZone);
-      }
-    cout<<"iZone :: "<<iZone<<" Modal :: "<<(config_container[iZone][INST_0].GetDynamic_Method() == MODAL_HARMONIC_BALANCE)<<
-            "  Fluid :: "<<(config_container[iZone][INST_0].GetUnsteady_Simulation() == HARMONIC_BALANCE)<<endl;
+            /*--- A corrector step can help preventing numerical instabilities ---*/
+            if (config_container[0]->GetKind_Solver() != FEM_MODAL &&
+              config_container[1]->GetKind_Solver() != FEM_MODAL) Corrector(iZone);
+        }
+
     // Solver Update
     if (config_container[iZone][INST_0].GetUnsteady_Simulation() == HARMONIC_BALANCE)
         FluidHBUpdate(iZone,FLOW_SOL);

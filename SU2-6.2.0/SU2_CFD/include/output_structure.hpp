@@ -233,8 +233,7 @@ public:
    * \param[in] val_iZone - Total number of domains in the grid file.
    * \param[in] val_nZone - Total number of domains in the grid file.
    */
-  void SetResult_Files(CSolver *****solver_container, CGeometry ****geometry, CConfig **config,
-                       unsigned long iExtIter, unsigned short val_nZone);
+  void SetResult_Files(CSolver *****solver_container, CGeometry ****geometry, CConfig **config,unsigned long iExtIter, unsigned short val_nZone);
   
   /*!
    * \brief Writes and organizes the all the output files, except the history one, for serial computations with the FEM solver.

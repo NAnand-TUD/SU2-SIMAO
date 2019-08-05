@@ -5543,10 +5543,11 @@ void CModalSolver::ReadCSD_Mesh_Nastran(CConfig *config,CGeometry *geometry){
     
     generalizedDisplacement   = new su2double *[nModes];
     generalizedVelocity       = new su2double *[nModes];
+    StructRes                 = new su2double [2*nModes];
     
     for (iMode=0; iMode < nModes; ++iMode) generalizedDisplacement[iMode]   = new su2double [3];
     for (iMode=0; iMode < nModes; ++iMode) generalizedVelocity[iMode]       = new su2double [3];
-
+    
     InitializeCSDVars(geometry,config);
     
     for (iPoint = 0; iPoint < nPoint; iPoint++) {
@@ -5558,11 +5559,13 @@ void CModalSolver::ReadCSD_Mesh_Nastran(CConfig *config,CGeometry *geometry){
 		istringstream iss(line); 
 		iss >> frequency;
 		omega[iMode] = 2.0*PI_NUMBER*frequency*refLength/(Uinf); //frequency;
-		cout<< "vel_inf: " << Uinf << "; Omega :: "<<omega[iMode]<<" Freq ::"<<  frequency<<endl;
+		cout<< "\nvel_inf: " << Uinf << "; Omega :: "<< omega[iMode] 
+		<< "; Omega^2 :: " << omega[iMode]*omega[iMode] <<  "; Freq ::"<<  frequency<<endl;
 		iss.clear();
 	}
 
 	for (iMode=0; iMode < nModes; ++iMode) {
+        cout << "Mode: " << iMode+1 << "\nX\t\tY\t\tZ\n";
 		for (iPoint = 0 ; iPoint < nPoint; iPoint++) {
 			getline(mode_file, line);
 			istringstream iss(line); 
@@ -5570,20 +5573,15 @@ void CModalSolver::ReadCSD_Mesh_Nastran(CConfig *config,CGeometry *geometry){
             XV[iPoint] = Coord_3D[0]/refLength;
             YV[iPoint] = Coord_3D[1]/refLength;
             ZV[iPoint] = Coord_3D[2]/refLength;
-            
-            for(iDim=0; iDim < nDim; ++iDim) node[iPoint]->SetModeVector(iMode,iDim,Coord_3D[iDim]);
-            iss.clear();    //WARNING: why is this not scaled with refLength?
+            cout << XV[iPoint] << "\t"<< YV[iPoint] << "\t"<< ZV[iPoint] << "\n";
+            for(iDim=0; iDim < nDim; ++iDim) node[iPoint]->SetModeVector(iMode,iDim,Coord_3D[iDim]/refLength);
+            iss.clear();
 		}
+
 		for (iPoint = 0 ; iPoint < nPoint; iPoint++) modeShapes.push_back(XV[iPoint]);
         for (iPoint = 0 ; iPoint < nPoint; iPoint++) modeShapes.push_back(YV[iPoint]);
         for (iPoint = 0 ; iPoint < nPoint; iPoint++) modeShapes.push_back(ZV[iPoint]);
 	}
-
-	cout << "Mode \tFrequency\tGen. Displacement\tGen. Velocity" << endl;
-
-	for (iMode=0; iMode < nModes; ++iMode) {
-        cout << iMode+1 << "\t" << omega[iMode] << "\t" << generalizedDisplacement[iMode][0] << "\t" << generalizedVelocity[iMode][0] << endl;
-    }
 
 	mode_file.close();
     
@@ -5597,55 +5595,10 @@ void CModalSolver::ReadCSD_Mesh_Nastran(CConfig *config,CGeometry *geometry){
 
     // --- initialize state-space matrices ---//
     Initialize_StateSpace_Matrices(0);
-    
-//     su2double *Ctmp;
-// //     Cmatrix = new su2double[nModes*nModes];
-//     Cmatrix = (su2double *) malloc( nModes*nModes*sizeof(su2double) );
-//     unsigned long i,j;
-//     for ( j = 0; j < nModes; j++ )
-//     {
-//       for ( i = 0; i < nModes; i++ )
-//       {
-//         Cmatrix[i+j*nModes] = ( su2double ) ( 10 * ( i + 1 ) + ( j + 1 ) );
-//       }
-//     }
-//     const su2double *Atmp = &(Ass[0]);
-//     const su2double *Btmp = &(Bss[0]);
-//     Ctmp = (su2double *) malloc( nModes*2*nModes*sizeof(su2double) );
-// 
-//     cout << "\n\n  Blas matrix multiplication C matrix\n\nCol:    ";    
-//     // test
-//     dgemm('n','n',2*nModes, nModes, 2*nModes, 1.0L, Ass, 2*nModes, Bss, 2*nModes, 0.L, Ctmp, 2*nModes );
-//   
-//     //  Write the header.
-//     for (int j = 0; j < nModes; j++ )
-//     {
-//       cout << setw(7) << j << "       ";
-//     }
-//     cout << "\n";
-//     cout << "  Row\n";
-//     cout << "\n";
-//     for ( int i = 0; i < 2*nModes; i++ )
-//     {
-//       for ( int j = 0; j < nModes; j++ ) cout << setw(12) << Ctmp[i+j*2*nModes] << "  ";
-//       cout << "\n";
-//     }
-//     su2double *x, *y;
-//     x = new su2double[2*nModes];
-//     y = new su2double[2*nModes];
-//     for (int i = 0; i < 2*nModes; i++ ) x[i] = ( su2double ) ( i + 1 );
-//   
-//     bool trans = false;
-//     dgemv( trans, 2*nModes,2*nModes, 1.0, Ass,2*nModes,x,1,0.,y, 1 );
-//     for ( int j = 0; j < 2*nModes; j++ ) cout << setw(5) << x[j] << " ";
-//     cout << endl;
-//     for ( int j = 0; j < 2*nModes; j++ ) cout << setw(5) << y[j] << " ";
-//     cout << endl;
-//     exit(0);
-    
-    for (iMode=0; iMode < nModes; ++iMode) cout << "X0\t\tV0\n";
+       
+    for (iMode=0; iMode < nModes; ++iMode) cout << "Disp.\t\tVels.\n";
     for (iMode=0; iMode < nModes; ++iMode) cout << generalizedDisplacement[iMode][0] << "\t" << generalizedVelocity[iMode][0] << endl;
-    //--- SPM ---//
+
     delete [] XV;
     delete [] YV;
     delete [] ZV;
@@ -5780,6 +5733,9 @@ void CModalSolver::RungeKutta_TimeInt(CGeometry *geometry, CSolver **solver_cont
                                                        rkcoeff[1] * irk2[ind] + rkcoeff[2] * irk3[ind] +
                                                        rkcoeff[3] * irk4[ind]);
             }
+            
+            UpdateStructuralNodes();
+            
             delete [] irk1;
             delete [] irk2;
             delete [] irk3;
@@ -5804,9 +5760,12 @@ void CModalSolver::RungeKutta_TimeInt(CGeometry *geometry, CSolver **solver_cont
                           omega[iMode] * omega[iMode] * generalizedDisplacement[iMode][0] -
                           DampingRatio * omega[iMode] * omega[iMode] * generalizedVelocity[iMode][0];
 
-                qsol[2 * iMode] = generalizedDisplacement[iMode][1] + ONE2 * dt * (irk2[0] + irk1[0]);
-                qsol[2 * iMode + 1] = generalizedVelocity[iMode][1] + ONE2 * dt * (irk2[1] + irk1[1]);
+                qsol[2 * iMode] = generalizedDisplacement[iMode][0] + ONE2 * dt * (irk2[0] + irk1[0]);
+                qsol[2 * iMode + 1] = generalizedVelocity[iMode][0] + ONE2 * dt * (irk2[1] + irk1[1]);
             }
+            
+            UpdateStructuralNodes();
+            
             // Update old and new solution
             for (iMode = 0; iMode < nModes; ++iMode) {
                 generalizedDisplacement[iMode][1] = generalizedDisplacement[iMode][0];
@@ -5819,10 +5778,13 @@ void CModalSolver::RungeKutta_TimeInt(CGeometry *geometry, CSolver **solver_cont
             delete [] irk2;
             break;
 
-        case (IMPLICIT):
-        {
+        case (IMPLICIT):{
             dgemv(trans,2*nModes,2*nModes,1.0,Ass,2*nModes,qsol,1,0.,yout, 1 );
-            for(iMode = 0; iMode < 2*nModes; ++iMode) qsol[iMode] = yout[iMode] + ForceVec[iMode];
+            for(iMode = 0; iMode < 2*nModes; ++iMode) qsol[iMode] = yout[iMode] + 
+            ForceVec[iMode];
+            
+            UpdateStructuralNodes();
+            
             for( iMode = 0; iMode < nModes; ++iMode) {
                 generalizedDisplacement[iMode][1]   = generalizedDisplacement[iMode][0];
                 generalizedVelocity[iMode][1]       = generalizedVelocity[iMode][0];
@@ -5833,8 +5795,6 @@ void CModalSolver::RungeKutta_TimeInt(CGeometry *geometry, CSolver **solver_cont
             break;
 
         }
-
-        UpdateStructuralNodes();
 
 //     for( iMode = 0; iMode < nModes; ++iMode) generalizedDisplacement[iMode][0] = 0;
 //     for( iMode = 0; iMode < nModes; ++iMode) generalizedVelocity[iMode][0] = 0;
@@ -5848,123 +5808,47 @@ void CModalSolver::SolveStatic(CGeometry *geometry, CSolver **solver_container, 
 
     unsigned short iMode, iDim, irk, nStage,ind;
     su2double *qsol,*dy,*ForceVec;
-    su2double *irk1,*irk2,*irk3,*irk4,*yout;
-    su2double rkcoeff[4] = {0.0, 0.0, 0.0, 0.0};
-    bool trans = false;
-    su2double dt = config->GetTime_Step();
+
     su2double flutter_index = config->GetAeroelastic_Flutter_Speed_Index();
     
-    qsol    = new su2double[2*nModes];
-    dy      = new su2double[2*nModes];
-    yout    = new su2double[2*nModes];
-    ForceVec= new su2double[2*nModes];
+//     qsol    = new su2double[2*nModes];
+//     dy      = new su2double[2*nModes];
+//     yout    = new su2double[2*nModes];
+//     ForceVec= new su2double[2*nModes];
 
     cout << "solving structural static displacement using 2-stage RK method "<< endl;
 
     // Get the modal forces from the interpolation
     ComputeModalFluidForces(geometry, config);
 
-    for(iMode = 0; iMode < nModes; ++iMode) qsol[iMode]         = generalizedDisplacement[iMode][0];
-    for(iMode = 0; iMode < nModes; ++iMode) qsol[iMode+nModes]  = generalizedVelocity[iMode][0];
-    for(iMode = 0; iMode < 2*nModes; ++iMode) dy[iMode]         = 0;
-    for(iMode = 0; iMode < 2*nModes; ++iMode) yout[iMode]       = 0;
-
+    su2double massRatio = refLength/(Uinf*Uinf); //.065*refLength*refLength*refLength*refLength*refLength;
+    su2double DampingRatio = 0.0;
+        cout << "compute structural residual\n";
+        
     for(iMode = 0; iMode < nModes; ++iMode) {
-        ForceVec[iMode]             = 0;
-        ForceVec[iMode+nModes]      = flutter_index*modalForce[iMode]*Bss[nModes+iMode + iMode*2*nModes];
+        StructRes[2*iMode]  = generalizedVelocity[iMode][0];
+        StructRes[2*iMode+1]= massRatio*(modalForce[iMode] - modalForceLast[iMode]) - omega[iMode]*omega[iMode]*generalizedDisplacement[iMode][0] - DampingRatio*omega[iMode]*generalizedVelocity[iMode][0];
     }
-    // R-K number of stages and coefficients
-    cout << "rk scheme: " << config->GetKind_TimeIntScheme_FEA() << endl;
-    switch (config->GetKind_TimeIntScheme_FEA()){
-        case (RK4): {
-            cout << "rk here0\n";
-            rkcoeff[0] = rkcoeff[3] = 0.16666666666666666;
-            rkcoeff[1] = rkcoeff[2] = 0.33333333333333;
-            irk1 = new su2double[2 * nModes];
-            irk2 = new su2double[2 * nModes];
-            irk3 = new su2double[2 * nModes];
-            irk4 = new su2double[2 * nModes];
-            cout << "rk here\n";
-            //rk1    
-            dgemv(trans, 2 * nModes, 2 * nModes, 1.0, Ass, 2 * nModes, qsol, 1, 0., yout, 1);
-            for (iMode = 0; iMode < 2 * nModes; ++iMode) irk1[iMode] = yout[iMode] + ForceVec[iMode];
-            for (iMode = 0; iMode < 2 * nModes; ++iMode) yout[iMode] = 0;
-
-            //rk2
-            for (iMode = 0; iMode < 2 * nModes; ++iMode) dy[iMode] = qsol[iMode] + ONE2 * dt * irk1[iMode];
-            dgemv(false, 2 * nModes, 2 * nModes, 1.0, Ass, 2 * nModes, dy, 1, 0., yout, 1);
-            for (iMode = 0; iMode < 2 * nModes; ++iMode) irk2[iMode] = yout[iMode] + ForceVec[iMode];
-            for (iMode = 0; iMode < 2 * nModes; ++iMode) yout[iMode] = 0;
-
-            //rk3
-            for (iMode = 0; iMode < 2 * nModes; ++iMode) dy[iMode] = qsol[iMode] + ONE2 * dt * irk2[iMode];
-            dgemv(false, 2 * nModes, 2 * nModes, 1.0, Ass, 2 * nModes, dy, 1, 0., yout, 1);
-            for (iMode = 0; iMode < 2 * nModes; ++iMode) irk3[iMode] = yout[iMode] + ForceVec[iMode];
-            for (iMode = 0; iMode < 2 * nModes; ++iMode) yout[iMode] = 0;
-
-            //rk4
-            for (iMode = 0; iMode < 2 * nModes; ++iMode) dy[iMode] = qsol[iMode] + ONE2 * dt * irk3[iMode];
-            dgemv(false, 2 * nModes, 2 * nModes, 1.0, Ass, 2 * nModes, dy, 1, 0., yout, 1);
-            for (iMode = 0; iMode < 2 * nModes; ++iMode) irk4[iMode] = yout[iMode] + ForceVec[iMode];
-
-            for (iMode = 0; iMode < nModes; ++iMode) {
-                generalizedDisplacement[iMode][1] = generalizedDisplacement[iMode][0];
-                generalizedVelocity[iMode][1] = generalizedVelocity[iMode][0];
-                //
-                generalizedDisplacement[iMode][0] += dt * (rkcoeff[0] * irk1[iMode] +
-                                                           rkcoeff[1] * irk2[iMode] + rkcoeff[2] * irk3[iMode] +
-                                                           rkcoeff[3] * irk4[iMode]);
-                ind = iMode + nModes;
-                generalizedVelocity[iMode][0] += dt * (rkcoeff[0] * irk1[ind] +
-                                                       rkcoeff[1] * irk2[ind] + rkcoeff[2] * irk3[ind] +
-                                                       rkcoeff[3] * irk4[ind]);
-            }
-        }
-        break;
-        case (RK2): {
-            rkcoeff[0] = 0.5;
-            rkcoeff[1] = 0.5;
-            irk1 = new su2double[2 * nModes];
-            irk2 = new su2double[2 * nModes];
-            su2double DampingRatio = 0;
-            su2double massRatio = 0.065 * refLength * refLength * refLength * refLength * refLength;
-            for (iMode = 0; iMode < nModes; ++iMode) {
-                irk1[0] = generalizedVelocity[iMode][1];
-                irk1[1] = massRatio * modalForceLast[iMode] -
-                          omega[iMode] * omega[iMode] * generalizedDisplacement[iMode][1] -
-                          DampingRatio * omega[iMode] * omega[iMode] * generalizedVelocity[iMode][1];
-
-                irk2[0] = generalizedVelocity[iMode][0];
-                irk2[1] = massRatio * modalForce[iMode] -
-                          omega[iMode] * omega[iMode] * generalizedDisplacement[iMode][0] -
-                          DampingRatio * omega[iMode] * omega[iMode] * generalizedVelocity[iMode][0];
-
-                qsol[2 * iMode] = generalizedDisplacement[iMode][1] + ONE2 * dt * (irk2[0] + irk1[0]);
-                qsol[2 * iMode + 1] = generalizedVelocity[iMode][1] + ONE2 * dt * (irk2[1] + irk1[1]);
-            }
-            // Update old and new solution
-            for (iMode = 0; iMode < nModes; ++iMode) {
-                generalizedDisplacement[iMode][1] = generalizedDisplacement[iMode][0];
-                generalizedVelocity[iMode][1] = generalizedVelocity[iMode][0];
-                generalizedDisplacement[iMode][0] = qsol[2 * iMode];
-                generalizedVelocity[iMode][0] = qsol[2 * iMode + 1];
-            }
-        }
-        break;
-        }
-
-        UpdateStructuralNodes();
-
-//     for( iMode = 0; iMode < nModes; ++iMode) generalizedDisplacement[iMode][0] = 0;
-//     for( iMode = 0; iMode < nModes; ++iMode) generalizedVelocity[iMode][0] = 0;
+    cout << "compute new displacement\n";
+    for (iMode = 0; iMode < nModes; ++iMode){
+        generalizedDisplacement[iMode][0] = 0.95*generalizedDisplacement[iMode][0] + 0.05*massRatio*modalForce[iMode]/(omega[iMode]*omega[iMode]);
+        cout << "mode\tdisp\tvel\tfreq\tforce\tmass ratio\n"; 
+        cout << iMode << "\t" << generalizedDisplacement[iMode][0] << "\t" <<  generalizedVelocity[iMode][0] << "\t" << omega[iMode] << "\t" << modalForce[iMode] << "\t" << massRatio << endl;
+	}
     
-    delete [] qsol;
-    delete [] irk1;
-    delete [] irk2;
-    delete [] irk3;
-    delete [] irk4;
-    delete [] dy;
-    delete [] yout;
+    cout << "update previous solution\n";
+    
+    cout << "update nodes" << endl;
+    UpdateStructuralNodes();
+    cout << "nodes position updated" << endl;
+    // Update old and new solution
+    for( iMode = 0; iMode < nModes; ++iMode) {
+        generalizedDisplacement[iMode][1]   = generalizedDisplacement[iMode][0];
+        generalizedVelocity[iMode][1]       = generalizedVelocity[iMode][0];
+    }
+//     delete [] qsol;
+//     delete [] dy;
+//     delete [] yout;
 }
 
 void CModalSolver::UpdateStructuralNodes() {
@@ -5974,8 +5858,8 @@ void CModalSolver::UpdateStructuralNodes() {
     su2double delta, solutionValue;
 
     // Initialization of the Solution variables
-    for(iPoint = 0; iPoint < nPoint; ++iPoint) node[iPoint]->SetSolution_time_n();
-    for(iPoint = 0; iPoint < nPoint; ++iPoint) node[iPoint]->SetSolution_Vel_time_n();
+//     for(iPoint = 0; iPoint < nPoint; ++iPoint) node[iPoint]->SetSolution_time_n();
+//     for(iPoint = 0; iPoint < nPoint; ++iPoint) node[iPoint]->SetSolution_Vel_time_n();
     for(iPoint = 0; iPoint < nPoint; ++iPoint)
         for(iDim = 0; iDim < nDim; ++iDim) node[iPoint]->SetSolution(iDim,0.0);
     for(iPoint = 0; iPoint < nPoint; ++iPoint)
@@ -5984,20 +5868,34 @@ void CModalSolver::UpdateStructuralNodes() {
     // Loop over nodes to calculate the Gen. Disp. and Gen. Vel.
     for(iMode = 0; iMode < nModes; ++iMode) {
         delta = generalizedDisplacement[iMode][0] - generalizedDisplacement[iMode][1];
+//         cout << "Mode delta= " << delta << endl;
         for(iPoint = 0; iPoint < nPoint; ++iPoint) {
+//             cout << "point[" << iPoint << "] => ";
             for(iDim = 0; iDim < nDim; ++iDim) {
                 solutionValue = delta*node[iPoint]->GetModeVector(iMode,iDim);
                 node[iPoint]->Add_DeltaSolution(iDim,solutionValue);
+//                 cout << "delta[" << iDim << "]= " << solutionValue << ", ";
             }
+            cout << endl;
         }
+
         // repeat to update velocities
         delta = generalizedVelocity[iMode][0] - generalizedVelocity[iMode][1];
+        cout << "delta2= " << delta << endl;
         for(iPoint = 0; iPoint < nPoint; ++iPoint) {
             for(iDim = 0; iDim < nDim; ++iDim) {
                 solutionValue = delta*node[iPoint]->GetModeVector(iMode,iDim);
                 node[iPoint]->Add_DeltaVelSolution(iDim,solutionValue);
             }
         }
+    }
+    
+    for(iPoint = 0; iPoint < nPoint; ++iPoint) {
+        cout << "point[" << iPoint << "] => ";
+        for(iDim = 0; iDim < nDim; ++iDim) {
+            cout << node[iPoint]->GetSolution(iDim) << "\t";
+        }
+        cout << endl;
     }
 }
 
@@ -6117,6 +6015,7 @@ void CModalSolver::ComputeModalFluidForces(CGeometry *geometry, CConfig *config)
       }
     }
   }
+  cout << "finished with points\n";
 #ifdef HAVE_MPI
   /*--- Perform a global reduction, every rank will get the nodal values of all halo elements ---*/
   /*--- This should be cheaper than the "normal" way, since very few points are both halo and interface ---*/
@@ -6199,15 +6098,24 @@ void CModalSolver::ComputeModalFluidForces(CGeometry *geometry, CConfig *config)
         modalForce[iMode] = 0.0;
     }
 
-    su2double ScaleFactor = 1.225 *  pow(0.463,5);
-        // compute new value
+    cout << "projecting force\n";
     for(iMode = 0; iMode < nModes; ++iMode){
         for(iPoint = 0; iPoint < nPoint; ++iPoint){
-             for(iDim = 0; iDim < nDim; ++iDim){      
+//             cout << "node: " << iPoint << " - Mode ";
+//             for(iDim = 0; iDim < nDim; ++iDim) cout << node[iPoint]->GetModeVector(iMode,iDim) << "\t";
+//             cout << "; Force  ";
+//             for(iDim = 0; iDim < nDim; ++iDim) cout << node[iPoint]->Get_FlowTraction(iDim) << "\t";
+//             cout << endl;
+            for(iDim = 0; iDim < nDim; ++iDim){
                 modalForce[iMode] += node[iPoint]->GetModeVector(iMode,iDim)*node[iPoint]->Get_FlowTraction(iDim);
             }
         }
     }
+    cout << "Mode\tForce\n";
+    for(iMode = 0; iMode < nModes; ++iMode){
+        cout << iMode << "\t" << modalForce[iMode] << endl;
+    }
+
 }
 
 void CModalSolver::Postprocessing(CGeometry *geometry, CSolver **solver_container, CConfig *config,  CNumerics **numerics,unsigned short iMesh) {
@@ -6229,7 +6137,7 @@ void CModalSolver::Postprocessing(CGeometry *geometry, CSolver **solver_containe
         cout <<"Mode " << iMode+1 << "\t";
         dq      = generalizedDisplacement[iMode][0] - generalizedDisplacement[iMode][1];
         dqdot   = generalizedVelocity[iMode][0] - generalizedVelocity[iMode][1];
-        cout << dq << "\t" << dqdot << endl;
+        cout << setw(7) << dq << "\t" << dqdot << endl;
     }
     
     return;    
@@ -6241,8 +6149,8 @@ void CModalSolver::SetInitialCondition(CGeometry **geometry, CSolver ***solver_c
   bool incremental_load = config->GetIncrementalLoad();              // If an incremental load is applied
   
   //set initial velocities
-  for(iMode = 0; iMode < nModes; ++iMode) generalizedVelocity[iMode][0] = 1e-2;
-  for(iMode = 0; iMode < nModes; ++iMode) generalizedVelocity[iMode][1] = 1e-2;
+  for(iMode = 0; iMode < nModes; ++iMode) generalizedDisplacement[iMode][0] = 0;
+  for(iMode = 0; iMode < nModes; ++iMode) generalizedVelocity[iMode][1]     = 0; //1e-2;
 
   if (config->GetDynamic_Method()==MODAL_HARMONIC_BALANCE){
       QSolVector = new su2double[2*nModes];
@@ -6259,13 +6167,15 @@ void CModalSolver::SetInitialCondition(CGeometry **geometry, CSolver ***solver_c
 
 void CModalSolver::InitializeCSDVars(CGeometry *geometry,CConfig *config) {
   
-  unsigned short iMode, i, j;
+  unsigned short iMode, i;
   
   //perturb all modes velocities
-  for(iMode = 0; iMode < nModes; ++iMode) generalizedVelocity[iMode][0] = 1e-4;
-  for(iMode = 0; iMode < nModes; ++iMode) generalizedVelocity[iMode][1] = 1e-4;
-  for(iMode = 0; iMode < nModes; ++iMode) generalizedVelocity[iMode][2] = 1e-4;
-    
+  for(iMode = 0; iMode < nModes; ++iMode) generalizedVelocity[iMode][0] = 0;//1e-4;
+  for(iMode = 0; iMode < nModes; ++iMode) generalizedVelocity[iMode][1] = 0;//1e-4;
+  for(iMode = 0; iMode < nModes; ++iMode) generalizedVelocity[iMode][2] = 0;//1e-4;
+
+  for(i = 0; i < 2*nModes; ++i) StructRes[i] = 0;
+  
   if (config->GetDynamic_Method()==MODAL_HARMONIC_BALANCE){
       QSolVector = new su2double[2*nModes];
       QSolVector_Old = new su2double[2*nModes];
@@ -6500,11 +6410,11 @@ void CModalSolver::Initialize_StateSpace_Matrices(unsigned short nInst) {
     for ( j = 0; j < nModes; j++ )   //loop over cols
     {
         for ( i = nModes; i < m; i++ ) {
-            if (i == j+nModes) Bss[i+j*m] = Qinf/(Uinf*Uinf); //rows
+            if (i == j+nModes) Bss[i+j*m] = refLength/(Uinf*Uinf); //rows
         }
     }
     //  Write the header.
-    cout << " \n Bs Matrix " << Uinf << "\t" << Qinf << "\n\nCol:    ";
+    cout << " \n Bs Matrix " << refLength << "\t" << Uinf << "\t" << Qinf << "\n\nCol:    ";
     for ( j = 0; j < nModes; j++ )
     {
       cout << setw(7) << j << "       ";

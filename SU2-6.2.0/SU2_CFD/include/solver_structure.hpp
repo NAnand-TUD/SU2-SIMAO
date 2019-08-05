@@ -4411,6 +4411,8 @@ public:
    */
   virtual void ReadCSD_Mesh(CConfig *config);
   
+  virtual void SolveStatic(CGeometry *geometry, CSolver **solver_container, CConfig *config);
+  
   /*!
    * \brief A virtual member.
    * \param[in] geometry - Geometrical definition of the problem.
@@ -15885,6 +15887,7 @@ private:
     *stiffness,						/*!< \brief structural modal stiffness matrix */
     *modalForce,                    /*!< \brief fluid force projected onto modes at current time level */
     *modalForceLast,				/*!< \brief fluid force projected onto modes at current time level t-1 */
+    *StructRes,                     /*!< \brief Structural Residual */
     **generalizedDisplacement,		/*!< \brief generalized displacement */
     **generalizedVelocity,			/*!< \brief generalized velocity */
     *SolRest;			            /*!< \brief generalized displacement solution for restarts */
@@ -15969,8 +15972,20 @@ public:
     
     void Initialize_StateSpace_Matrices(unsigned short);
 
+    /*!
+    * \brief Structural solution for dynamic aeroelastic case
+    * \param[in] geometry - Geometrical definition of the problem.
+    * \param[in] solver - solver
+    * \param[in] config - Definition of the particular problem.
+    */
     void RungeKutta_TimeInt(CGeometry *geometry, CSolver **solver_container, CConfig *config);
-
+    
+    /*!
+    * \brief Structural solution for aerostatic case
+    * \param[in] geometry - Geometrical definition of the problem.
+    * \param[in] solver - solver
+    * \param[in] config - Definition of the particular problem.
+    */
     void SolveStatic(CGeometry *geometry, CSolver **solver_container, CConfig *config);
     
     /*!

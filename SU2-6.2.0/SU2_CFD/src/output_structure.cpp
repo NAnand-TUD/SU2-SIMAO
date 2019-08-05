@@ -5220,6 +5220,7 @@ void COutput::SetConvHistory_Body(ofstream *ConvHist_file,
             modalDisplacement[iMode] = solver_container[val_iZone][val_iInst][FinestMesh][MODAL_SOL]->getGeneralizedDisplacement(iMode);
             modalVelocity[iMode] = solver_container[val_iZone][val_iInst][FinestMesh][MODAL_SOL]->getGeneralizedVelocity(iMode);
         }
+        break;
     }
   
     if (extra_heat_output) {

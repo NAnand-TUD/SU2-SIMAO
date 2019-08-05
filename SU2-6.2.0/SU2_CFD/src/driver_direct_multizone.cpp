@@ -752,7 +752,7 @@ bool CMultizoneDriver::Transfer_Data(unsigned short donorZone, unsigned short ta
   else if (transfer_types[donorZone][targetZone] == STRUCTURAL_DISPLACEMENTS){
       if(config_container[donorZone]->GetKind_Solver() == FEM_MODAL) {
         cout << "\n\ntransfer data: CSD structural displacements\n Disp \t\t Vels\n" << endl;
-        for (unsigned short iMode=0; iMode < 4; ++iMode){
+        for (unsigned short iMode=0; iMode < config_container[donorZone]->GetNumberOfModes(); ++iMode){
             cout << solver_container[donorZone][INST_0][MESH_0][MODAL_SOL]->getGeneralizedDisplacement(iMode) <<
             "\t" << solver_container[donorZone][INST_0][MESH_0][MODAL_SOL]->getGeneralizedVelocity(iMode) << endl;
         }

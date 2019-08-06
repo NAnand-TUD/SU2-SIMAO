@@ -2355,7 +2355,7 @@ found = Variable_Names[iField].find("_z");
             }
           } else {
             for (iPoint = 0; iPoint < nParallel_Poin; iPoint++) {
-                cout << "var count: " << VarCounter << endl;
+                cout << "var count: "<< iPoint<<" "<< Parallel_Data[VarCounter+0][iPoint] << "\t" << Parallel_Data[VarCounter+1][iPoint]<< "\t" << Parallel_Data[VarCounter+1][iPoint] << "\n";
               Paraview_File << scientific << Parallel_Data[VarCounter+0][iPoint] << "\t" << Parallel_Data[VarCounter+1][iPoint] << "\t";
               if (nDim == 3 && Kind_Solver != FEM_MODAL) {
                   Paraview_File << scientific << "0.0" << "\t";

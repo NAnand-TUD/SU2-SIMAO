@@ -14635,7 +14635,7 @@ void COutput::LoadLocalData_Modal(CConfig *config, CGeometry *geometry, CSolver 
         case FEM_MODAL: FirstIndex = MODAL_SOL; break;
     }
 
-    nVar_First = solver[FirstIndex]->GetnVar();
+    nVar_First = 3;//solver[FirstIndex]->GetnVar();
     nVar_Consv_Par = nVar_First;
 
     /*--------------------------------------------------------------------------*/
@@ -14657,7 +14657,7 @@ void COutput::LoadLocalData_Modal(CConfig *config, CGeometry *geometry, CSolver 
 
     /*--- At a mininum, the restarts and visualization files need the
      conservative variables, so these follow next. ---*/
-
+    cout<<"nVar_Consv_Par :: "<<nVar_Consv_Par<<endl;
     nVar_Par += nVar_Consv_Par;
 
     /*--- For now, leave the names as "Conservative_", etc., in order
@@ -14809,7 +14809,7 @@ void COutput::LoadLocalData_Modal(CConfig *config, CGeometry *geometry, CSolver 
     
     /*--- Free memory for auxiliary vectors. ---*/
     delete [] Local_Halo;
-    cout << "finished loading MODAL data\n";
+    cout << "finished loading MODAL data :: nVar_par :: "<<nVar_Par<<"\n";
 }
 
 void COutput::SortConnectivity(CConfig *config, CGeometry *geometry, unsigned short val_iZone) {
@@ -16053,7 +16053,7 @@ void COutput::SortOutputData(CConfig *config, CGeometry *geometry) {
   
   int VARS_PER_POINT = nVar_Par;
   int *Local_Halo = NULL;
-
+    cout<<"VARS_PER_POINT :: "<<VARS_PER_POINT<<endl;
   unsigned long *npoint_procs  = NULL;
   unsigned long *starting_node = NULL;
   unsigned long *ending_node   = NULL;
@@ -16260,6 +16260,8 @@ void COutput::SortOutputData(CConfig *config, CGeometry *geometry) {
       /*--- Get the index of the current point. ---*/
       
       Global_Index = geometry->node[iPoint]->GetGlobalIndex();
+
+//      cout<<"16264 :: iPoint "<<iPoint<<":: Z-Disp :: "<<Local_Data[iPoint][5]<<endl;
       
       /*--- Search for the processor that owns this point. ---*/
       
@@ -16282,7 +16284,7 @@ void COutput::SortOutputData(CConfig *config, CGeometry *geometry) {
         
         for (unsigned short kk = 0; kk < VARS_PER_POINT; kk++) {
           connSend[nn] = Local_Data[iPoint][kk]; nn++;
-//           cout << Local_Data[iPoint][kk] << "\t";
+//          cout<<"NN : iPoint :"<<iPoint<<" "<<nn<<" "<<Local_Data[iPoint][kk]<<endl;
         }
 //         cout << endl;
         /*--- Load the global ID (minus offset) for sorting the
@@ -16399,7 +16401,8 @@ void COutput::SortOutputData(CConfig *config, CGeometry *geometry) {
 //   cout << "connRecv\n";
   for (int nn=ll; nn<kk; nn++, mm++) {
       connRecv[mm] = connSend[nn];
-//       cout << connRecv[mm] << "\n";
+//      cout <<"MM " << mm <<" "<< connRecv[mm] << "\n";
+//      cout <<"NN " << nn <<" "<< connSend[nn] << "\n";
   }
 //   cout << endl << endl;
   
@@ -16434,10 +16437,12 @@ void COutput::SortOutputData(CConfig *config, CGeometry *geometry) {
     Parallel_Data[jj] = new su2double[nPoint_Recv[size]];
     for (int ii = 0; ii < nPoint_Recv[size]; ii++) {
       Parallel_Data[jj][idRecv[ii]] = connRecv[ii*VARS_PER_POINT+jj];
-//       cout << jj<< "\t" << idRecv[ii] << "\t" << Parallel_Data[jj][idRecv[ii]] << endl;
+//       cout << ii << "<-i j-> " << jj << "\t" << idRecv[ii] << "\t" << Parallel_Data[jj][idRecv[ii]] << endl;
     }
   }
-  
+
+  for (int jj = 0; jj < 36; jj++)
+      cout<<"Receive Data :: "<<jj<<" "<<connRecv[jj]<<endl;
   /*--- Store the total number of local points my rank has for
    the current section after completing the communications. ---*/
   

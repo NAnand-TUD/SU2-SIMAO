@@ -5574,9 +5574,16 @@ void CModalSolver::ReadCSD_Mesh_Nastran(CConfig *config,CGeometry *geometry){
             YV[iPoint] = Coord_3D[1]/refLength;
             ZV[iPoint] = Coord_3D[2]/refLength;
             cout << XV[iPoint] << "\t"<< YV[iPoint] << "\t"<< ZV[iPoint] << "\n";
-            for(iDim=0; iDim < nDim; ++iDim) node[iPoint]->SetModeVector(iMode,iDim,Coord_3D[iDim]/refLength);
+//            for(iDim=0; iDim < nDim; ++iDim) node[iPoint]->SetModeVector(iMode,iDim,Coord_3D[iDim]/refLength);
             iss.clear();
 		}
+        unsigned short GlobalIndex;
+        for (iPoint=0; iPoint<nPoint; iPoint++) {
+            GlobalIndex = geometry->node[iPoint]->GetGlobalIndex();
+            node[iPoint]->SetModeVector(iMode, 0, XV[GlobalIndex]);
+            node[iPoint]->SetModeVector(iMode, 1, YV[GlobalIndex]);
+            node[iPoint]->SetModeVector(iMode, 2, ZV[GlobalIndex]);
+        }
 
 		for (iPoint = 0 ; iPoint < nPoint; iPoint++) modeShapes.push_back(XV[iPoint]);
         for (iPoint = 0 ; iPoint < nPoint; iPoint++) modeShapes.push_back(YV[iPoint]);
@@ -5586,12 +5593,13 @@ void CModalSolver::ReadCSD_Mesh_Nastran(CConfig *config,CGeometry *geometry){
 	mode_file.close();
     
     //--- scale CSD mesh ---//
-//     for (iPoint = 0 ; iPoint < geometry->GetnPoint(); iPoint++){
-//         for(iDim = 0; iDim < nDim ; ++iDim){
-//             Coord_3D[iDim] = geometry->node[iPoint]->GetCoord(iDim);
+     for (iPoint = 0 ; iPoint < geometry->GetnPoint(); iPoint++) {
+         for(iDim = 0; iDim < nDim ; ++iDim) {
+             Coord_3D[iDim] = geometry->node[iPoint]->GetCoord(iDim);
 //             geometry->node[iPoint]->SetCoord(iDim,Coord_3D[iDim]/refLength);
-//         }
-//     }
+         }
+         cout<<" iPoint "<< geometry->node[iPoint]->GetGlobalIndex() <<" "<< iPoint << " Coord :: "<< Coord_3D[0]<< " "<< Coord_3D[1]<<" "<< Coord_3D[2]<<endl;
+     }
 
     // --- initialize state-space matrices ---//
     Initialize_StateSpace_Matrices(0);
@@ -5658,7 +5666,7 @@ void CModalSolver::RungeKutta_TimeInt(CGeometry *geometry, CSolver **solver_cont
 //     su2double dy[4] = {0.0, 0.0, 0.0, 0.0};
     su2double rkcoeff[4] = {0.0, 0.0, 0.0, 0.0};
     bool trans = false;
-    su2double dt = config->GetTime_Step();
+    su2double dt = config->GetTime_Step(), HB_Source;
     su2double flutter_index = config->GetAeroelastic_Flutter_Speed_Index();
     
     qsol    = new su2double[2*nModes];
@@ -5701,7 +5709,8 @@ void CModalSolver::RungeKutta_TimeInt(CGeometry *geometry, CSolver **solver_cont
 
             //rk1    
             dgemv(trans, 2 * nModes, 2 * nModes, 1.0, Ass, 2 * nModes, qsol, 1, 0., yout, 1);
-            for (iMode = 0; iMode < 2 * nModes; ++iMode) irk1[iMode] = yout[iMode] + ForceVec[iMode];
+//            HB_Source = Get
+            for (iMode = 0; iMode < 2 * nModes; ++iMode) irk1[iMode] = yout[iMode] + ForceVec[iMode] + HB_Source;
             for (iMode = 0; iMode < 2 * nModes; ++iMode) yout[iMode] = 0;
 
             //rk2

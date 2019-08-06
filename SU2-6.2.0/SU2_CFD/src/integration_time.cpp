@@ -1137,12 +1137,12 @@ void CModalIntegration::Modal_Iteration(CGeometry ****geometry, CSolver *****sol
     /*--- Postprocessing ---*/
     //solver_container[iZone][iInst][MESH_0][SolContainer_Position]->Postprocessing(geometry[iZone][iInst][MESH_0], solver_container[iZone][iInst][MESH_0],config[iZone], numerics_container[iZone][iInst][MESH_0][SolContainer_Position],MESH_0);
 
-if (config[iZone]->GetDynamic_Method() == MODAL_HARMONIC_BALANCE) {
-    cout << " modal iteration HB-source integration\n";
-    Source_Integration_Modal(geometry[iZone][iInst][MESH_0], solver_container[iZone][iInst][MESH_0],
-                           numerics_container[iZone][iInst][MESH_0][SolContainer_Position], config[iZone],
-                           RunTime_EqSystem, Iteration);
-}
+//if (config[iZone]->GetDynamic_Method() == MODAL_HARMONIC_BALANCE) {
+//    cout << " modal iteration HB-source integration\n";
+//    Source_Integration_Modal(geometry[iZone][iInst][MESH_0], solver_container[iZone][iInst][MESH_0],
+//                           numerics_container[iZone][iInst][MESH_0][SolContainer_Position], config[iZone],
+//                           RunTime_EqSystem, Iteration);
+//}
 
 //   solver_container[iZone][iInst][MESH_0][SolContainer_Position]->RK2(geometry[iZone][iInst][MESH_0], solver_container[iZone][iInst][MESH_0],config[iZone]);
 

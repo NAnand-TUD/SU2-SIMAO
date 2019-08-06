@@ -14657,7 +14657,7 @@ void COutput::LoadLocalData_Modal(CConfig *config, CGeometry *geometry, CSolver 
 
     /*--- At a mininum, the restarts and visualization files need the
      conservative variables, so these follow next. ---*/
-    cout<<"nVar_Consv_Par :: "<<nVar_Consv_Par<<endl;
+
     nVar_Par += nVar_Consv_Par;
 
     /*--- For now, leave the names as "Conservative_", etc., in order
@@ -14796,13 +14796,10 @@ void COutput::LoadLocalData_Modal(CConfig *config, CGeometry *geometry, CSolver 
 
             /*--- Load the conservative variable states for the mean flow variables.
              If requested, load the limiters and residuals as well. ---*/
-            cout << "local data - " << jPoint << "\t" ;
             for (jVar = 0; jVar < geometry->GetnDim(); jVar++) {
                 Local_Data[jPoint][iVar] = solver[FirstIndex]->node[iPoint]->GetSolution(jVar); //displacements
-                cout << iVar << "\t" << Local_Data[jPoint][iVar]  << "\t";
                 iVar++;
             }
-            cout << endl;
             jPoint++;
         }
     }
@@ -16053,7 +16050,7 @@ void COutput::SortOutputData(CConfig *config, CGeometry *geometry) {
   
   int VARS_PER_POINT = nVar_Par;
   int *Local_Halo = NULL;
-    cout<<"VARS_PER_POINT :: "<<VARS_PER_POINT<<endl;
+
   unsigned long *npoint_procs  = NULL;
   unsigned long *starting_node = NULL;
   unsigned long *ending_node   = NULL;
@@ -16261,7 +16258,6 @@ void COutput::SortOutputData(CConfig *config, CGeometry *geometry) {
       
       Global_Index = geometry->node[iPoint]->GetGlobalIndex();
 
-//      cout<<"16264 :: iPoint "<<iPoint<<":: Z-Disp :: "<<Local_Data[iPoint][5]<<endl;
       
       /*--- Search for the processor that owns this point. ---*/
       
@@ -16284,16 +16280,14 @@ void COutput::SortOutputData(CConfig *config, CGeometry *geometry) {
         
         for (unsigned short kk = 0; kk < VARS_PER_POINT; kk++) {
           connSend[nn] = Local_Data[iPoint][kk]; nn++;
-//          cout<<"NN : iPoint :"<<iPoint<<" "<<nn<<" "<<Local_Data[iPoint][kk]<<endl;
         }
-//         cout << endl;
+
         /*--- Load the global ID (minus offset) for sorting the
          points once they all reach the correct processor. ---*/
         
         nn = idIndex[iProcessor];
         idSend[nn] = Global_Index - starting_node[iProcessor];
-//         cout << "iPoint= " << iPoint << "; global index= " << Global_Index << "\t" <<
-//         idSend[nn] << endl;
+
         /*--- Increment the index by the message length ---*/
         
         index[iProcessor]  += VARS_PER_POINT;
@@ -16430,19 +16424,15 @@ void COutput::SortOutputData(CConfig *config, CGeometry *geometry) {
   /*--- Store the connectivity for this rank in the proper data
    structure before post-processing below. First, allocate the
    appropriate amount of memory for this section. ---*/
-  
-//   cout << "parallel data\n";
+
   Parallel_Data = new su2double*[VARS_PER_POINT];
   for (int jj = 0; jj < VARS_PER_POINT; jj++) {
     Parallel_Data[jj] = new su2double[nPoint_Recv[size]];
     for (int ii = 0; ii < nPoint_Recv[size]; ii++) {
       Parallel_Data[jj][idRecv[ii]] = connRecv[ii*VARS_PER_POINT+jj];
-//       cout << ii << "<-i j-> " << jj << "\t" << idRecv[ii] << "\t" << Parallel_Data[jj][idRecv[ii]] << endl;
     }
   }
 
-  for (int jj = 0; jj < 36; jj++)
-      cout<<"Receive Data :: "<<jj<<" "<<connRecv[jj]<<endl;
   /*--- Store the total number of local points my rank has for
    the current section after completing the communications. ---*/
   

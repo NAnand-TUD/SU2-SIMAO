@@ -4424,6 +4424,10 @@ public:
   virtual void RungeKutta_TimeInt(CGeometry *geometry, CSolver **solver_container, CConfig *config);
 
   virtual su2double Get_QSol(unsigned short val_ivar);
+
+  virtual void SetHarmonicBalance_Source(unsigned short ivar_val, su2double source_val);
+
+  virtual su2double GetHarmonicBalance_Source(unsigned short ivar_val);
     
 };
 
@@ -15909,6 +15913,7 @@ private:
     *HVector,
     **FMatrix,
     *HB_Omega,
+    *HB_Source,
     *qsol,
     *QSolVector,
     *QSolVector_Old,
@@ -16084,6 +16089,10 @@ public:
     */
     void dgemv( bool trans, unsigned long m, unsigned long n, double alpha, double a[], 
               unsigned long lda, su2double x[], unsigned long incx, su2double beta, su2double y[], int incy );
+
+    void SetHarmonicBalance_Source(unsigned short ivar_val, su2double source);
+
+    su2double GetHarmonicBalance_Source(unsigned short ivar_val);
     
     /*!
     * \brief Returns iMode reduced frequency.

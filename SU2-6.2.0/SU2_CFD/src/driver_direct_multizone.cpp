@@ -453,17 +453,14 @@ bool CMultizoneDriver::OuterConvergence(unsigned long OuterIter) {
       /*-- If the solver position iSol is enabled --*/
       if (solver_container[iZone][INST_0][MESH_0][iSol] != NULL){
         nVarSol = solver_container[iZone][INST_0][MESH_0][iSol]->GetnVar();
-//         cout<<"Compute Residul multizone being called"<<endl;
+
         /*--- Compute the block residual on each solver ---*/
-        solver_container[iZone][INST_0][MESH_0][iSol]->ComputeResidual_Multizone(geometry_container[iZone][INST_0][MESH_0],config_container[iZone]);
+        for(iInst = 0; iInst<nInst[iZone]; iInst++)
+            solver_container[iZone][iInst][MESH_0][iSol]->ComputeResidual_Multizone(geometry_container[iZone][iInst][MESH_0],config_container[iZone]);
 
         /*--- Loop over all the variables in the solver ---*/
         for (iRes = 0; iRes < nVarSol; iRes++){
           /*--- Store the log10 of the residual value ---*/
-//          cout<< "iZone" << iZone << "iVar" << iVar <<"iRes"<<iRes<<endl;
-//          cout<<log10(solver_container[iZone][INST_0][MESH_0][iSol]->GetRes_BGS(0))<<endl;
-//          cout<<log10(solver_container[iZone][INST_0][MESH_0][iSol]->GetRes_BGS(1))<<endl;
-//          cout<<log10(solver_container[iZone][INST_0][MESH_0][iSol]->GetRes_BGS(2))<<endl;
           residual[iZone][iVar] = log10(solver_container[iZone][INST_0][MESH_0][iSol]->GetRes_BGS(iRes));
 
           /*--- If it is the first iteration, the init_res is the current residual ---*/

@@ -956,9 +956,10 @@ inline void CSolver::AddRes_Max_BGS(unsigned short val_var, su2double val_residu
   Residual_Max_BGS[val_var] = val_residual;
   Point_Max_BGS[val_var] = val_point;
   cout<<"val_var "<<val_var<<" nDim "<<nDim<<endl;
-  for (unsigned short iDim = 0; iDim < nDim; iDim++)
-      cout<<Point_Max_Coord_BGS[val_var][iDim]<<endl;
-    Point_Max_Coord_BGS[val_var][iDim] = 0.0; //val_coord[iDim];
+  for (unsigned short iDim = 0; iDim < nDim; iDim++) {
+      cout << Point_Max_Coord_BGS[val_var][iDim] << endl;
+      Point_Max_Coord_BGS[val_var][iDim] = val_coord[iDim];
+  }
   }
 }
 

@@ -5283,7 +5283,8 @@ CModalSolver::CModalSolver(CGeometry *geometry, CConfig *config) : CSolver() {
     for (iVar = 0; iVar < nVar; iVar++) SolRest[iVar] = 0.0;
     
     /*--- Initialize the BGS residuals in FSI problems. ---*/
-    if (config->GetMultizone_Residual()){
+    if (config->GetMultizone_Residual())
+    if (1){
 
         FSI_Residual      = 0.0;
         RelaxCoeff        = 1.0;
@@ -5298,6 +5299,7 @@ CModalSolver::CModalSolver(CGeometry *geometry, CConfig *config) : CSolver() {
         Point_Max_BGS       = new unsigned long[nVar];  
         for (iVar = 0; iVar < nVar; iVar++) Point_Max_BGS[iVar]  = 0;
         Point_Max_Coord_BGS = new su2double*[nVar];
+        cout<<"nVar :: "<<nVar<<" nDim :: "<<nDim<<endl;
         for (iVar = 0; iVar < nVar; iVar++) {
             Point_Max_Coord_BGS[iVar] = new su2double[nDim];
             for (iDim = 0; iDim < nDim; iDim++)
@@ -6210,6 +6212,8 @@ void CModalSolver::ComputeResidual_Multizone(CGeometry *geometry, CConfig *confi
     /*--- compute residual for each modal variable ---*/
 
     // TODO:: AddRes_Max_BGS is just a hack at the moment more accurate implementation should come in soon.
+    cout<<"nVar :: "<<nVar<<endl;
+    cout<<Point_Max_Coord_BGS[0][0]<<endl;
     for (iMode = 0; iMode < nModes; iMode++){
             residual = generalizedDisplacement[iMode][0] - generalizedDisplacement[iMode][1];
             AddRes_BGS(2*iMode,residual*residual);

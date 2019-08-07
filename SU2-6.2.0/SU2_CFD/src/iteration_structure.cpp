@@ -1505,7 +1505,7 @@ void CModalIteration::Update(COutput *output,
     cout<<" MODAL Update was called :: Iteration Structure 1465\n";
     unsigned short iVar;
     unsigned long iPoint;
-    su2double nVar    = 2*4;
+    su2double nVar    = 2*config_container[val_iZone]->GetNumberOfModes();
     su2double nPoint = geometry_container[val_iZone][val_iInst][MESH_0]->GetnPoint();
     su2double nPointDomain  = geometry_container[val_iZone][val_iInst][MESH_0]->GetnPointDomain();
     su2double *valSolutionPred;

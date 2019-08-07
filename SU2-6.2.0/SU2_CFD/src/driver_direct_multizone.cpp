@@ -334,7 +334,6 @@ void CMultizoneDriver::Run_GaussSeidel() {
     if (config_container[iZone][INST_0].GetUnsteady_Simulation() == HARMONIC_BALANCE)
         FluidHBUpdate(iZone,FLOW_SOL);
     else if (config_container[iZone][INST_0].GetDynamic_Method() == MODAL_HARMONIC_BALANCE){
-        cout<<"I was called HB Modal Update \n";
         FluidHBUpdate(iZone,MODAL_SOL);
     }
     else
@@ -809,10 +808,11 @@ void CMultizoneDriver::FluidHBUpdate(unsigned short val_iZone, unsigned short va
     }
 
     /*--- Precondition the harmonic balance source terms ---*/
-    if (config_container[val_iZone]->GetHB_Precondition() == YES) {
-        StabilizeHarmonicBalance(val_iZone, val_Sol);
-
+    if (val_Sol == FLOW_SOL)
+        if (config_container[val_iZone]->GetHB_Precondition() == YES) {
+            StabilizeHarmonicBalance(val_iZone, val_Sol);
     }
+
 
     for (iInst = 0; iInst < nInst[val_iZone]; iInst++) {
 

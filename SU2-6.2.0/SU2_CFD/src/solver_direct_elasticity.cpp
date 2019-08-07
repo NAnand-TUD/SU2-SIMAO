@@ -5198,16 +5198,10 @@ CModalSolver::CModalSolver(void) : CSolver() {
 
 CModalSolver::CModalSolver(CGeometry *geometry, CConfig *config) : CSolver() {
 
-//     unsigned long iPoint;
     unsigned short iMode, iVar, iDim;
     su2double Uinf = 1.0;
 
-    
-//     bool dynamic = (config->GetDynamic_Analysis() == DYNAMIC);              // Dynamic simulations.
-    //   bool fsi = config->GetFSI_Simulation();
-    
-//     element_based = false;          // A priori we don't have an element-based input file (most of the applications will be like this)
-//     element_based = false;          // A priori we don't have an element-based input file (most of the applications will be like this)
+
 
 	omega 	                = NULL;
 	damping	                = NULL;
@@ -5234,6 +5228,7 @@ CModalSolver::CModalSolver(CGeometry *geometry, CConfig *config) : CSolver() {
     nElement    = geometry->GetnElem();
     nDim        = geometry->GetnDim();
     nEqn        = 2;
+    HB_Period   = 0.0;
     nModes      = config->GetNumberOfModes();
     nVar        = nEqn*nModes;                 // n. of vars for state-space calculation
     nMarker     = geometry->GetnMarker();
@@ -5241,6 +5236,7 @@ CModalSolver::CModalSolver(CGeometry *geometry, CConfig *config) : CSolver() {
     omega       = new su2double[nModes];
     HB_Source   = new su2double[nVar];
     omega[0]    = 106.69842;
+    iInst       = 1;
     cout<< "nModes here is "<< nModes<<endl;
     cout << "modal solver initialized:" << nDim << "\t" << nVar << "\t" << nPoint << endl;
     
@@ -5250,40 +5246,19 @@ CModalSolver::CModalSolver(CGeometry *geometry, CConfig *config) : CSolver() {
     // restart solution, i.e. generalized displacements for now???
     SolRest = new su2double[nVar];
 
-    if (config->GetDynamic_Analysis()){
+    if (config->GetDynamic_Method()==MODAL_HARMONIC_BALANCE){
         cout<<"Dynamic Analysis \n";
-        if (config->GetDynamic_Method() == NO)
-        {
-            unsigned short nInst = 1, i, j, k;
-            nModes = 1;
-            nVar *= nInst;
-            su2double HB_Period =  0.05891103435003335;
-            HB_Period /= config->GetTime_Ref();
-            su2double HB_Const = 2.0*PI_NUMBER/(su2double)(nInst);
-            su2double deltaT = HB_Period/(su2double)(nInst);
-            su2double omega[3] = {0.0, 106.69842, -106.69842};
-            HB_Omega = new su2double[nInst*nEqn];
-
-            HVector = new su2double[2*nModes*nInst];
-            for (k =0; k < (nModes); k++)
-                for (i =0; i < (nModes); i++)
-                    for (j =0; j < (nInst); j++)
-                        HVector[(k*nEqn)+(i*nModes)+j] = sin(HB_Const*j);
-
-
-
-            HB_Omega[0] = 0; HB_Omega[1] = 106.69842; HB_Omega[2] = -106.69842;
-            HB_Omega[3] = 0; HB_Omega[4] = 106.69842; HB_Omega[5] = -106.69842;
-            su2double HB_t[3]={HB_Const*0,HB_Const*1,HB_Const*2};
-
-        }
+        unsigned short i, j, k;
+        nModes = 1;
+        nInst = config->GetnTimeInstances();
+        HB_Period = 1.0;
     }
 
     /*--- Initialize from zero everywhere. ---*/
     for (iVar = 0; iVar < nVar; iVar++) SolRest[iVar] = 0.0;
     
     /*--- Initialize the BGS residuals in FSI problems. ---*/
-    if (config->GetMultizone_Residual())
+//    if (config->GetMultizone_Residual())
     if (1){
 
         FSI_Residual      = 0.0;
@@ -5300,11 +5275,13 @@ CModalSolver::CModalSolver(CGeometry *geometry, CConfig *config) : CSolver() {
         for (iVar = 0; iVar < nVar; iVar++) Point_Max_BGS[iVar]  = 0;
         Point_Max_Coord_BGS = new su2double*[nVar];
         cout<<"nVar :: "<<nVar<<" nDim :: "<<nDim<<endl;
+        cout<< " Initialized "<<endl;
         for (iVar = 0; iVar < nVar; iVar++) {
             Point_Max_Coord_BGS[iVar] = new su2double[nDim];
             for (iDim = 0; iDim < nDim; iDim++)
                 Point_Max_Coord_BGS[iVar][iDim] = 0.0;
         }
+        cout<<Point_Max_Coord_BGS[0][0]<<endl;
     }
     else{
         ForceCoeff        = 1.0;
@@ -5663,7 +5640,6 @@ void CModalSolver::RungeKutta_TimeInt(CGeometry *geometry, CSolver **solver_cont
     unsigned short iMode, iDim, irk, nStage,ind;
     su2double *dy,*ForceVec;
     su2double *irk1,*irk2,*irk3,*irk4,*yout;
-//     su2double dy[4] = {0.0, 0.0, 0.0, 0.0};
     su2double rkcoeff[4] = {0.0, 0.0, 0.0, 0.0};
     bool trans = false;
     su2double dt = config->GetTime_Step();
@@ -5674,13 +5650,13 @@ void CModalSolver::RungeKutta_TimeInt(CGeometry *geometry, CSolver **solver_cont
     yout    = new su2double[2*nModes];
     ForceVec= new su2double[2*nModes];
 
-        cout << "solving structural equations of motion using n-stage RK method "<< endl;
+    cout << "solving structural equations of motion using n-stage RK method "<< endl;
 
     // solution array includes X, Y, Z displacements, obtained from gen. vars;
     // and must be parsed to node variable
     // generalizedXXX contains solution from state-space modal problem
     //
-    //   d |y|   |  0      I   ||y|          |   0   |
+    //  d  |y|   |  0      I   ||y|          |   0   |
     // ----| | = |             || | + Q/Uinf*|       |
     //  dt |ŷ|   | -K/M   -D/M ||ŷ|          | PHI*F |
 
@@ -5706,13 +5682,10 @@ void CModalSolver::RungeKutta_TimeInt(CGeometry *geometry, CSolver **solver_cont
             irk2 = new su2double[2 * nModes];
             irk3 = new su2double[2 * nModes];
             irk4 = new su2double[2 * nModes];
-//            cout<< "HB Source Term "<<endl;
-//            cout<< HB_Source[0]<< " "<< HB_Source[1]<< " "<< HB_Source[2]<< endl;
-//            cout<< HB_Source[3]<< " "<< HB_Source[4]<< " "<< HB_Source[5]<< endl;
+
             //rk1    
             dgemv(trans, 2 * nModes, 2 * nModes, 1.0, Ass, 2 * nModes, qsol, 1, 0., yout, 1);
             for (iMode = 0; iMode < 2 * nModes; ++iMode) {
-//                HB_Source = GetHarmonicBalance_Source(iMode);
                 irk1[iMode] = yout[iMode] + ForceVec[iMode] + HB_Source[iMode]*yout[iMode];
             }
             for (iMode = 0; iMode < 2 * nModes; ++iMode) yout[iMode] = 0;
@@ -5760,7 +5733,8 @@ void CModalSolver::RungeKutta_TimeInt(CGeometry *geometry, CSolver **solver_cont
             delete [] irk3;
             delete [] irk4;
         }
-            break;
+        break;
+
         case (RK2): {
             rkcoeff[0] = 0.5;
             rkcoeff[1] = 0.5;
@@ -5792,31 +5766,11 @@ void CModalSolver::RungeKutta_TimeInt(CGeometry *geometry, CSolver **solver_cont
                 generalizedDisplacement[iMode][0] = qsol[2 * iMode];
                 generalizedVelocity[iMode][0] = qsol[2 * iMode + 1];
             }
-        }
             delete [] irk1;
             delete [] irk2;
-            break;
-
-        case (IMPLICIT):{
-            dgemv(trans,2*nModes,2*nModes,1.0,Ass,2*nModes,qsol,1,0.,yout, 1 );
-            for(iMode = 0; iMode < 2*nModes; ++iMode) qsol[iMode] = yout[iMode] + 
-            ForceVec[iMode];
-            
-            UpdateStructuralNodes();
-            
-            for( iMode = 0; iMode < nModes; ++iMode) {
-                generalizedDisplacement[iMode][1]   = generalizedDisplacement[iMode][0];
-                generalizedVelocity[iMode][1]       = generalizedVelocity[iMode][0];
-                generalizedDisplacement[iMode][0]   = qsol[2*iMode];
-                generalizedVelocity[iMode][0]       = qsol[2*iMode+1];
-            }
         }
-            break;
-
-        }
-
-//     for( iMode = 0; iMode < nModes; ++iMode) generalizedDisplacement[iMode][0] = 0;
-//     for( iMode = 0; iMode < nModes; ++iMode) generalizedVelocity[iMode][0] = 0;
+        break;
+    }
     
     delete [] qsol;
     delete [] dy;
@@ -5829,11 +5783,6 @@ void CModalSolver::SolveStatic(CGeometry *geometry, CSolver **solver_container, 
     su2double *qsol,*dy,*ForceVec;
 
     su2double flutter_index = config->GetAeroelastic_Flutter_Speed_Index();
-    
-//     qsol    = new su2double[2*nModes];
-//     dy      = new su2double[2*nModes];
-//     yout    = new su2double[2*nModes];
-//     ForceVec= new su2double[2*nModes];
 
     cout << "solving structural static displacement using 2-stage RK method "<< endl;
 
@@ -5865,16 +5814,17 @@ void CModalSolver::SolveStatic(CGeometry *geometry, CSolver **solver_container, 
         generalizedDisplacement[iMode][1]   = generalizedDisplacement[iMode][0];
         generalizedVelocity[iMode][1]       = generalizedVelocity[iMode][0];
     }
-//     delete [] qsol;
-//     delete [] dy;
-//     delete [] yout;
 }
 
 void CModalSolver::UpdateStructuralNodes() {
 
     unsigned long iPoint;
     unsigned short iDim, iMode;
-    su2double delta, solutionValue;
+    su2double delta, solutionValue, theta;
+    if (nInst == 1)
+        theta = PI_NUMBER*0.5;
+    else
+        theta = HB_Period*(su2double)(iInst)/(su2double)(nInst);
 
     // Initialization of the Solution variables
 //     for(iPoint = 0; iPoint < nPoint; ++iPoint) node[iPoint]->SetSolution_time_n();
@@ -5887,9 +5837,11 @@ void CModalSolver::UpdateStructuralNodes() {
     // Loop over nodes to calculate the Gen. Disp. and Gen. Vel.
     for(iMode = 0; iMode < nModes; ++iMode) {
         delta = generalizedDisplacement[iMode][0] - generalizedDisplacement[iMode][1];
+        cout<<" Delta -> "<<delta<<endl;
+        cout<<" nModes -> "<<nModes<<endl;
         for(iPoint = 0; iPoint < nPoint; ++iPoint) {
             for(iDim = 0; iDim < nDim; ++iDim) {
-                solutionValue = delta*node[iPoint]->GetModeVector(iMode,iDim);
+                solutionValue = delta*node[iPoint]->GetModeVector(iMode,iDim)*sin(theta);
                 node[iPoint]->Add_DeltaSolution(iDim,solutionValue);
             }
         }
@@ -5898,7 +5850,7 @@ void CModalSolver::UpdateStructuralNodes() {
         delta = generalizedVelocity[iMode][0] - generalizedVelocity[iMode][1];
         for(iPoint = 0; iPoint < nPoint; ++iPoint) {
             for(iDim = 0; iDim < nDim; ++iDim) {
-                solutionValue = delta*node[iPoint]->GetModeVector(iMode,iDim);
+                solutionValue = delta*node[iPoint]->GetModeVector(iMode,iDim)*sin(theta);
                 node[iPoint]->Add_DeltaVelSolution(iDim,solutionValue);
             }
         }
@@ -6175,24 +6127,17 @@ void CModalSolver::SetInitialCondition(CGeometry **geometry, CSolver ***solver_c
 void CModalSolver::InitializeCSDVars(CGeometry *geometry,CConfig *config) {
   
   unsigned short iMode, i;
-  
+
+    //perturb all modes Displacement
+    for(iMode = 0; iMode < nModes; ++iMode) generalizedDisplacement[iMode][0] = 0;//1e-4;
+    for(iMode = 0; iMode < nModes; ++iMode) generalizedDisplacement[iMode][1] = 0;//1e-4;
+    for(iMode = 0; iMode < nModes; ++iMode) generalizedDisplacement[iMode][2] = 0;//1e-4;
   //perturb all modes velocities
   for(iMode = 0; iMode < nModes; ++iMode) generalizedVelocity[iMode][0] = 0;//1e-4;
   for(iMode = 0; iMode < nModes; ++iMode) generalizedVelocity[iMode][1] = 0;//1e-4;
   for(iMode = 0; iMode < nModes; ++iMode) generalizedVelocity[iMode][2] = 0;//1e-4;
 
   for(i = 0; i < 2*nModes; ++i) StructRes[i] = 0;
-  
-  if (config->GetDynamic_Method()==MODAL_HARMONIC_BALANCE){
-      QSolVector = new su2double[2*nModes];
-      QSolVector_Old = new su2double[2*nModes];
-      for (i =0; i < (nModes); i++) {
-          QSolVector[i] = 0.0;
-          QSolVector[nModes + i] = 1e-2;
-          QSolVector_Old[i] = 0.0;
-          QSolVector_Old[nModes  + i] = 1e-2;
-      }
-  }
 
 }
 
@@ -6212,16 +6157,15 @@ void CModalSolver::ComputeResidual_Multizone(CGeometry *geometry, CConfig *confi
     /*--- compute residual for each modal variable ---*/
 
     // TODO:: AddRes_Max_BGS is just a hack at the moment more accurate implementation should come in soon.
-    cout<<"nVar :: "<<nVar<<endl;
-    cout<<Point_Max_Coord_BGS[0][0]<<endl;
+//    cout<<"nVar :: "<<nVar<<endl;
     for (iMode = 0; iMode < nModes; iMode++){
             residual = generalizedDisplacement[iMode][0] - generalizedDisplacement[iMode][1];
-            AddRes_BGS(2*iMode,residual*residual);
-            AddRes_Max_BGS(2*iMode,fabs(residual),2*iMode,geometry->node[0]->GetCoord());
+//            AddRes_BGS(2*iMode,residual*residual);
+//            AddRes_Max_BGS(2*iMode,fabs(residual),2*iMode,geometry->node[0]->GetCoord());
 
             residual = generalizedVelocity[iMode][0] - generalizedVelocity[iMode][1];
-            AddRes_BGS(2*iMode+1,residual*residual);
-            AddRes_Max_BGS(2*iMode+1,fabs(residual),2*iMode+1,geometry->node[0]->GetCoord());
+//            AddRes_BGS(2*iMode+1,residual*residual);
+//            AddRes_Max_BGS(2*iMode+1,fabs(residual),2*iMode+1,geometry->node[0]->GetCoord());
     }
 
     SetResidual_BGS(geometry, config);
@@ -7078,78 +7022,6 @@ void CModalSolver::dgemv( bool trans, unsigned long m, unsigned long n, double a
   return;
 }
 
-void CModalSolver::Initialize_EqnOfMotion(unsigned short nMode, unsigned short nInst, su2double *QSol) {
-    /*!
-     *  Y = -As Q + B F
-     */
-    unsigned short iMode, iInst, i, j;
-    su2double DampCoeff = 0.001;
-
-    su2double *term1, *term2, **term3;
-    term1 = new su2double[nMode*nInst*2];
-    term2 = new su2double[nMode*nInst*2];
-    term3 = new su2double*[nMode*nInst*2];
-    SystemVector = new su2double[nMode*nInst*2];
-
-    for (i=0; i<nMode*nInst*2;i++) {
-        term1[i] = 0.0;
-        term2[i] = 0.0;
-        term3[i] = new su2double[nMode*nInst*2];
-        SystemVector[i] = 0.0;
-    }
-
-    for (i = 0; i<nMode*nInst*2; i ++ )
-        for (j = 0; j<nMode*nInst*2; j ++ ) {
-            term3[i][j] = 0.0;
-        }
-
-
-    // -As Q
-    for (i = 0; i<nMode*nInst*2; i ++ )
-        for (j = 0; j<nMode*nInst*2; j ++ ) {
-            term1[i] += -1.0*AsMatrix[i][j]*QSol[j];
-        }
-
-    // F H
-    for (i=0; i<nMode*nInst*2; i++)
-        for (i=0; i<nMode*nInst*2; i++)
-            term2[i] += FMatrix[i][j]*HVector[j];
-
-    for (i=0; i<nMode*nInst*2; i++)
-            SystemVector[i] = term1[i]+term2[i];
-
-}
-
-void CModalSolver::InitializeHBMatrices(unsigned short nMode, unsigned short nInst){
-
-    unsigned short i, j, nEqn=2;
-
-
-    Initialize_Transformation_Matrix(nMode, nInst);
-
-    // E Matrix
-    Initialize_Transformation_Matrix_Inv(nMode, nInst);
-
-    // A Matrix
-    //            Initialize_A_Matrix(nModes, nInst);
-
-    // D Matrix
-    Initialize_HB_Operator(nMode, nInst);
-
-    // As Matrix
-//     Initialize_As_Matrix(nMode,nInst);
-
-    FMatrix = new su2double*[2*nModes*nInst];
-
-    for (i=0; i< (nEqn*nMode*nInst); i++){
-        FMatrix[i] = new su2double[2 * nModes * nInst];
-        for (j = 0; j < (nEqn * nMode * nInst); j++)
-        FMatrix[i][j] = 0.0;
-        FMatrix[i][i] = 1.0;
-    }
-
-}
-
 su2double CModalSolver::Get_QSol(unsigned short val_ivar) {
     return (qsol[val_ivar]);
 }
@@ -7161,3 +7033,5 @@ void CModalSolver::SetHarmonicBalance_Source(unsigned short ivar_val, su2double 
 su2double CModalSolver::GetHarmonicBalance_Source(unsigned short ivar_val) {
     return HB_Source[ivar_val];
 }
+
+void CModalSolver::SetiInst(unsigned short val_inst) { iInst = val_inst; }

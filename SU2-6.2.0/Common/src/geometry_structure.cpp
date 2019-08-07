@@ -13432,7 +13432,7 @@ void CPhysicalGeometry::SetRCM_Ordering(CConfig *config) {
       AuxCoord[iPoint][iDim] = node[iPoint]->GetCoord(iDim);
     }
   }
-  
+
   for (iPoint = 0; iPoint < nPoint; iPoint++) {
     node[iPoint]->SetGlobalIndex(AuxGlobalIndex[Result[iPoint]]);
     for (iDim = 0; iDim < nDim; iDim++)

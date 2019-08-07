@@ -5461,7 +5461,7 @@ void CModalSolver::ReadCSD_Mesh_Nastran(CConfig *config,CGeometry *geometry){
     unsigned long iPoint,iMode,nModesPoints;
 	unsigned short number_of_modes,iDim;
 	vector<unsigned long>::iterator it;
-	su2double frequency;
+	su2double frequency,modalScaling;
 	su2double Coord_3D[3];
     su2double *XV,*YV,*ZV;
 	ifstream mode_file,mesh_file;
@@ -5473,13 +5473,16 @@ void CModalSolver::ReadCSD_Mesh_Nastran(CConfig *config,CGeometry *geometry){
     //config->GetMach()
 	Uinf = config->GetMach()*pow(config->GetGamma()*config->GetGas_Constant()*config->GetTemperature_FreeStream(),0.5);
     Qinf = ONE2 * config->GetGamma()*config->GetPressure_FreeStream()*config->GetMach()*config->GetMach();//config->GetMach()*config->GetMach();
-//     massrat = config->GetPressure_FreeStream()/(config->GetGas_Constant()*config->GetTemperature_FreeStream())*pow(refLength,5);
+    refLength = config->GetRefLength();
+	massRatio = config->GetPressure_FreeStream()/(config->GetGas_Constant()*config->GetTemperature_FreeStream())*pow(refLength,5);
+    
     su2double flutter_index = config->GetAeroelastic_Flutter_Speed_Index();
-	cout<< " Mach Inf       :: "<<config->GetMach()<<endl;
+    
+    cout<< " Mach Inf       :: "<<config->GetMach()<<endl;
     cout<< " Gamma          :: "<<config->GetGamma()<<endl;
     cout<< " Temperature    :: "<<config->GetTemperature_FreeStream() << endl;
     cout<< " Pressure_inf   :: "<<config->GetPressure_FreeStream() << endl;
-    cout<< " Density_inf    :: "<<config->GetDensity_FreeStream() << endl;
+    cout<< " Density_inf    :: "<<config->GetDensity_Ref() << endl;
     cout<< " U_inf          :: "<< Uinf << endl;
     cout<< " Q              :: "<< Qinf <<endl;
     cout<< " Density        :: "<< config->GetPressure_FreeStream()/(config->GetGas_Constant()*config->GetTemperature_FreeStream())<<endl;
@@ -5504,11 +5507,15 @@ void CModalSolver::ReadCSD_Mesh_Nastran(CConfig *config,CGeometry *geometry){
     assert(nModesPoints == nPoint);
     
 	getline(mode_file, line);
-	refLength = atof(line.c_str());
+	modalScaling = atof(line.c_str());      //factor: same as used to scale struct. mesh to 
+                                            //match CFD
 
 	cout << "N. of modes = " << nModes << "\n";
     cout << "N. of nodes in CSD mesh = "<< nPoint << "\n";
     cout << "Reference Length = " << refLength << endl;
+    cout << "Modal Scaling = " << modalScaling << endl; //TODO: link with unit option?
+    cout << "Mass Ratio = " << massRatio << endl;       //only used based on non-
+                                                        // dimensionalization
 
 	// initialize modes shapes, frequency and coordinate arrays
 	modeShapes.reserve(nDim*nPoint*nModes);
@@ -5536,7 +5543,10 @@ void CModalSolver::ReadCSD_Mesh_Nastran(CConfig *config,CGeometry *geometry){
 		getline(mode_file, line);
 		istringstream iss(line); 
 		iss >> frequency;
+        
+        // non-dimensionalize freq. or not; TODO: add option
 		omega[iMode] = 2.0*PI_NUMBER*frequency*refLength/(Uinf); //frequency;
+//         omega[iMode] = 2.0*PI_NUMBER*frequency; //frequency;
 		cout<< "\nvel_inf: " << Uinf << "; Omega :: "<< omega[iMode] 
 		<< "; Omega^2 :: " << omega[iMode]*omega[iMode] <<  "; Freq ::"<<  frequency<<endl;
 		iss.clear();
@@ -5548,11 +5558,11 @@ void CModalSolver::ReadCSD_Mesh_Nastran(CConfig *config,CGeometry *geometry){
 			getline(mode_file, line);
 			istringstream iss(line); 
 			iss >> Coord_3D[0]; iss >> Coord_3D[1]; iss >> Coord_3D[2];
-            XV[iPoint] = Coord_3D[0]/refLength;
-            YV[iPoint] = Coord_3D[1]/refLength;
-            ZV[iPoint] = Coord_3D[2]/refLength;
-//            cout << XV[iPoint] << "\t"<< YV[iPoint] << "\t"<< ZV[iPoint] << "\n";
-//            for(iDim=0; iDim < nDim; ++iDim) node[iPoint]->SetModeVector(iMode,iDim,Coord_3D[iDim]/refLength);
+            XV[iPoint] = Coord_3D[0]*modalScaling;
+            YV[iPoint] = Coord_3D[1]*modalScaling;
+            ZV[iPoint] = Coord_3D[2]*modalScaling;
+            cout << XV[iPoint] << "\t"<< YV[iPoint] << "\t"<< ZV[iPoint] << "\n";
+            for(iDim=0; iDim < nDim; ++iDim) node[iPoint]->SetModeVector(iMode,iDim,Coord_3D[iDim]/modalScaling);
             iss.clear();
 		}
         unsigned short GlobalIndex;
@@ -5571,13 +5581,13 @@ void CModalSolver::ReadCSD_Mesh_Nastran(CConfig *config,CGeometry *geometry){
 	mode_file.close();
     
     //--- scale CSD mesh ---//
-//     for (iPoint = 0 ; iPoint < geometry->GetnPoint(); iPoint++) {
-//         for(iDim = 0; iDim < nDim ; ++iDim) {
-//             Coord_3D[iDim] = geometry->node[iPoint]->GetCoord(iDim);
-//             geometry->node[iPoint]->SetCoord(iDim,Coord_3D[iDim]/refLength);
-//         }
-//     }
-
+    for (iPoint = 0 ; iPoint < geometry->GetnPoint(); iPoint++) {
+        for(iDim = 0; iDim < nDim ; ++iDim) {
+            Coord_3D[iDim] = geometry->node[iPoint]->GetCoord(iDim);
+            geometry->node[iPoint]->SetCoord(iDim,Coord_3D[iDim]*modalScaling);
+        }
+    }
+    cout << "CSD mesh scalled by factor: " << modalScaling << endl;
     // --- initialize state-space matrices ---//
     Initialize_StateSpace_Matrices(0);
        
@@ -5811,6 +5821,7 @@ void CModalSolver::SolveStatic(CGeometry *geometry, CSolver **solver_container, 
     cout << "nodes position updated" << endl;
     // Update old and new solution
     for( iMode = 0; iMode < nModes; ++iMode) {
+        cout << "gen.disp[" << iMode << "]= " << generalizedDisplacement[iMode][0] << endl;
         generalizedDisplacement[iMode][1]   = generalizedDisplacement[iMode][0];
         generalizedVelocity[iMode][1]       = generalizedVelocity[iMode][0];
     }
@@ -5855,7 +5866,6 @@ void CModalSolver::UpdateStructuralNodes() {
             }
         }
     }
-
 }
 
 void CModalSolver::ComputeModalFluidForces(CGeometry *geometry, CConfig *config) {
@@ -6060,11 +6070,11 @@ void CModalSolver::ComputeModalFluidForces(CGeometry *geometry, CConfig *config)
     cout << "projecting force\n";
     for(iMode = 0; iMode < nModes; ++iMode){
         for(iPoint = 0; iPoint < nPoint; ++iPoint){
-//             cout << "node: " << iPoint << " - Mode ";
-//             for(iDim = 0; iDim < nDim; ++iDim) cout << node[iPoint]->GetModeVector(iMode,iDim) << "\t";
-//             cout << "; Force  ";
-//             for(iDim = 0; iDim < nDim; ++iDim) cout << node[iPoint]->Get_FlowTraction(iDim) << "\t";
-//             cout << endl;
+            cout << "node: " << iPoint << " - Mode ";
+            for(iDim = 0; iDim < nDim; ++iDim) cout << node[iPoint]->GetModeVector(iMode,iDim) << "\t";
+            cout << "; Force  ";
+            for(iDim = 0; iDim < nDim; ++iDim) cout << node[iPoint]->Get_FlowTraction(iDim) << "\t";
+            cout << endl;
             for(iDim = 0; iDim < nDim; ++iDim){
                 modalForce[iMode] += node[iPoint]->GetModeVector(iMode,iDim)*node[iPoint]->Get_FlowTraction(iDim);
             }
@@ -6074,7 +6084,7 @@ void CModalSolver::ComputeModalFluidForces(CGeometry *geometry, CConfig *config)
     for(iMode = 0; iMode < nModes; ++iMode){
         cout << iMode << "\t" << modalForce[iMode] << endl;
     }
-
+//     exit(0);
 }
 
 void CModalSolver::Postprocessing(CGeometry *geometry, CSolver **solver_container, CConfig *config,  CNumerics **numerics,unsigned short iMesh) {
@@ -7033,5 +7043,8 @@ void CModalSolver::SetHarmonicBalance_Source(unsigned short ivar_val, su2double 
 su2double CModalSolver::GetHarmonicBalance_Source(unsigned short ivar_val) {
     return HB_Source[ivar_val];
 }
+<<<<<<< HEAD
 
 void CModalSolver::SetiInst(unsigned short val_inst) { iInst = val_inst; }
+=======
+>>>>>>> 0e502efeb3208cb8039b79b2345ec6c323eefd8f

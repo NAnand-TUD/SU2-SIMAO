@@ -225,7 +225,6 @@ CDriver::CDriver(char* confFile,
       }
       else
         if (rank == MASTER_NODE) cout << "A Harmonic Balance driver has been instantiated." << endl;
-
   }
   else if (nZone == 2 && fsi) {
     if (disc_adj_fsi) {
@@ -233,7 +232,17 @@ CDriver::CDriver(char* confFile,
         if (rank == MASTER_NODE) cout << "1A Discrete-Adjoint driver for Fluid-Structure Interaction has been instantiated." << endl;
     }
     else{
-      if (stat_fsi){if (rank == MASTER_NODE) cout << "2A Static Fluid-Structure Interaction driver has been instantiated." << endl;}
+      if (stat_fsi){
+          if (rank == MASTER_NODE) cout << "2A Static Fluid-Structure Interaction driver has been instantiated." << endl;
+            if(config_container[0]->GetKind_Solver() == FEM_MODAL) {
+                cout << "For aerostatic analysis using modal structural solver." << endl;
+                config_container[0]->SetMach(config_container[1]->GetMach());
+            }
+            if(config_container[1]->GetKind_Solver() == FEM_MODAL) {
+                cout << "For aerostatic analysis using modal structural solver." << endl;
+                config_container[1]->SetMach(config_container[0]->GetMach());
+            }
+    }
       else{
           if (rank == MASTER_NODE) {
               cout << "3A Dynamic Fluid-Structure Interaction driver has been instantiated." << endl;
@@ -404,7 +413,6 @@ CDriver::CDriver(char* confFile,
       }
     Interface_Preprocessing();
   }
-
 
   /*--- Instantiate the geometry movement classes for the solution of unsteady
    flows on dynamic meshes, including rigid mesh transformations, dynamically

@@ -154,11 +154,12 @@ void CTransfer_FlowTraction::GetDonor_Variable(CSolver *flow_solution, CGeometry
   Point_Flow = flow_geometry->vertex[Marker_Flow][Vertex_Flow]->GetNode();
   // Get the normal at the vertex: this normal goes inside the fluid domain.
   Normal_Flow = flow_geometry->vertex[Marker_Flow][Vertex_Flow]->GetNormal();
-  
+
   if (consistent_interpolation)
     for (iVar = 0; iVar < nVar; ++iVar) area += Normal_Flow[iVar]*Normal_Flow[iVar];
   else
     area = 1.0;
+  
   area = sqrt(area);
 
   // Retrieve the values of pressure
@@ -201,9 +202,12 @@ void CTransfer_FlowTraction::GetDonor_Variable(CSolver *flow_solution, CGeometry
 
   // Redimensionalize and take into account ramp transfer of the loads
   Physical_Constants[1] = 1.;
+  cout << "redim pressure force: " << Physical_Constants[0] << "\t" << area << "\t" << Pinf;
   for (iVar = 0; iVar < nVar; iVar++) {
-    Donor_Variable[iVar] *= Physical_Constants[0] * Physical_Constants[1] / area;
+//     Donor_Variable[iVar] *= Physical_Constants[0] * Physical_Constants[1]; // / area;
+    cout << "\t" << Donor_Variable[iVar] << "\t";
   }
+  cout << endl;
 
 }
 

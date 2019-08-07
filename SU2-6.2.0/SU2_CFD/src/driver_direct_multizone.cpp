@@ -707,15 +707,14 @@ bool CMultizoneDriver::Transfer_Data(unsigned short donorZone, unsigned short ta
   bool UpdateMesh = false;
 
   /*--- Select the transfer method according to the magnitudes being transferred ---*/
-    cout << "\n\ntransfer data: updatemesh = " << UpdateMesh << "\t" <<
+    cout << "\n\ntransfer data: update mesh = " << UpdateMesh << "\t" <<
     " solver: " << config_container[donorZone]->GetKind_Solver() << "\t" <<
     " transfer: " << transfer_types[donorZone][targetZone] << endl;
 
   if (transfer_types[donorZone][targetZone] == SLIDING_INTERFACE) {
 
-    transfer_container[donorZone][targetZone][INST_0]->Broadcast_InterfaceData(solver_container[donorZone][INST_0][MESH_0][FLOW_SOL],solver_container[targetZone][INST_0][MESH_0][FLOW_SOL],
-                                                                       geometry_container[donorZone][INST_0][MESH_0],geometry_container[targetZone][INST_0][MESH_0],
-                                                                       config_container[donorZone], config_container[targetZone]);
+    transfer_container[donorZone][targetZone][INST_0]->Broadcast_InterfaceData(solver_container[donorZone][INST_0][MESH_0][FLOW_SOL],solver_container[targetZone][INST_0][MESH_0][FLOW_SOL],geometry_container[donorZone][INST_0][MESH_0],geometry_container[targetZone][INST_0][MESH_0],config_container[donorZone], config_container[targetZone]);
+    
     if (config_container[targetZone]->GetKind_Solver() == RANS)
       transfer_container[donorZone][targetZone][INST_0]->Broadcast_InterfaceData(solver_container[donorZone][INST_0][MESH_0][TURB_SOL],solver_container[targetZone][INST_0][MESH_0][TURB_SOL],
                                                                          geometry_container[donorZone][INST_0][MESH_0],geometry_container[targetZone][INST_0][MESH_0],
@@ -770,7 +769,7 @@ bool CMultizoneDriver::Transfer_Data(unsigned short donorZone, unsigned short ta
     UpdateMesh = true;
   }
   else if (transfer_types[donorZone][targetZone] == FLOW_TRACTION) {
-                cout << "\n\ntransfer data: fluid forces" << endl;
+        cout << "\n\ntransfer data: fluid forces" << endl;
         for (iInst=0; iInst<nInst[donorZone]; iInst++) {
             cout<<transfer_container[donorZone][targetZone][iInst]<<endl;
             transfer_container[donorZone][targetZone][iInst]->Broadcast_InterfaceData(
@@ -788,7 +787,8 @@ bool CMultizoneDriver::Transfer_Data(unsigned short donorZone, unsigned short ta
     cout << "WARNING: One of the intended interface transfer routines is not known to the chosen driver and has not been executed." << endl;
   }
 
-  return UpdateMesh;
+    cout << "transfer completed\t" << transfer_types[donorZone][targetZone] << endl;
+    return UpdateMesh;
 }
 
 void CMultizoneDriver::FluidHBUpdate(unsigned short val_iZone, unsigned short val_Sol){

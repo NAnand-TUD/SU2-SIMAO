@@ -752,7 +752,7 @@ bool CMultizoneDriver::Transfer_Data(unsigned short donorZone, unsigned short ta
                 geometry_container[donorZone][iInst][MESH_0],geometry_container[targetZone][iInst][MESH_0],
                 config_container[donorZone], config_container[targetZone]);
         }
-          UpdateMesh = true;
+        UpdateMesh = true;
     }
     else{
           cout << "\n\ntransfer data: FEM structural displacements" << endl;

@@ -5237,6 +5237,7 @@ CModalSolver::CModalSolver(CGeometry *geometry, CConfig *config) : CSolver() {
     HB_Source   = new su2double[nVar];
     omega[0]    = 106.69842;
     iInst       = 1;
+    theta       = PI_NUMBER/2.0;
     cout<< "nModes here is "<< nModes<<endl;
     cout << "modal solver initialized:" << nDim << "\t" << nVar << "\t" << nPoint << endl;
     
@@ -5469,6 +5470,11 @@ void CModalSolver::ReadCSD_Mesh_Nastran(CConfig *config,CGeometry *geometry){
 	string line,dummy,text_line;
 	char cstr[200];
 
+    if (nInst == 1)
+        theta = PI_NUMBER*0.5;
+    else
+        theta = HB_Period*(su2double)(iInst)/(su2double)(nInst);
+
     mesh_file.close();
     //config->GetMach()
 	Uinf = config->GetMach()*pow(config->GetGamma()*config->GetGas_Constant()*config->GetTemperature_FreeStream(),0.5);
@@ -5593,6 +5599,14 @@ void CModalSolver::ReadCSD_Mesh_Nastran(CConfig *config,CGeometry *geometry){
        
     for (iMode=0; iMode < nModes; ++iMode) cout << "Disp.\t\tVels.\n";
     for (iMode=0; iMode < nModes; ++iMode) cout << generalizedDisplacement[iMode][0] << "\t" << generalizedVelocity[iMode][0] << endl;
+
+    if (config->GetDynamic_Method() == MODAL_HARMONIC_BALANCE)
+        for (iPoint = 0; iPoint < geometry->GetnPoint(); iPoint++)
+            for(iMode = 0; iMode<nModes; iMode++){
+                node[iPoint]->SetSolution_Pred(0,node[iPoint]->GetModeVector(iMode,0)*0.001*sin(theta));
+                node[iPoint]->SetSolution_Pred(1,node[iPoint]->GetModeVector(iMode,1)*0.001*sin(theta));
+                node[iPoint]->SetSolution_Pred(2,node[iPoint]->GetModeVector(iMode,2)*0.001*sin(theta));
+            }
 
     delete [] XV;
     delete [] YV;
@@ -5831,11 +5845,7 @@ void CModalSolver::UpdateStructuralNodes() {
 
     unsigned long iPoint;
     unsigned short iDim, iMode;
-    su2double delta, solutionValue, theta;
-    if (nInst == 1)
-        theta = PI_NUMBER*0.5;
-    else
-        theta = HB_Period*(su2double)(iInst)/(su2double)(nInst);
+    su2double delta, solutionValue;
 
     // Initialization of the Solution variables
 //     for(iPoint = 0; iPoint < nPoint; ++iPoint) node[iPoint]->SetSolution_time_n();
@@ -6070,7 +6080,7 @@ void CModalSolver::ComputeModalFluidForces(CGeometry *geometry, CConfig *config)
     cout << "projecting force\n";
     for(iMode = 0; iMode < nModes; ++iMode){
         for(iPoint = 0; iPoint < nPoint; ++iPoint){
-            cout << "node: " << iPoint << " - Mode ";
+            cout << "node: " << iPoint <<" GIndex: "<<geometry->node[iPoint]->GetGlobalIndex() << " - Mode ";
             for(iDim = 0; iDim < nDim; ++iDim) cout << node[iPoint]->GetModeVector(iMode,iDim) << "\t";
             cout << "; Force  ";
             for(iDim = 0; iDim < nDim; ++iDim) cout << node[iPoint]->Get_FlowTraction(iDim) << "\t";
@@ -6136,7 +6146,9 @@ void CModalSolver::SetInitialCondition(CGeometry **geometry, CSolver ***solver_c
 
 void CModalSolver::InitializeCSDVars(CGeometry *geometry,CConfig *config) {
   
-  unsigned short iMode, i;
+  unsigned short iMode, i, iPoint, iDim;
+
+  cout<<"++++++++++++++ CSDVars InitializeCSDVars ++++++++++++++++\n";
 
     //perturb all modes Displacement
     for(iMode = 0; iMode < nModes; ++iMode) generalizedDisplacement[iMode][0] = 0;//1e-4;
@@ -6146,6 +6158,7 @@ void CModalSolver::InitializeCSDVars(CGeometry *geometry,CConfig *config) {
   for(iMode = 0; iMode < nModes; ++iMode) generalizedVelocity[iMode][0] = 0;//1e-4;
   for(iMode = 0; iMode < nModes; ++iMode) generalizedVelocity[iMode][1] = 0;//1e-4;
   for(iMode = 0; iMode < nModes; ++iMode) generalizedVelocity[iMode][2] = 0;//1e-4;
+
 
   for(i = 0; i < 2*nModes; ++i) StructRes[i] = 0;
 
@@ -6170,12 +6183,12 @@ void CModalSolver::ComputeResidual_Multizone(CGeometry *geometry, CConfig *confi
 //    cout<<"nVar :: "<<nVar<<endl;
     for (iMode = 0; iMode < nModes; iMode++){
             residual = generalizedDisplacement[iMode][0] - generalizedDisplacement[iMode][1];
-//            AddRes_BGS(2*iMode,residual*residual);
-//            AddRes_Max_BGS(2*iMode,fabs(residual),2*iMode,geometry->node[0]->GetCoord());
+            AddRes_BGS(2*iMode,residual*residual);
+            AddRes_Max_BGS(2*iMode,fabs(residual),2*iMode,geometry->node[0]->GetCoord());
 
             residual = generalizedVelocity[iMode][0] - generalizedVelocity[iMode][1];
-//            AddRes_BGS(2*iMode+1,residual*residual);
-//            AddRes_Max_BGS(2*iMode+1,fabs(residual),2*iMode+1,geometry->node[0]->GetCoord());
+            AddRes_BGS(2*iMode+1,residual*residual);
+            AddRes_Max_BGS(2*iMode+1,fabs(residual),2*iMode+1,geometry->node[0]->GetCoord());
     }
 
     SetResidual_BGS(geometry, config);
@@ -7043,8 +7056,5 @@ void CModalSolver::SetHarmonicBalance_Source(unsigned short ivar_val, su2double 
 su2double CModalSolver::GetHarmonicBalance_Source(unsigned short ivar_val) {
     return HB_Source[ivar_val];
 }
-<<<<<<< HEAD
 
 void CModalSolver::SetiInst(unsigned short val_inst) { iInst = val_inst; }
-=======
->>>>>>> 0e502efeb3208cb8039b79b2345ec6c323eefd8f

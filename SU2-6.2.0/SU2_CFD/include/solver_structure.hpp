@@ -15901,6 +15901,7 @@ private:
     refLength,                      /*!< \brief scaling length for CSD mesh, frequency, etc. */
     Qinf,                           /*!< \brief freestream dynamic pressure */
     HB_Period,
+    theta,
     massRatio,
     relax;                          /*!< \brief relaxation factor for static displacements */
     vector<su2double> modeShapes;   /*!< \brief 1D vector containing mode shapes vector coordinates */

@@ -9482,7 +9482,7 @@ void CPhysicalGeometry::Read_SU2_Format_Parallel(CConfig *config, string val_mes
   
   strcpy (cstr, val_mesh_filename.c_str());
   mesh_file.open(cstr, ios::in);
-  
+
   /*--- Check the grid ---*/
   
   if (mesh_file.fail()) {
@@ -9490,7 +9490,6 @@ void CPhysicalGeometry::Read_SU2_Format_Parallel(CConfig *config, string val_mes
   }
   
   /*--- If more than one, find the zone in the mesh file ---*/
-  
   if ((val_nZone > 1 && multizone_file) || harmonic_balance) {
     if (harmonic_balance) {
       if (rank == MASTER_NODE) cout << "Reading time instance " << config->GetiInst()+1 << "." << endl;
@@ -9515,7 +9514,6 @@ void CPhysicalGeometry::Read_SU2_Format_Parallel(CConfig *config, string val_mes
   while (getline (mesh_file, text_line)) {
     
     /*--- Read the dimension of the problem ---*/
-    
     position = text_line.find ("NDIME=",0);
     if (position != string::npos) {
       if (domain_flag == false) {

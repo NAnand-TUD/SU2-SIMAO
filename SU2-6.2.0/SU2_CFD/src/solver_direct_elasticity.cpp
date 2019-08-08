@@ -5581,13 +5581,14 @@ void CModalSolver::ReadCSD_Mesh_Nastran(CConfig *config,CGeometry *geometry){
 			getline(mode_file, line);
 			istringstream iss(line); 
 			iss >> Coord_3D[0]; iss >> Coord_3D[1]; iss >> Coord_3D[2];
-            XV[iPoint] = Coord_3D[0]*modalScaling;
-            YV[iPoint] = Coord_3D[1]*modalScaling;
-            ZV[iPoint] = Coord_3D[2]*modalScaling;
+            XV[iPoint] = Coord_3D[0]/modalScaling;
+            YV[iPoint] = Coord_3D[1]/modalScaling;
+            ZV[iPoint] = Coord_3D[2]/modalScaling;
             cout << XV[iPoint] << "\t"<< YV[iPoint] << "\t"<< ZV[iPoint] << "\n";
             for(iDim=0; iDim < nDim; ++iDim) node[iPoint]->SetModeVector(iMode,iDim,Coord_3D[iDim]/modalScaling);
             iss.clear();
 		}
+
         unsigned short GlobalIndex;
         for (iPoint=0; iPoint<nPoint; iPoint++) {
             GlobalIndex = geometry->node[iPoint]->GetGlobalIndex();
@@ -5604,12 +5605,12 @@ void CModalSolver::ReadCSD_Mesh_Nastran(CConfig *config,CGeometry *geometry){
 	mode_file.close();
     
     //--- scale CSD mesh ---//
-    for (iPoint = 0 ; iPoint < geometry->GetnPoint(); iPoint++) {
-        for(iDim = 0; iDim < nDim ; ++iDim) {
-            Coord_3D[iDim] = geometry->node[iPoint]->GetCoord(iDim);
-            geometry->node[iPoint]->SetCoord(iDim,Coord_3D[iDim]*modalScaling);
-        }
-    }
+//     for (iPoint = 0 ; iPoint < geometry->GetnPoint(); iPoint++) {
+//         for(iDim = 0; iDim < nDim ; ++iDim) {
+//             Coord_3D[iDim] = geometry->node[iPoint]->GetCoord(iDim);
+//             geometry->node[iPoint]->SetCoord(iDim,Coord_3D[iDim]*modalScaling);
+//         }
+//     }
     cout << "CSD mesh scalled by factor: " << modalScaling << endl;
     // --- initialize state-space matrices ---//
     Initialize_StateSpace_Matrices(0);
@@ -5777,7 +5778,7 @@ void CModalSolver::RungeKutta_TimeInt(CGeometry *geometry, CSolver **solver_cont
             irk1 = new su2double[2 * nModes];
             irk2 = new su2double[2 * nModes];
             su2double DampingRatio = 0;
-            su2double massRatio = 0.065 * refLength * refLength * refLength * refLength * refLength;
+//             su2double massRatio = 0.065 * refLength * refLength * refLength * refLength * refLength;
             for (iMode = 0; iMode < nModes; ++iMode) {
                 irk1[0] = generalizedVelocity[iMode][1];
                 irk1[1] = massRatio * modalForceLast[iMode] -
@@ -5850,7 +5851,7 @@ void CModalSolver::SolveStatic(CGeometry *geometry, CSolver **solver_container, 
     // Get the modal forces from the interpolation
     ComputeModalFluidForces(geometry, config);
 
-    su2double massRatio = refLength/(Uinf*Uinf); //.065*refLength*refLength*refLength*refLength*refLength;
+//     su2double massRatio = refLength*; 
     su2double DampingRatio = 0.0;
         cout << "compute structural residual\n";
         
@@ -5860,7 +5861,11 @@ void CModalSolver::SolveStatic(CGeometry *geometry, CSolver **solver_container, 
     }
     cout << "compute new displacement\n";
     for (iMode = 0; iMode < nModes; ++iMode){
-        generalizedDisplacement[iMode][0] = 0.95*generalizedDisplacement[iMode][0] + 0.05*massRatio*modalForce[iMode]/(omega[iMode]*omega[iMode]);
+        generalizedDisplacement[iMode][0] = 0.95*generalizedDisplacement[iMode][1] + 0.05*massRatio*modalForce[iMode]/(omega[iMode]*omega[iMode]);
+        
+        //as we are using a dimensional CSD/CFD meshes.
+//         generalizedDisplacement[iMode][0] *= refLength;
+        
         cout << "mode\tdisp\tvel\tfreq\tforce\tmass ratio\n"; 
         cout << iMode << "\t" << generalizedDisplacement[iMode][0] << "\t" <<  generalizedVelocity[iMode][0] << "\t" << omega[iMode] << "\t" << modalForce[iMode] << "\t" << massRatio << endl;
 	}
@@ -6235,7 +6240,7 @@ void CModalSolver::ComputeResidual_Multizone(CGeometry *geometry, CConfig *confi
     /*--- compute residual for each modal variable ---*/
 
     // TODO:: AddRes_Max_BGS is just a hack at the moment more accurate implementation should come in soon.
-    cout<<"nVar0 :: "<<nVar<<endl;
+//     cout<<"nVar0 :: "<<nVar<<endl;
 //     cout<<Point_Max_Coord_BGS[0][0]<<endl;
     for (iMode = 0; iMode < nModes; iMode++){
         residual = generalizedDisplacement[iMode][0] - generalizedDisplacement[iMode][1];
@@ -6246,7 +6251,7 @@ void CModalSolver::ComputeResidual_Multizone(CGeometry *geometry, CConfig *confi
 //         AddRes_BGS(2*iMode+1,residual*residual);
 //         AddRes_Max_BGS(2*iMode+1,fabs(residual),2*iMode+1,geometry->node[0]->GetCoord());
     }
-    cout << "nvar01\n";
+//     cout << "nvar01\n";
 //     SetResidual_BGS(geometry, config);
 }
 

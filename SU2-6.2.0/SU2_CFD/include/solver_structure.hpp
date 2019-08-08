@@ -15953,7 +15953,7 @@ public:
    * \param[in] geometry - Geometrical definition of the problem.
    * \param[in] config - Definition of the particular problem.
    */
-  CModalSolver(CGeometry *geometry, CConfig *config);
+  CModalSolver(CGeometry *geometry, CConfig *config, unsigned short iInst_val);
   
   /*!
    * \brief Destructor of the class.

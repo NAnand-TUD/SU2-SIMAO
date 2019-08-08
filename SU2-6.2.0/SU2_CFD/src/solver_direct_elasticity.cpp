@@ -5196,7 +5196,7 @@ CModalSolver::CModalSolver(void) : CSolver() {
     HB_Source               = NULL;
 }
 
-CModalSolver::CModalSolver(CGeometry *geometry, CConfig *config) : CSolver() {
+CModalSolver::CModalSolver(CGeometry *geometry, CConfig *config, unsigned short iInst_Val) : CSolver() {
 
     unsigned short iMode, iVar, iDim;
     su2double Uinf = 1.0;
@@ -5236,7 +5236,7 @@ CModalSolver::CModalSolver(CGeometry *geometry, CConfig *config) : CSolver() {
     omega       = new su2double[nModes];
     HB_Source   = new su2double[nVar];
     omega[0]    = 106.69842;
-    iInst       = 1;
+    iInst       = iInst_Val;
     theta       = PI_NUMBER/2.0;
     cout<< "nModes here is "<< nModes<<endl;
     cout << "modal solver initialized:" << nDim << "\t" << nVar << "\t" << nPoint << endl;
@@ -5577,6 +5577,7 @@ void CModalSolver::ReadCSD_Mesh_Nastran(CConfig *config,CGeometry *geometry){
             node[iPoint]->SetModeVector(iMode, 0, XV[GlobalIndex]);
             node[iPoint]->SetModeVector(iMode, 1, YV[GlobalIndex]);
             node[iPoint]->SetModeVector(iMode, 2, ZV[GlobalIndex]);
+//            cout<<GlobalIndex<<" "<<iPoint <<" "<<XV[GlobalIndex]<<" "<<geometry->node[iPoint]->GetCoord()[0]<<endl;
         }
 
 		for (iPoint = 0 ; iPoint < nPoint; iPoint++) modeShapes.push_back(XV[iPoint]);
@@ -5600,12 +5601,13 @@ void CModalSolver::ReadCSD_Mesh_Nastran(CConfig *config,CGeometry *geometry){
     for (iMode=0; iMode < nModes; ++iMode) cout << "Disp.\t\tVels.\n";
     for (iMode=0; iMode < nModes; ++iMode) cout << generalizedDisplacement[iMode][0] << "\t" << generalizedVelocity[iMode][0] << endl;
 
+    cout<<" Theta :: "<<sin(theta)<<endl;
     if (config->GetDynamic_Method() == MODAL_HARMONIC_BALANCE)
         for (iPoint = 0; iPoint < geometry->GetnPoint(); iPoint++)
             for(iMode = 0; iMode<nModes; iMode++){
-                node[iPoint]->SetSolution_Pred(0,node[iPoint]->GetModeVector(iMode,0)*0.001*sin(theta));
-                node[iPoint]->SetSolution_Pred(1,node[iPoint]->GetModeVector(iMode,1)*0.001*sin(theta));
-                node[iPoint]->SetSolution_Pred(2,node[iPoint]->GetModeVector(iMode,2)*0.001*sin(theta));
+                node[iPoint]->SetSolution_Pred(0,node[iPoint]->GetModeVector(iMode,0)*2*sin(theta));
+                node[iPoint]->SetSolution_Pred(1,node[iPoint]->GetModeVector(iMode,1)*2*sin(theta));
+                node[iPoint]->SetSolution_Pred(2,node[iPoint]->GetModeVector(iMode,2)*2*sin(theta));
             }
 
     delete [] XV;

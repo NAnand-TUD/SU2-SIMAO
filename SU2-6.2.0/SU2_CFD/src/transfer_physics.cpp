@@ -205,7 +205,7 @@ void CTransfer_FlowTraction::GetDonor_Variable(CSolver *flow_solution, CGeometry
   cout << "redim pressure force: " << Physical_Constants[0] << "\t" << area << "\t" << Pinf;
   for (iVar = 0; iVar < nVar; iVar++) {
 //     Donor_Variable[iVar] *= Physical_Constants[0] * Physical_Constants[1]; // / area;
-    cout << "\t" << Donor_Variable[iVar] << "\t";
+    cout << "\t" << Donor_Variable[iVar];
   }
   cout << endl;
 

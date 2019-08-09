@@ -5605,9 +5605,9 @@ void CModalSolver::ReadCSD_Mesh_Nastran(CConfig *config,CGeometry *geometry){
     if (config->GetDynamic_Method() == MODAL_HARMONIC_BALANCE)
         for (iPoint = 0; iPoint < geometry->GetnPoint(); iPoint++)
             for(iMode = 0; iMode<nModes; iMode++){
-                node[iPoint]->SetSolution_Pred(0,node[iPoint]->GetModeVector(iMode,0)*2*sin(theta));
-                node[iPoint]->SetSolution_Pred(1,node[iPoint]->GetModeVector(iMode,1)*2*sin(theta));
-                node[iPoint]->SetSolution_Pred(2,node[iPoint]->GetModeVector(iMode,2)*2*sin(theta));
+                node[iPoint]->SetSolution_Pred(0,node[iPoint]->GetModeVector(iMode,0)*0.01*sin(theta));
+                node[iPoint]->SetSolution_Pred(1,node[iPoint]->GetModeVector(iMode,1)*0.01*sin(theta));
+                node[iPoint]->SetSolution_Pred(2,node[iPoint]->GetModeVector(iMode,2)*0.01*sin(theta));
             }
 
     delete [] XV;
@@ -5864,7 +5864,7 @@ void CModalSolver::UpdateStructuralNodes() {
         cout<<" nModes -> "<<nModes<<endl;
         for(iPoint = 0; iPoint < nPoint; ++iPoint) {
             for(iDim = 0; iDim < nDim; ++iDim) {
-                solutionValue = delta*node[iPoint]->GetModeVector(iMode,iDim)*sin(theta);
+                solutionValue = delta*node[iPoint]->GetModeVector(iMode,iDim);
                 node[iPoint]->Add_DeltaSolution(iDim,solutionValue);
             }
         }
@@ -5873,7 +5873,7 @@ void CModalSolver::UpdateStructuralNodes() {
         delta = generalizedVelocity[iMode][0] - generalizedVelocity[iMode][1];
         for(iPoint = 0; iPoint < nPoint; ++iPoint) {
             for(iDim = 0; iDim < nDim; ++iDim) {
-                solutionValue = delta*node[iPoint]->GetModeVector(iMode,iDim)*sin(theta);
+                solutionValue = delta*node[iPoint]->GetModeVector(iMode,iDim);
                 node[iPoint]->Add_DeltaVelSolution(iDim,solutionValue);
             }
         }
@@ -5958,8 +5958,9 @@ void CModalSolver::ComputeModalFluidForces(CGeometry *geometry, CConfig *config)
       su2double force[3] = {0.0, 0.0, 0.0};
 
     for (iNode = 0; iNode < nNode; ++iNode)
-        for (iDim = 0; iDim < nDim; ++iDim)
-            force[iDim] += weight*area*node[nodes[iNode]]->Get_FlowTraction(iDim);
+        for (iDim = 0; iDim < nDim; ++iDim) {
+            force[iDim] += weight * area * node[nodes[iNode]]->Get_FlowTraction(iDim);
+        }
         for (iDim = 0; iDim < nDim; ++iDim) {
           forces.push_back(force[iDim]);
       }
@@ -5994,6 +5995,8 @@ void CModalSolver::ComputeModalFluidForces(CGeometry *geometry, CConfig *config)
         iPoint = geometry->bound[iMarker][iElem]->GetNode(iNode);
         node[iPoint]->Add_FlowTraction(force);
       }
+
+//      cout<<"Force :: "<<force[0]<<" "<<force[1]<<" "<<force[2]<<endl;
     }
   }
   cout << "finished with points\n";
@@ -6085,7 +6088,7 @@ void CModalSolver::ComputeModalFluidForces(CGeometry *geometry, CConfig *config)
             cout << "node: " << iPoint <<" GIndex: "<<geometry->node[iPoint]->GetGlobalIndex() << " - Mode ";
             for(iDim = 0; iDim < nDim; ++iDim) cout << node[iPoint]->GetModeVector(iMode,iDim) << "\t";
             cout << "; Force  ";
-            for(iDim = 0; iDim < nDim; ++iDim) cout << node[iPoint]->Get_FlowTraction(iDim) << "\t";
+            for(iDim = 0; iDim < nDim; iDim++) cout << node[iPoint]->Get_FlowTraction(iDim) << "\t";
             cout << endl;
             for(iDim = 0; iDim < nDim; ++iDim){
                 modalForce[iMode] += node[iPoint]->GetModeVector(iMode,iDim)*node[iPoint]->Get_FlowTraction(iDim);

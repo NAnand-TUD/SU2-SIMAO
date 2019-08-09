@@ -331,9 +331,11 @@ void CMultizoneDriver::Run_GaussSeidel() {
         }
 
     // Solver Update
-    if (config_container[iZone][INST_0].GetUnsteady_Simulation() == HARMONIC_BALANCE)
+    cout<<"Fluid Solve Update \n";
+    if (config_container[iZone]->GetUnsteady_Simulation() == HARMONIC_BALANCE)
         FluidHBUpdate(iZone,FLOW_SOL);
-    else if (config_container[iZone][INST_0].GetDynamic_Method() == MODAL_HARMONIC_BALANCE){
+    else if (config_container[iZone]->GetDynamic_Method() == MODAL_HARMONIC_BALANCE) {
+        cout<< " I am being called \n\n";
         FluidHBUpdate(iZone,MODAL_SOL);
     }
     else
@@ -791,16 +793,19 @@ bool CMultizoneDriver::Transfer_Data(unsigned short donorZone, unsigned short ta
 }
 
 void CMultizoneDriver::FluidHBUpdate(unsigned short val_iZone, unsigned short val_Sol){
-    if (val_Sol == FLOW_SOL)
+
+    if (config_container[val_iZone]->GetUnsteady_Simulation() == HARMONIC_BALANCE)
         cout<<"Fluid_Harmonic_Balance Update \n";
-    else if (val_Sol == MODAL_SOL)
-        cout<<"Modal Hamronic Balance Update \n";
+    else if (config_container[val_iZone]->GetDynamic_Method() == MODAL_HARMONIC_BALANCE)
+        cout<<"Modal Harmonic Balance Update \n";
+    else
+        exit(-1);
 
     for (iInst = 0; iInst < nInst[val_iZone]; iInst++) {
         /*--- Compute the harmonic balance terms across all zones ---*/
-        if (val_Sol == FLOW_SOL)
+        if (config_container[val_iZone]->GetUnsteady_Simulation() == HARMONIC_BALANCE)
             SetHarmonicBalance(val_iZone, iInst, val_Sol);
-        else if (val_Sol == MODAL_SOL)
+        else if (config_container[val_iZone]->GetDynamic_Method() == MODAL_HARMONIC_BALANCE)
             SetHarmonicBalance_Modal(val_iZone, iInst, val_Sol);
         else
             exit(1);
@@ -808,7 +813,7 @@ void CMultizoneDriver::FluidHBUpdate(unsigned short val_iZone, unsigned short va
     }
 
     /*--- Precondition the harmonic balance source terms ---*/
-    if (val_Sol == FLOW_SOL)
+    if (config_container[val_iZone]->GetUnsteady_Simulation() == HARMONIC_BALANCE)
         if (config_container[val_iZone]->GetHB_Precondition() == YES) {
             StabilizeHarmonicBalance(val_iZone, val_Sol);
     }
@@ -832,16 +837,9 @@ void CMultizoneDriver::ModalHBUpdate(unsigned short val_iZone) {
 
 void CMultizoneDriver::SetHarmonicBalance(unsigned short val_iZone, unsigned short iInst, unsigned short val_Sol) {
 
-    cout<<"++++++ Setting Harmonic Balance +++++ \n";
+    cout<<"++++++ Setting Harmonic Balance ++++++ \n";
 
     unsigned short iVar, jInst, iMGlevel, val_Sol_Adj;
-
-    if (val_Sol == FLOW_SOL)
-        val_Sol_Adj = ADJFLOW_SOL;
-    else if (val_Sol == MODAL_SOL)
-        exit(1);
-    else
-        exit(1);
 
     unsigned short nVar = solver_container[val_iZone][INST_0][MESH_0][val_Sol]->GetnVar();
     unsigned long iPoint;
@@ -968,16 +966,9 @@ void CMultizoneDriver::SetHarmonicBalance(unsigned short val_iZone, unsigned sho
 
 void CMultizoneDriver::SetHarmonicBalance_Modal(unsigned short val_iZone, unsigned short iInst, unsigned short val_Sol) {
 
-    cout<<"++++++ Setting Harmonic Balance +++++ \n";
+    cout<<"++++++ Setting Harmonic Balance Modal +++++ \n";
 
     unsigned short iVar, jInst, iMGlevel, val_Sol_Adj;
-
-    if (val_Sol == FLOW_SOL)
-        exit(1);
-    else if (val_Sol == MODAL_SOL)
-        val_Sol_Adj = ADJFLOW_SOL;
-    else
-        exit(1);
 
     unsigned short nVar = solver_container[val_iZone][INST_0][MESH_0][val_Sol]->GetnVar();
 
@@ -1002,33 +993,28 @@ void CMultizoneDriver::SetHarmonicBalance_Modal(unsigned short val_iZone, unsign
     /*--- Loop over all grid levels ---*/
     for (iMGlevel = 0; iMGlevel <= config_container[val_iZone]->GetnMGLevels(); iMGlevel++) {
 
+        for (iVar = 0; iVar < nVar; iVar++) {
+            Source[iVar] = 0.0;
+        }
+
+        /*--- Step across the columns ---*/
+        for (jInst = 0; jInst < nInst[val_iZone]; jInst++) {
+
+            /*--- Retrieve solution at this node in current zone ---*/
             for (iVar = 0; iVar < nVar; iVar++) {
-                Source[iVar] = 0.0;
+                    U[iVar] = solver_container[val_iZone][jInst][iMGlevel][val_Sol]->Get_QSol(iVar);
+                    Source[iVar] += U[iVar]*D[iInst][jInst];
             }
 
-            /*--- Step across the columns ---*/
-            for (jInst = 0; jInst < nInst[val_iZone]; jInst++) {
-
-                /*--- Retrieve solution at this node in current zone ---*/
-                for (iVar = 0; iVar < nVar; iVar++) {
-                        U[iVar] = solver_container[val_iZone][jInst][iMGlevel][val_Sol]->Get_QSol(iVar);
-                        Source[iVar] += U[iVar]*D[iInst][jInst];
-                }
-
-                /*--- Store sources for current row ---*/
-                for (iVar = 0; iVar < nVar; iVar++) {
-                        solver_container[val_iZone][iInst][iMGlevel][val_Sol]->SetHarmonicBalance_Source(iVar, Source[iVar]);
-                    }
-                }
-
+            /*--- Store sources for current row ---*/
+            for (iVar = 0; iVar < nVar; iVar++) {
+                    solver_container[val_iZone][iInst][iMGlevel][val_Sol]->SetHarmonicBalance_Source(iVar, Source[iVar]);
             }
+        }
+    }
     delete [] Source;
     delete [] U;
-//    delete [] U_old;
 }
-
-
-
 
 void CMultizoneDriver::ComputeHB_Operator(unsigned short val_iZone) {
 

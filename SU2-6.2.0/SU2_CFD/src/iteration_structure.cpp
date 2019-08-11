@@ -1479,7 +1479,7 @@ void CModalIteration::Solve(COutput *output,
       surface_movement, grid_movement, FFDBox, val_iZone, val_iInst);
 
   /*--- Write the convergence history for the structure (only screen output) ---*/
-   if (multizone) output->SetConvHistory_Body(NULL, geometry_container, solver_container, config_container, integration_container, false, 0.0, val_iZone, INST_0);
+//    if (multizone) output->SetConvHistory_Body(NULL, geometry_container, solver_container, config_container, integration_container, false, 0.0, val_iZone, INST_0);
 
   /*--- Set the structural convergence to false (to make sure outer subiterations converge) ---*/
   integration_container[val_iZone][val_iInst][MODAL_SOL]->SetConvergence(false);

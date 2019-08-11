@@ -167,10 +167,13 @@ void CTransfer_FlowTraction::GetDonor_Variable(CSolver *flow_solution, CGeometry
   Pn = flow_solution->node[Point_Flow]->GetPressure();
 
   // Calculate tn in the fluid nodes for the inviscid term --> Units of force (non-dimensional).
+//   for (iVar = 0; iVar < nVar; iVar++) {
+//       Donor_Variable[iVar] = -(Pn-Pinf)*Normal_Flow[iVar];
+//   }
   for (iVar = 0; iVar < nVar; iVar++) {
-      Donor_Variable[iVar] = -(Pn-Pinf)*Normal_Flow[iVar];
+      Donor_Variable[iVar] = -Pn*Normal_Flow[iVar];
   }
-
+    return;
   // Calculate tn in the fluid nodes for the viscous term
 
   if ((incompressible || compressible) && viscous_flow) {

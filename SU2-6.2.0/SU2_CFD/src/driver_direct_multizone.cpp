@@ -352,7 +352,7 @@ void CMultizoneDriver::Run_GaussSeidel() {
     Convergence = OuterConvergence(iOuter_Iter);
     cout << "convergence: " << Convergence << endl;
 //     if (Convergence) break;
-    exit(0);
+//     exit(0);
   }
 
 }

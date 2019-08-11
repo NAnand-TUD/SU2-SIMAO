@@ -15874,7 +15874,6 @@ private:
 /* ----------------------------- CSD ----------------------------- */
 
 /*! \class CModalSolver
-/*! \class CModalSolver
  *  \brief Main class for defining a CSD solver for structural/aeroelastic problems.
  *  \author S. Marques.
  *  \date 25 April, 2019.
@@ -15953,7 +15952,7 @@ public:
    * \param[in] geometry - Geometrical definition of the problem.
    * \param[in] config - Definition of the particular problem.
    */
-  CModalSolver(CGeometry *geometry, CConfig *config, unsigned short iInst_val);
+  CModalSolver(CGeometry *geometry, CConfig *config);
   
   /*!
    * \brief Destructor of the class.

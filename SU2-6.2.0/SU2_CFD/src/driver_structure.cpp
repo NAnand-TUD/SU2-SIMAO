@@ -1388,7 +1388,7 @@ void CDriver::Solver_Preprocessing(CSolver ****solver_container, CGeometry ***ge
     }
     if (csd) {
         cout << "\n\ninitializing CSD solver\n\n";
-      solver_container[val_iInst][iMGlevel][MODAL_SOL] = new CModalSolver(geometry[val_iInst][iMGlevel], config, val_iInst);
+      solver_container[val_iInst][iMGlevel][MODAL_SOL] = new CModalSolver(geometry[val_iInst][iMGlevel], config);
       if (iMGlevel == MESH_0) DOFsPerPoint += solver_container[val_iInst][iMGlevel][MODAL_SOL]->GetnVar();
     }
     

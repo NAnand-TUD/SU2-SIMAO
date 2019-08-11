@@ -2546,7 +2546,7 @@ bool CConfig::SetRunTime_Parsing(char case_filename[MAX_STRING_SIZE]) {
         errorString.append(newString);
         err_count++;
         continue;
-      }F
+      }
       
       /*--- New found option. Add it to the map, and delete from all options ---*/
       

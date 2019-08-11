@@ -167,13 +167,13 @@ void CTransfer_FlowTraction::GetDonor_Variable(CSolver *flow_solution, CGeometry
   Pn = flow_solution->node[Point_Flow]->GetPressure();
 
   // Calculate tn in the fluid nodes for the inviscid term --> Units of force (non-dimensional).
-//   for (iVar = 0; iVar < nVar; iVar++) {
-//       Donor_Variable[iVar] = -(Pn-Pinf)*Normal_Flow[iVar];
-//   }
   for (iVar = 0; iVar < nVar; iVar++) {
-      Donor_Variable[iVar] = -Pn*Normal_Flow[iVar];
+      Donor_Variable[iVar] = -(Pn-Pinf)*Normal_Flow[iVar];
   }
-    return;
+//   for (iVar = 0; iVar < nVar; iVar++) {
+//       Donor_Variable[iVar] = -Pn*Normal_Flow[iVar];
+//   }
+//     return;
   // Calculate tn in the fluid nodes for the viscous term
 
   if ((incompressible || compressible) && viscous_flow) {
@@ -207,12 +207,12 @@ void CTransfer_FlowTraction::GetDonor_Variable(CSolver *flow_solution, CGeometry
   Physical_Constants[1] = 1.;
 //   cout << "redim pressure force: " << Physical_Constants[0] << "\t" << area << "\t" << Pinf;
 //   TODO: need option to allow for stress calc for other FSI solver
-// //     for (iVar = 0; iVar < nVar; iVar++) {
-// //        Donor_Variable[iVar] *= Physical_Constants[0] * Physical_Constants[1]; // / area;
+//     for (iVar = 0; iVar < nVar; iVar++) {
+//        Donor_Variable[iVar] *= Physical_Constants[0] * Physical_Constants[1]; // / area;
 //         Donor_Variable[iVar] -= Pinf*Normal_Flow[iVar];
 //         Donor_Variable[iVar] = -Pn*Normal_Flow[iVar];
 //         cout << "\t" << Donor_Variable[iVar] << "\t";
-// //     }
+//     }
 //   cout << endl;
 
 }

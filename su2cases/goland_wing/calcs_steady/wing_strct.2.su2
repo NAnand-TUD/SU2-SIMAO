@@ -8474,7 +8474,7 @@ MARKER_ELEMS=          384
                    9                 358                 359                 383                 382
                    9                 359                 360                 384                 383
                    9                 360                 338                 362                 384
-MARKER_TAG= SYMMETRY
+MARKER_TAG= SYM
 MARKER_ELEMS=          240
                    9                 362                 361                3995                3996
                    9                3996                3995                3997                3998
@@ -8716,7 +8716,7 @@ MARKER_ELEMS=          240
                    9                4231                4008                4010                4232
                    9                4232                4010                4012                4233
                    9                4233                4012                4014                4234
-MARKER_TAG= FARFIELD
+MARKER_TAG= FF
 MARKER_ELEMS=          384
                    5                 414                 413                 412
                    5                 413                 424                 412

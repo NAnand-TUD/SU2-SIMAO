@@ -5499,7 +5499,7 @@ void CModalSolver::ReadCSD_Mesh_Nastran(CConfig *config,CGeometry *geometry){
     Density_inf = config->GetPressure_FreeStream()/(config->GetGas_Constant()*config->GetTemperature_FreeStream());
     refLength = config->GetRefLength();
 //     speedSound = 
-	massRatio = Density_inf*refLength*refLength*refLength*refLength*refLength;
+	massRatio = Density_inf; //*refLength*refLength*refLength*refLength*refLength;
     
     su2double flutter_index = config->GetAeroelastic_Flutter_Speed_Index();
     
@@ -5965,14 +5965,14 @@ void CModalSolver::UpdateStructuralNodes() {
 //             }
 //     }
             
-    cout << "struct sol - actual position on each struct node\n";
-    for(iPoint = 0; iPoint < nPoint; ++iPoint) {
-        cout << "point[" << iPoint << "] => ";
-        for(iDim = 0; iDim < nDim; ++iDim) {
-            cout << node[iPoint]->GetSolution(iDim) << "\t";
-        }
-        cout << endl;
-    }
+//     cout << "struct sol - actual position on each struct node\n";
+//     for(iPoint = 0; iPoint < nPoint; ++iPoint) {
+//         cout << "point[" << iPoint << "] => ";
+//         for(iDim = 0; iDim < nDim; ++iDim) {
+//             cout << node[iPoint]->GetSolution(iDim) << "\t";
+//         }
+//         cout << endl;
+//     }
 }
 // void CModalSolver::ComputeModalFluidForces(CGeometry *geometry, CConfig *config) {
 // 
@@ -6261,9 +6261,9 @@ void CModalSolver::ComputeModalFluidForces(CGeometry *geometry, CConfig *config)
             GlobalIndex = geometry->node[iPoint]->GetGlobalIndex();
             cout << "Mode: "<<iMode<<"; node= "<<iPoint<<"; GI= "<<GlobalIndex<<" \t";
 
-            for(iDim = 0; iDim < nDim; ++iDim) cout << setw(7) << node[iPoint]->GetModeVector(iMode,iDim) << "\t";
+            for(iDim = 0; iDim < nDim; ++iDim) cout << node[iPoint]->GetModeVector(iMode,iDim) << "\t";
             cout << "; Force  ";
-            for(iDim = 0; iDim < nDim; ++iDim) cout << setw(7) << node[iPoint]->Get_FlowTraction(iDim) << "\t";
+            for(iDim = 0; iDim < nDim; ++iDim) cout << node[iPoint]->Get_FlowTraction(iDim) << "\t";
             cout << endl;
             for(iDim = 0; iDim < nDim; ++iDim){
                 modalForce[iMode] += node[iPoint]->GetModeVector(iMode,iDim)*node[iPoint]->Get_FlowTraction(iDim);

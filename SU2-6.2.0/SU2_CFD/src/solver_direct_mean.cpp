@@ -5772,8 +5772,6 @@ void CEulerSolver::Pressure_Forces(CGeometry *geometry, CConfig *config) {
     
   }
 
-  cout << "CF: " << Total_CFx << "\t" << Total_CFy << "\t" << Total_CFz << endl;
-  cout << "F: " << Total_CFx/factor << "\t" << Total_CFy/factor << "\t" << Total_CFz/factor << endl;
 }
 
 void CEulerSolver::Momentum_Forces(CGeometry *geometry, CConfig *config) {

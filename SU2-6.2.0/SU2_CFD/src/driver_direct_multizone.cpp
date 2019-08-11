@@ -327,11 +327,6 @@ void CMultizoneDriver::Run_GaussSeidel() {
             /*--- A corrector step can help preventing numerical instabilities ---*/
             if (config_container[0]->GetKind_Solver() != FEM_MODAL &&
               config_container[1]->GetKind_Solver() != FEM_MODAL) Corrector(iZone);
-
-            if (config_container[0]->GetKind_Solver() == EULER){
-    solver_container[0][iInst][MESH_0][FLOW_SOL]->Pressure_Forces(geometry_container[0][iInst][MESH_0], config_container[0]);
-            }
-
             
         }
 

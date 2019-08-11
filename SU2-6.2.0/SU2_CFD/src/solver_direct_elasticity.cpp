@@ -5874,13 +5874,10 @@ void CModalSolver::SolveStatic(CGeometry *geometry, CSolver **solver_container, 
         StructRes[2*iMode+1]= massRatio*(modalForce[iMode] - modalForceLast[iMode]) -                   omega[iMode]*omega[iMode]*generalizedDisplacement[iMode][0] - DampingRatio*omega[iMode]*generalizedVelocity[iMode][0];
     }
     cout << "compute new displacement\n";
+    cout << "mode\tdisp0\t\tdisp1\tvel\tfreq\tforce\t\tmass ratio\n"; 
     for (iMode = 0; iMode < nModes; ++iMode){
         generalizedDisplacement[iMode][0] = 0.85*generalizedDisplacement[iMode][1] + 0.15*massRatio*modalForce[iMode]/(omega[iMode]*omega[iMode]);
         
-        //as we are using a dimensional CSD/CFD meshes.
-//         generalizedDisplacement[iMode][0] *= refLength;
-        
-        cout << "mode\tdisp0\t\tdisp1\tvel\tfreq\tforce\t\tmass ratio\n"; 
         cout << setw(7) << iMode << "\t" << generalizedDisplacement[iMode][0] << "\t" << generalizedDisplacement[iMode][1] << "\t" <<  generalizedVelocity[iMode][0] << "\t" << omega[iMode] << "\t" << modalForce[iMode] << "\t" << massRatio << endl;
 	}
     
@@ -5917,16 +5914,16 @@ void CModalSolver::UpdateStructuralNodes() {
     // Loop over nodes to calculate the Gen. Disp. and Gen. Vel.
     for(iMode = 0; iMode < nModes; ++iMode) {
         delta = generalizedDisplacement[iMode][0];// - generalizedDisplacement[iMode][1];
-        cout << "Mode delta= " << delta << endl;
+//         cout << "Mode delta= " << delta << endl;
         for(iPoint = 0; iPoint < nPoint; ++iPoint) {
             
-            cout << "point[" << iPoint << "] => delta: ";
+//             cout << "point[" << iPoint << "] => delta: ";
             for(iDim = 0; iDim < nDim; ++iDim) {
                 solutionValue = delta*node[iPoint]->GetModeVector(iMode,iDim);
                 node[iPoint]->Add_DeltaSolution(iDim,solutionValue);
                 cout << solutionValue << ", ";
             }
-            cout << endl;
+//             cout << endl;
         }
 
         // repeat to update velocities

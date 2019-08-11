@@ -838,9 +838,7 @@ void CFluidIteration::Solve(COutput *output,
     nInner_Iter = config_container[val_iZone]->GetnIter();
 
   /*--- Preprocess the solver ---*/
-  Preprocess(output, integration_container, geometry_container,
-      solver_container, numerics_container, config_container,
-      surface_movement, grid_movement, FFDBox, val_iZone, val_iInst);
+  Preprocess(output, integration_container, geometry_container,solver_container, numerics_container, config_container,surface_movement, grid_movement, FFDBox, val_iZone, val_iInst);
 
     /*--- For steady-state flow simulations, we need to loop over ExtIter for the number of time steps ---*/
     /*--- However, ExtIter is the number of FSI iterations, so nIntIter is used in this case ---*/

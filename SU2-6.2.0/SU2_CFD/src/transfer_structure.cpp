@@ -362,7 +362,7 @@ void CTransfer::Broadcast_InterfaceData(CSolver *donor_solution, CSolver *target
     unsigned short iDonorPoint, nDonorPoints;
     su2double donorCoeff;
     
-    cout << " target processing\n\n";
+    cout << " target processing\n";
     /*--- For the target marker we are studying ---*/
     if (Marker_Target >= 0) {
       

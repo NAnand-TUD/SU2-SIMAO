@@ -4428,6 +4428,8 @@ public:
   virtual void SetHarmonicBalance_Source(unsigned short ivar_val, su2double source_val);
 
   virtual su2double GetHarmonicBalance_Source(unsigned short ivar_val);
+
+  virtual void SetiInst(unsigned short val_inst);
     
 };
 
@@ -15881,7 +15883,7 @@ class CModalSolver : public CSolver {
 private:
   
   unsigned long nElement, nPoints;
-  unsigned short nMarker,nModes, nInst, nEqn;
+  unsigned short nMarker,nModes, nInst, nEqn, iInst;
   int nFEA_Terms;
   
     bool element_based;             /*!< \brief Bool to determine if an element-based file is used. */  
@@ -15898,6 +15900,8 @@ private:
     su2double Uinf,                 /*!< \brief freestream velocity */
     refLength,                      /*!< \brief scaling length for CSD mesh, frequency, etc. */
     Qinf,                           /*!< \brief freestream dynamic pressure */
+    HB_Period,
+    theta,
     massRatio,
     relax;                          /*!< \brief relaxation factor for static displacements */
     vector<su2double> modeShapes;   /*!< \brief 1D vector containing mode shapes vector coordinates */
@@ -15949,7 +15953,7 @@ public:
    * \param[in] geometry - Geometrical definition of the problem.
    * \param[in] config - Definition of the particular problem.
    */
-  CModalSolver(CGeometry *geometry, CConfig *config);
+  CModalSolver(CGeometry *geometry, CConfig *config, unsigned short iInst_val);
   
   /*!
    * \brief Destructor of the class.
@@ -16307,6 +16311,8 @@ public:
   void Postprocessing(CGeometry *geometry, CSolver **solver_container, CConfig *config,  CNumerics **numerics, unsigned short iMesh);
 
   void ImplicitNewmark_Update(CGeometry *geometry, CSolver **solver_container, CConfig *config);
+
+  void SetiInst(unsigned short val_inst);
   
   /*!
    * \brief Routine to solve the Jacobian-Residual linearized system.

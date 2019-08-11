@@ -955,9 +955,15 @@ inline void CSolver::AddRes_Max_BGS(unsigned short val_var, su2double val_residu
   if (val_residual > Residual_Max_BGS[val_var]) {
   Residual_Max_BGS[val_var] = val_residual;
   Point_Max_BGS[val_var] = val_point;
+<<<<<<< HEAD
 //   cout<<"val_var "<<val_var<<" nDim "<<nDim<<endl;
   for (unsigned short iDim = 0; iDim < nDim; iDim++) {
 //       cout << Point_Max_Coord_BGS[val_var][iDim] << endl;
+=======
+//  cout<<"val_var "<<val_var<<" nDim "<<nDim<<endl;
+  for (unsigned short iDim = 0; iDim < nDim; iDim++) {
+//      cout << Point_Max_Coord_BGS[val_var][iDim] << endl;
+>>>>>>> 430a80f7f37a57904fa513e7190cee8c568385f2
       Point_Max_Coord_BGS[val_var][iDim] = val_coord[iDim];
   }
   }
@@ -2545,6 +2551,8 @@ inline su2double CSolver::Get_QSol(unsigned short val_ivar){}
 inline void CSolver::SetHarmonicBalance_Source(unsigned short val_ivar, su2double source_val) { }
 
 inline su2double CSolver::GetHarmonicBalance_Source(unsigned short val_ivar){ }
+
+inline void CSolver::SetiInst(unsigned short val_inst){ }
 
 inline su2double CModalSolver::getGeneralizedDisplacement(unsigned short iMode) {return generalizedDisplacement[iMode][0];}
 

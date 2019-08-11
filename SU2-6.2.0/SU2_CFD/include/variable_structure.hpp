@@ -5090,8 +5090,8 @@ protected:
     *Solution_Vel,
     *Solution_Vel_time_n,
     *Solution_Pred,                 /*!< \brief Predictor of the solution for FSI purposes */
-    *Solution_Pred_Old;            /*!< \brief Predictor of the solution at time n for FSI purposes */
-    su2double *HB_Source;
+    *Solution_Pred_Old,            /*!< \brief Predictor of the solution at time n for FSI purposes */
+    *HB_Source;
 //   su2double *Solution_Vel,      /*!< \brief Velocity of the nodes. */
 //   *Solution_Vel_time_n;         /*!< \brief Velocity of the nodes at time n. */
 //   

@@ -239,24 +239,30 @@ CModalVariable::CModalVariable(su2double *val_csd, unsigned short val_nDim, unsi
 
     modeShape           = new su2double [nDim*val_nModes];
     
-    for (iVar = 0; iVar < nVar; iVar++) FlowTraction[iVar] = 0.0;
-    for (iVar = 0; iVar < nVar; iVar++) FlowTraction_time_n[iVar] = 0.0;
+    for (iVar = 0; iVar < nDim; iVar++) FlowTraction[iVar] = 0.0;
+    for (iVar = 0; iVar < nDim; iVar++) FlowTraction_time_n[iVar] = 0.0;
     for (iVar = 0; iVar < nDim*val_nModes; iVar++) modeShape[iVar] = 0.0;
         
     /*--- If we are going to use incremental analysis, we need a way to store the old solution ---*/
     Solution_Old =  new su2double [nVar];
 
     /*--- Initialization of variables ---*/
-    for (iVar = 0; iVar < nVar; iVar++) Solution[iVar] = val_csd[iVar];
-    for (iVar = 0; iVar < nVar; iVar++) HB_Source[iVar] = 0.0;
-    for (iVar = 0; iVar < nVar; iVar++) Solution_Old[iVar] = val_csd[iVar];
-    for (iVar = 0; iVar < nVar; iVar++) {
+    for (iVar = 0; iVar < nDim; iVar++) Solution[iVar] = val_csd[iVar];
+    for (iVar = 0; iVar < nDim; iVar++) HB_Source[iVar] = 0.0;
+    for (iVar = 0; iVar < nDim; iVar++) Solution_Old[iVar] = val_csd[iVar];
+    for (iVar = 0; iVar < nDim; iVar++) {
         Solution_Vel[iVar]       = val_csd[iVar+nVar];
         Solution_Vel_time_n[iVar]= val_csd[iVar+nVar];
     }
-    
-    SetSolution_Pred_Old();
-    SetSolution_Pred();
+
+//    for (iVar = 0; iVar < nVar; iVar++) {
+//        Solution_Pred[iVar]         = 0.0;
+//        Solution_Pred_Old[iVar]     = 0.0;
+//    }
+    for (iVar = 0; iVar < nDim; iVar++) {
+        SetSolution_Pred_Old(iVar, 0.0);
+        SetSolution_Pred(iVar, 0.0);
+    }
 }
 
 CModalVariable::~CModalVariable(void) {

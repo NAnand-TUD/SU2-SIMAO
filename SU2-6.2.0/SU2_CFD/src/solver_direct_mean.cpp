@@ -5533,7 +5533,7 @@ void CEulerSolver::Pressure_Forces(CGeometry *geometry, CConfig *config) {
             Force[iDim] = -(Pressure - Pressure_Inf) * Normal[iDim] * factor * AxiFactor;
             ForceInviscid[iDim] += Force[iDim];
           }
-          
+
           /*--- Moment with respect to the reference axis ---*/
           
           if (nDim == 3) {
@@ -5768,8 +5768,12 @@ void CEulerSolver::Pressure_Forces(CGeometry *geometry, CConfig *config) {
     Surface_CMx[iMarker_Monitoring]        = Surface_CMx_Inv[iMarker_Monitoring];
     Surface_CMy[iMarker_Monitoring]        = Surface_CMy_Inv[iMarker_Monitoring];
     Surface_CMz[iMarker_Monitoring]        = Surface_CMz_Inv[iMarker_Monitoring];
+    
+    
   }
-  
+
+  cout << "CF: " << Total_CFx << "\t" << Total_CFy << "\t" << Total_CFz << endl;
+  cout << "F: " << Total_CFx/factor << "\t" << Total_CFy/factor << "\t" << Total_CFz/factor << endl;
 }
 
 void CEulerSolver::Momentum_Forces(CGeometry *geometry, CConfig *config) {

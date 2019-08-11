@@ -202,12 +202,15 @@ void CTransfer_FlowTraction::GetDonor_Variable(CSolver *flow_solution, CGeometry
 
   // Redimensionalize and take into account ramp transfer of the loads
   Physical_Constants[1] = 1.;
-  cout << "redim pressure force: " << Physical_Constants[0] << "\t" << area << "\t" << Pinf;
-  for (iVar = 0; iVar < nVar; iVar++) {
-//     Donor_Variable[iVar] *= Physical_Constants[0] * Physical_Constants[1]; // / area;
-    cout << "\t" << Donor_Variable[iVar] << "\t";
-  }
-  cout << endl;
+//   cout << "redim pressure force: " << Physical_Constants[0] << "\t" << area << "\t" << Pinf;
+//   TODO: need option to allow for stress calc for other FSI solver
+// //     for (iVar = 0; iVar < nVar; iVar++) {
+// //        Donor_Variable[iVar] *= Physical_Constants[0] * Physical_Constants[1]; // / area;
+//         Donor_Variable[iVar] -= Pinf*Normal_Flow[iVar];
+//         Donor_Variable[iVar] = -Pn*Normal_Flow[iVar];
+//         cout << "\t" << Donor_Variable[iVar] << "\t";
+// //     }
+//   cout << endl;
 
 }
 
@@ -218,7 +221,6 @@ void CTransfer_FlowTraction::SetTarget_Variable(CSolver *fea_solution, CGeometry
   /*--- Add to the Flow traction. If nonconservative interpolation is in use,
         this is a stress and is integrated by the structural solver later on. ---*/
   fea_solution->node[Point_Struct]->Add_FlowTraction(Target_Variable);
-
 
 }
 
@@ -253,6 +255,7 @@ void CTransfer_StructuralDisplacements::GetDonor_Variable(CSolver *struct_soluti
 //  cout<<"trasnfer physics.cpp 249 : Diff in DonorDisplacement " << DisplacementDonor[2]-DisplacementDonor_Prev[2]<<endl;
   for (iDim = 0; iDim < struct_geometry->GetnDim(); iDim++){
     Donor_Variable[iDim] = DisplacementDonor[iDim] - DisplacementDonor_Prev[iDim];
+//     cout << Donor_Variable[iDim] <<" " << DisplacementDonor[iDim] << " "<< DisplacementDonor_Prev[iDim] << endl;
   }
     
 }
@@ -277,8 +280,7 @@ CTransfer_StructuralDisplacements_DiscAdj::~CTransfer_StructuralDisplacements_Di
 }
 
 
-void CTransfer_StructuralDisplacements_DiscAdj::GetPhysical_Constants(CSolver *struct_solution, CSolver *flow_solution,
-                                                                      CGeometry *struct_geometry, CGeometry *flow_geometry,
+void CTransfer_StructuralDisplacements_DiscAdj::GetPhysical_Constants(CSolver *struct_solution, CSolver *flow_solution,CGeometry *struct_geometry, CGeometry *flow_geometry,
                                                                       CConfig *struct_config, CConfig *flow_config) {
 }
 

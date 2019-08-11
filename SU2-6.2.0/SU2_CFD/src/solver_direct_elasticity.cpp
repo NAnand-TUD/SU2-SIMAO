@@ -5241,8 +5241,8 @@ CModalSolver::CModalSolver(CGeometry *geometry, CConfig *config) : CSolver() {
     omega       = new su2double[nModes];
     HB_Source   = new su2double[nVar];
     omega[0]    = 106.69842;
-    cout<< "nModes here is "<< nModes<<endl;
-    cout << "modal solver initialized:" << nDim << "\t" << nVar << "\t" << nPoint << endl;
+    cout<< "nModes: "<< nModes<<endl;
+    cout << "modal solver initialized: Dim=" << nDim << " \t; Vars=" << nVar << "\t; nPoints= " << nPoint << endl;
     
     // CModalVariable contains displacements in cartesian coordinates (solution variable)
     // TODO: check if these need to be absolute positions or are added.
@@ -5313,9 +5313,9 @@ CModalSolver::CModalSolver(CGeometry *geometry, CConfig *config) : CSolver() {
     // read in mode shapes (TODO: rename function)
     ReadCSD_Mesh_Nastran(config,geometry);
     
-    for (iMode=0; iMode < nModes; ++iMode) {
-        cout << "2-Mode " << iMode+1 << " Frequency:\t" << " = " << omega[iMode] << endl;
-    }
+//     for (iMode=0; iMode < nModes; ++iMode) {
+//         cout << "2-Mode " << iMode+1 << " Frequency:\t" << " = " << omega[iMode] << endl;
+//     }
 }
 
 CModalSolver::~CModalSolver(void) {
@@ -5391,91 +5391,91 @@ void CModalSolver::ReadCSD_Mesh_Ansys(CConfig *config) {
     string line, dummy, text_line;
     char cstr[200];
 
-    mesh_file.close();
-    Uinf = 0.96*pow(config->GetGamma()*config->GetGas_Constant()*config->GetTemperature_FreeStream(),0.5);
-    cout<< " Mach Inf       :: "<<config->GetMach_Motion()<<endl;
-    cout<< " Gamma          :: "<<config->GetGamma()<<endl;
-    cout<< " Temperature    :: "<<config->GetTemperature_FreeStream()<<endl;
-
-    /* --- Read in modes' frequencies and mode shapes vectors --- */
-    strcpy(cstr,"Mode_shaoe_node_coord_mode_1.dat");
-
-    mode_file.open(cstr, ios::in);
-
-    // open the input file
-    if (mode_file.fail()) {
-        cout << "Modes File could not be opened! Terminating!" << endl;
-        exit(EXIT_FAILURE);
-    }
-
-    getline(mode_file, line);
-    nModes = 1; //atoi(line.c_str());
-
-//    getline(mode_file, line);
-//    nModesPoints = atoi(line.c_str());
-//    cout << "npoints/nModesPoints: " << nPoint << "\t" << nModesPoints << endl;
-//    assert(nModesPoints == nPoint);
-
-//    getline(mode_file, line);
-//    refLength = atof(line.c_str());
-//
-//    cout << "N. of modes = " << nModes << "\n";
-//    cout << "N. of nodes in CSD mesh = "<< nPoint << "\n";
-//    cout << "Reference Length = " << refLength << endl;
-
-    // initialize modes shapes, frequency and coordinate arrays
-    modeShapes.reserve(nDim*nPoint*nModes);
-    omega           = new su2double [nModes];
-    modalForce      = new su2double [nModes];
-    modalForceLast  = new su2double [nModes];
-    XV              = new su2double [nPoint];
-    YV              = new su2double [nPoint];
-    ZV              = new su2double [nPoint];
-
-    generalizedDisplacement   = new su2double *[nModes];
-    generalizedVelocity       = new su2double *[nModes];
-
-    for (iMode=0; iMode < nModes; ++iMode) generalizedDisplacement[iMode]   = new su2double [3];
-    for (iMode=0; iMode < nModes; ++iMode) generalizedVelocity[iMode]       = new su2double [3];
-
-    for (iPoint = 0; iPoint < nPoint; iPoint++) {
-        node[iPoint] = new CModalVariable(SolRest, nDim, nVar, nModes, config);
-    }
-
-    for (iMode=0; iMode < nModes; ++iMode) {
-        getline(mode_file, line);
-        istringstream iss(line);
-        iss >> frequency;
-        omega[iMode] = frequency;//2.0*PI_NUMBER*frequency*refLength/Uinf; //frequency; // TODO: compute Uinf from config;
-        cout<< "Omega :: "<<omega[iMode]<<" Freq ::"<<  frequency<<endl;
-        iss.clear();
-    }
-
-    for (iMode=0; iMode < nModes; ++iMode) {
-        for (iPoint = 0 ; iPoint < nPoint; iPoint++) {
-            getline(mode_file, line);
-            istringstream iss(line);
-            iss >> Coord_3D[0]; iss >> Coord_3D[1]; iss >> Coord_3D[2];
-            XV[iPoint] = Coord_3D[0]/refLength;
-            YV[iPoint] = Coord_3D[1]/refLength;
-            ZV[iPoint] = Coord_3D[2]/refLength;
-            for(iDim=0; iDim < nDim; ++iDim) node[iPoint]->SetModeVector(iMode,iDim,Coord_3D[iDim]);
-            iss.clear();
-        }
-        for (iPoint = 0 ; iPoint < nPoint; iPoint++) modeShapes.push_back(XV[iPoint]);
-        for (iPoint = 0 ; iPoint < nPoint; iPoint++) modeShapes.push_back(YV[iPoint]);
-        for (iPoint = 0 ; iPoint < nPoint; iPoint++) modeShapes.push_back(ZV[iPoint]);
-    }
-
-    for (iMode=0; iMode < nModes; ++iMode) {
-        cout << "Mode " << iMode+1 << " Frequency:\t" << " = " << omega[iMode] << endl;
-    }
-
-    mode_file.close();
-
-    delete [] XV;
-    delete [] YV;
-    delete [] ZV;
+//     mesh_file.close();
+//     Uinf = 0.96*pow(config->GetGamma()*config->GetGas_Constant()*config->GetTemperature_FreeStream(),0.5);
+//     cout<< " Mach Inf       :: "<<config->GetMach_Motion()<<endl;
+//     cout<< " Gamma          :: "<<config->GetGamma()<<endl;
+//     cout<< " Temperature    :: "<<config->GetTemperature_FreeStream()<<endl;
+// 
+//     /* --- Read in modes' frequencies and mode shapes vectors --- */
+//     strcpy(cstr,"Mode_shaoe_node_coord_mode_1.dat");
+// 
+//     mode_file.open(cstr, ios::in);
+// 
+//     // open the input file
+//     if (mode_file.fail()) {
+//         cout << "Modes File could not be opened! Terminating!" << endl;
+//         exit(EXIT_FAILURE);
+//     }
+// 
+//     getline(mode_file, line);
+//     nModes = 1; //atoi(line.c_str());
+// 
+// //    getline(mode_file, line);
+// //    nModesPoints = atoi(line.c_str());
+// //    cout << "npoints/nModesPoints: " << nPoint << "\t" << nModesPoints << endl;
+// //    assert(nModesPoints == nPoint);
+// 
+// //    getline(mode_file, line);
+// //    refLength = atof(line.c_str());
+// //
+// //    cout << "N. of modes = " << nModes << "\n";
+// //    cout << "N. of nodes in CSD mesh = "<< nPoint << "\n";
+// //    cout << "Reference Length = " << refLength << endl;
+// 
+//     // initialize modes shapes, frequency and coordinate arrays
+//     modeShapes.reserve(nDim*nPoint*nModes);
+//     omega           = new su2double [nModes];
+//     modalForce      = new su2double [nModes];
+//     modalForceLast  = new su2double [nModes];
+//     XV              = new su2double [nPoint];
+//     YV              = new su2double [nPoint];
+//     ZV              = new su2double [nPoint];
+// 
+//     generalizedDisplacement   = new su2double *[nModes];
+//     generalizedVelocity       = new su2double *[nModes];
+// 
+//     for (iMode=0; iMode < nModes; ++iMode) generalizedDisplacement[iMode]   = new su2double [3];
+//     for (iMode=0; iMode < nModes; ++iMode) generalizedVelocity[iMode]       = new su2double [3];
+// 
+//     for (iPoint = 0; iPoint < nPoint; iPoint++) {
+//         node[iPoint] = new CModalVariable(SolRest, nDim, nVar, nModes, config);
+//     }
+// 
+//     for (iMode=0; iMode < nModes; ++iMode) {
+//         getline(mode_file, line);
+//         istringstream iss(line);
+//         iss >> frequency;
+//         omega[iMode] = frequency;//2.0*PI_NUMBER*frequency*refLength/Uinf; //frequency; // TODO: compute Uinf from config;
+//         cout<< "Omega :: "<<omega[iMode]<<" Freq ::"<<  frequency<<endl;
+//         iss.clear();
+//     }
+// 
+//     for (iMode=0; iMode < nModes; ++iMode) {
+//         for (iPoint = 0 ; iPoint < nPoint; iPoint++) {
+//             getline(mode_file, line);
+//             istringstream iss(line);
+//             iss >> Coord_3D[0]; iss >> Coord_3D[1]; iss >> Coord_3D[2];
+//             XV[iPoint] = Coord_3D[0]/refLength;
+//             YV[iPoint] = Coord_3D[1]/refLength;
+//             ZV[iPoint] = Coord_3D[2]/refLength;
+//             for(iDim=0; iDim < nDim; ++iDim) node[iPoint]->SetModeVector(iMode,iDim,Coord_3D[iDim]);
+//             iss.clear();
+//         }
+//         for (iPoint = 0 ; iPoint < nPoint; iPoint++) modeShapes.push_back(XV[iPoint]);
+//         for (iPoint = 0 ; iPoint < nPoint; iPoint++) modeShapes.push_back(YV[iPoint]);
+//         for (iPoint = 0 ; iPoint < nPoint; iPoint++) modeShapes.push_back(ZV[iPoint]);
+//     }
+// 
+//     for (iMode=0; iMode < nModes; ++iMode) {
+//         cout << "Mode " << iMode+1 << " Frequency:\t" << " = " << omega[iMode] << endl;
+//     }
+// 
+//     mode_file.close();
+// 
+//     delete [] XV;
+//     delete [] YV;
+//     delete [] ZV;
 }
 
 void CModalSolver::ReadCSD_Mesh_Nastran(CConfig *config,CGeometry *geometry){
@@ -5484,7 +5484,7 @@ void CModalSolver::ReadCSD_Mesh_Nastran(CConfig *config,CGeometry *geometry){
     unsigned long iPoint,iMode,nModesPoints;
 	unsigned short number_of_modes,iDim;
 	vector<unsigned long>::iterator it;
-	su2double frequency,modalScaling;
+	su2double frequency,modalScaling,Density_inf;
 	su2double Coord_3D[3];
     su2double *XV,*YV,*ZV;
 	ifstream mode_file,mesh_file;
@@ -5496,8 +5496,10 @@ void CModalSolver::ReadCSD_Mesh_Nastran(CConfig *config,CGeometry *geometry){
     //config->GetMach()
 	Uinf = config->GetMach()*pow(config->GetGamma()*config->GetGas_Constant()*config->GetTemperature_FreeStream(),0.5);
     Qinf = ONE2 * config->GetGamma()*config->GetPressure_FreeStream()*config->GetMach()*config->GetMach();//config->GetMach()*config->GetMach();
+    Density_inf = config->GetPressure_FreeStream()/(config->GetGas_Constant()*config->GetTemperature_FreeStream());
     refLength = config->GetRefLength();
-	massRatio = config->GetPressure_FreeStream()/(config->GetGas_Constant()*config->GetTemperature_FreeStream())*pow(refLength,5);
+//     speedSound = 
+	massRatio = Density_inf*refLength*refLength*refLength*refLength*refLength;
     
     su2double flutter_index = config->GetAeroelastic_Flutter_Speed_Index();
     
@@ -5508,7 +5510,7 @@ void CModalSolver::ReadCSD_Mesh_Nastran(CConfig *config,CGeometry *geometry){
     cout<< " Density_inf    :: "<<config->GetDensity_Ref() << endl;
     cout<< " U_inf          :: "<< Uinf << endl;
     cout<< " Q              :: "<< Qinf <<endl;
-    cout<< " Density        :: "<< config->GetPressure_FreeStream()/(config->GetGas_Constant()*config->GetTemperature_FreeStream())<<endl;
+    cout<< " Density        :: "<< Density_inf <<endl;
     /* --- Read in modes' frequencies and mode shapes vectors ---2935.059 */
     strcpy(cstr,"modesFile.dat");
 
@@ -5570,7 +5572,7 @@ void CModalSolver::ReadCSD_Mesh_Nastran(CConfig *config,CGeometry *geometry){
         // non-dimensionalize freq. or not; TODO: add option
 		omega[iMode] = 2.0*PI_NUMBER*frequency*refLength/(Uinf); //frequency;
 //         omega[iMode] = 2.0*PI_NUMBER*frequency; //frequency;
-		cout<< "\nvel_inf: " << Uinf << "; Omega :: "<< omega[iMode] 
+		cout << "\nvel_inf: " << Uinf << "; Omega :: "<< omega[iMode] 
 		<< "; Omega^2 :: " << omega[iMode]*omega[iMode] <<  "; Freq ::"<<  frequency<<endl;
 		iss.clear();
 	}
@@ -5584,22 +5586,34 @@ void CModalSolver::ReadCSD_Mesh_Nastran(CConfig *config,CGeometry *geometry){
             XV[iPoint] = Coord_3D[0]/modalScaling;
             YV[iPoint] = Coord_3D[1]/modalScaling;
             ZV[iPoint] = Coord_3D[2]/modalScaling;
-            cout << XV[iPoint] << "\t"<< YV[iPoint] << "\t"<< ZV[iPoint] << "\n";
+//             cout << XV[iPoint] << "\t"<< YV[iPoint] << "\t"<< ZV[iPoint] << "\n";
             for(iDim=0; iDim < nDim; ++iDim) node[iPoint]->SetModeVector(iMode,iDim,Coord_3D[iDim]/modalScaling);
             iss.clear();
 		}
 
         unsigned short GlobalIndex;
+//         cout << "MODE\t" << "iPoint\t" << "GlobalIND\t" << "mode_x\t"<< "mode_y\t"<< "mode_z\n";
         for (iPoint=0; iPoint<nPoint; iPoint++) {
             GlobalIndex = geometry->node[iPoint]->GetGlobalIndex();
+            
+//             cout <<"0-"<< iMode << "\t" << iPoint <<  "\t" << GlobalIndex << "\t" 
+//             << node[iPoint]->GetModeVector(iMode,0) << "\t" <<
+//             node[iPoint]->GetModeVector(iMode,1) << "\t" <<
+//             node[iPoint]->GetModeVector(iMode,2) << "\n";
+            
             node[iPoint]->SetModeVector(iMode, 0, XV[GlobalIndex]);
             node[iPoint]->SetModeVector(iMode, 1, YV[GlobalIndex]);
             node[iPoint]->SetModeVector(iMode, 2, ZV[GlobalIndex]);
+            
+//             cout <<"1-"<< iMode << "\t" << iPoint <<  "\t" << GlobalIndex << "\t" 
+//             << node[iPoint]->GetModeVector(iMode,0) << "\t" <<
+//             node[iPoint]->GetModeVector(iMode,1) << "\t" <<
+//             node[iPoint]->GetModeVector(iMode,2) << "\n";
         }
 
-		for (iPoint = 0 ; iPoint < nPoint; iPoint++) modeShapes.push_back(XV[iPoint]);
-        for (iPoint = 0 ; iPoint < nPoint; iPoint++) modeShapes.push_back(YV[iPoint]);
-        for (iPoint = 0 ; iPoint < nPoint; iPoint++) modeShapes.push_back(ZV[iPoint]);
+		for (iPoint = 0 ; iPoint < nPoint; iPoint++) modeShapes.push_back(XV[GlobalIndex]);
+        for (iPoint = 0 ; iPoint < nPoint; iPoint++) modeShapes.push_back(YV[GlobalIndex]);
+        for (iPoint = 0 ; iPoint < nPoint; iPoint++) modeShapes.push_back(ZV[GlobalIndex]);
 	}
 
 	mode_file.close();
@@ -5857,17 +5871,17 @@ void CModalSolver::SolveStatic(CGeometry *geometry, CSolver **solver_container, 
         
     for(iMode = 0; iMode < nModes; ++iMode) {
         StructRes[2*iMode]  = generalizedVelocity[iMode][0];
-        StructRes[2*iMode+1]= massRatio*(modalForce[iMode] - modalForceLast[iMode]) - omega[iMode]*omega[iMode]*generalizedDisplacement[iMode][0] - DampingRatio*omega[iMode]*generalizedVelocity[iMode][0];
+        StructRes[2*iMode+1]= massRatio*(modalForce[iMode] - modalForceLast[iMode]) -                   omega[iMode]*omega[iMode]*generalizedDisplacement[iMode][0] - DampingRatio*omega[iMode]*generalizedVelocity[iMode][0];
     }
     cout << "compute new displacement\n";
     for (iMode = 0; iMode < nModes; ++iMode){
-        generalizedDisplacement[iMode][0] = 0.95*generalizedDisplacement[iMode][1] + 0.05*massRatio*modalForce[iMode]/(omega[iMode]*omega[iMode]);
+        generalizedDisplacement[iMode][0] = 0.85*generalizedDisplacement[iMode][1] + 0.15*massRatio*modalForce[iMode]/(omega[iMode]*omega[iMode]);
         
         //as we are using a dimensional CSD/CFD meshes.
 //         generalizedDisplacement[iMode][0] *= refLength;
         
-        cout << "mode\tdisp\tvel\tfreq\tforce\tmass ratio\n"; 
-        cout << iMode << "\t" << generalizedDisplacement[iMode][0] << "\t" <<  generalizedVelocity[iMode][0] << "\t" << omega[iMode] << "\t" << modalForce[iMode] << "\t" << massRatio << endl;
+        cout << "mode\tdisp0\t\tdisp1\tvel\tfreq\tforce\t\tmass ratio\n"; 
+        cout << setw(7) << iMode << "\t" << generalizedDisplacement[iMode][0] << "\t" << generalizedDisplacement[iMode][1] << "\t" <<  generalizedVelocity[iMode][0] << "\t" << omega[iMode] << "\t" << modalForce[iMode] << "\t" << massRatio << endl;
 	}
     
     cout << "update previous solution\n";
@@ -5890,7 +5904,7 @@ void CModalSolver::UpdateStructuralNodes() {
 
     unsigned long iPoint;
     unsigned short iDim, iMode;
-    su2double delta, solutionValue;
+    su2double delta, delta2, solutionValue;
 
     // Initialization of the Solution variables
 //     for(iPoint = 0; iPoint < nPoint; ++iPoint) node[iPoint]->SetSolution_time_n();
@@ -5902,21 +5916,22 @@ void CModalSolver::UpdateStructuralNodes() {
 
     // Loop over nodes to calculate the Gen. Disp. and Gen. Vel.
     for(iMode = 0; iMode < nModes; ++iMode) {
-        delta = generalizedDisplacement[iMode][0] - generalizedDisplacement[iMode][1];
-//         cout << "Mode delta= " << delta << endl;
+        delta = generalizedDisplacement[iMode][0];// - generalizedDisplacement[iMode][1];
+        cout << "Mode delta= " << delta << endl;
         for(iPoint = 0; iPoint < nPoint; ++iPoint) {
-//             cout << "point[" << iPoint << "] => ";
+            
+            cout << "point[" << iPoint << "] => delta: ";
             for(iDim = 0; iDim < nDim; ++iDim) {
                 solutionValue = delta*node[iPoint]->GetModeVector(iMode,iDim);
                 node[iPoint]->Add_DeltaSolution(iDim,solutionValue);
-//                 cout << "delta[" << iDim << "]= " << solutionValue << ", ";
+                cout << solutionValue << ", ";
             }
-//             cout << endl;
+            cout << endl;
         }
 
         // repeat to update velocities
-        delta = generalizedVelocity[iMode][0] - generalizedVelocity[iMode][1];
-        cout << "delta2= " << delta << endl;
+        delta = generalizedVelocity[iMode][0];// - generalizedVelocity[iMode][1];
+//         cout << "delta2= " << delta << endl;
         for(iPoint = 0; iPoint < nPoint; ++iPoint) {
             for(iDim = 0; iDim < nDim; ++iDim) {
                 solutionValue = delta*node[iPoint]->GetModeVector(iMode,iDim);
@@ -5924,7 +5939,28 @@ void CModalSolver::UpdateStructuralNodes() {
             }
         }
     }
-    
+
+//     vector<su2double>::iterator mode_it = modeShapes.begin();
+//     for(iMode = 0; iMode < nModes; ++iMode){
+//         delta = generalizedDisplacement[iMode][0] - generalizedDisplacement[iMode][1];
+//         for(iDim=0; iDim < nDim; ++iDim)
+//             for(iPoint = 0; iPoint < nPoint; ++iPoint){
+//             solutionValue = *(mode_it++)*delta; //*node[iPoint]->GetModeVector(iMode,iDim);
+//             node[iPoint]->Add_DeltaSolution(iDim,solutionValue);
+//             }
+//     }
+//             
+//     mode_it = modeShapes.begin();
+//     for(iMode = 0; iMode < nModes; ++iMode){
+//         delta = generalizedVelocity[iMode][0] - generalizedVelocity[iMode][1];
+//         for(iDim=0; iDim < nDim; ++iDim)
+//             for(iPoint = 0; iPoint < nPoint; ++iPoint){
+//             solutionValue = *(mode_it++)*delta; //*node[iPoint]->GetModeVector(iMode,iDim);
+//             node[iPoint]->Add_DeltaVelSolution(iDim,solutionValue);
+//             }
+//     }
+            
+    cout << "struct sol - actual position on each struct node\n";
     for(iPoint = 0; iPoint < nPoint; ++iPoint) {
         cout << "point[" << iPoint << "] => ";
         for(iDim = 0; iDim < nDim; ++iDim) {
@@ -5934,9 +5970,269 @@ void CModalSolver::UpdateStructuralNodes() {
     }
 }
 
+// void CModalSolver::ComputeModalFluidForces(CGeometry *geometry, CConfig *config) {
+// 
+//   unsigned short iDim, iNode, nNode, iMode,GlobalIndex;
+//   unsigned long iPoint, iElem, nElem;
+// 
+//   unsigned short iMarkerInt, nMarkerInt = config->GetMarker_n_ZoneInterface()/2,
+//                  iMarker, nMarker = config->GetnMarker_All();
+// 
+//   /*--- Temporary storage to store the forces on the element faces ---*/
+//   vector<su2double> forces;
+//   vector<unsigned long> npointcheck;
+// 
+//   cout << "getting fluid force\n";
+//   /*--- Loop through the FSI interface pairs ---*/
+//   /*--- 1st pass to compute forces ---*/
+//   for (iMarkerInt = 1; iMarkerInt <= nMarkerInt; ++iMarkerInt) {
+//     /*--- Find the marker index associated with the pair ---*/
+//     for (iMarker = 0; iMarker < nMarker; ++iMarker)
+//       if (config->GetMarker_All_ZoneInterface(iMarker) == iMarkerInt)
+//         break;
+//     /*--- The current mpi rank may not have this marker ---*/
+//     if (iMarker == nMarker) continue;
+// 
+//     nElem = geometry->GetnElem_Bound(iMarker);
+//     cout << "get fluid: nElem= " << nElem << endl;
+//     
+//     for (iElem = 0; iElem < nElem; ++iElem) {
+//       /*--- Define the boundary element ---*/
+//       unsigned long nodes[4];
+//       su2double coords[4][3];
+//       bool quad = geometry->bound[iMarker][iElem]->GetVTK_Type() == QUADRILATERAL;
+//       nNode = quad? 4 : nDim;
+// 
+//       for (iNode = 0; iNode < nNode; ++iNode) {
+//         // getting pointer to stored node variable
+//         nodes[iNode] = geometry->bound[iMarker][iElem]->GetNode(iNode);
+//         cout << "check for source of info: nodes["<<iNode<<"]=" << nodes[iNode] << endl;
+//         // current location?
+//         for (iDim = 0; iDim < nDim; ++iDim) {
+//             coords[iNode][iDim] = geometry->node[nodes[iNode]]->GetCoord(iDim)+
+//                                 node[nodes[iNode]]->GetSolution(iDim);
+//         }
+//       }
+// 
+//       /*--- Compute the area ---*/
+//       su2double area = 0.0;
+// 
+//       if (nDim == 2)
+//         area = (coords[0][0]-coords[1][0])*(coords[0][0]-coords[1][0])+
+//                (coords[0][1]-coords[1][1])*(coords[0][1]-coords[1][1]);
+// 
+//       if (nDim == 3) {
+//         su2double a[3], b[3], Ni, Nj, Nk;
+// 
+//         if (!quad) { // sides of the triangle
+//           for (iDim = 0; iDim < 3; iDim++) {
+//             a[iDim] = coords[1][iDim]-coords[0][iDim];
+//             b[iDim] = coords[2][iDim]-coords[0][iDim];
+//           }
+//         }
+//         else { // diagonals of the quadrilateral
+//           for (iDim = 0; iDim < 3; iDim++) {
+//             a[iDim] = coords[2][iDim]-coords[0][iDim];
+//             b[iDim] = coords[3][iDim]-coords[1][iDim];
+//           }
+//         }
+//         /*--- Area = 0.5*||a x b|| ---*/
+//         Ni = a[1]*b[2]-a[2]*b[1];
+//         Nj =-a[0]*b[2]+a[2]*b[0];
+//         Nk = a[0]*b[1]-a[1]*b[0];
+// 
+//         area = 0.25*(Ni*Ni+Nj*Nj+Nk*Nk);
+//       }
+//       area = sqrt(area);
+// 
+//       /*--- Integrate ---*/
+//       passivedouble weight = 1.0/nNode;
+//       su2double force[3] = {0.0, 0.0, 0.0};
+// 
+//     for (iNode = 0; iNode < nNode; ++iNode)
+//         for (iDim = 0; iDim < nDim; ++iDim)
+//             force[iDim] += weight*area*node[nodes[iNode]]->Get_FlowTraction(iDim);
+//         for (iDim = 0; iDim < nDim; ++iDim) {
+//           forces.push_back(force[iDim]);
+//       }
+// //        cout <<"GetFlowTraction :: "<< force[0] << "\t"  << force[1] << "\t" << force[2] << endl;
+//     }
+// 
+//   }
+//   /*--- 2nd pass to set values. This is to account for overlap in the markers. ---*/
+//   /*--- By putting the integrated values back into the nodes no changes have to be made elsewhere. ---*/
+//   for (iPoint = 0; iPoint < geometry->GetnPoint(); ++iPoint) node[iPoint]->Clear_FlowTraction();
+//   
+//   vector<su2double>::iterator force_it = forces.begin();
+//   cout << "list points from elements\n";
+//   for (iMarkerInt = 1; iMarkerInt <= nMarkerInt; ++iMarkerInt) {
+//     /*--- Find the marker index associated with the pair ---*/
+//     for (iMarker = 0; iMarker < nMarker; ++iMarker)
+//       if (config->GetMarker_All_ZoneInterface(iMarker) == iMarkerInt) break;
+//     /*--- The current mpi rank may not have this marker ---*/
+//     if (iMarker == nMarker) continue;
+// 
+//     nElem = geometry->GetnElem_Bound(iMarker);
+// 
+//     for (iElem = 0; iElem < nElem; ++iElem) {
+//       bool quad = geometry->bound[iMarker][iElem]->GetVTK_Type() == QUADRILATERAL;
+//       nNode = quad? 4 : nDim;
+//       passivedouble weight = 1.0/nNode;
+// 
+//       su2double force[3];
+//       for (iDim = 0; iDim < nDim; ++iDim) force[iDim] = *(force_it++)*weight;
+// 
+//       for (iNode = 0; iNode < nNode; ++iNode) {
+//         iPoint = geometry->bound[iMarker][iElem]->GetNode(iNode);
+//         node[iPoint]->Add_FlowTraction(force);
+//       }
+//     }
+//   }
+//   cout << "finished with points\n";
+// #ifdef HAVE_MPI
+//   /*--- Perform a global reduction, every rank will get the nodal values of all halo elements ---*/
+//   /*--- This should be cheaper than the "normal" way, since very few points are both halo and interface ---*/
+//   vector<unsigned long> halo_point_loc, halo_point_glb;
+//   vector<su2double> halo_force;
+// 
+//   for (iMarkerInt = 1; iMarkerInt <= nMarkerInt; ++iMarkerInt) {
+//     /*--- Find the marker index associated with the pair ---*/
+//     for (iMarker = 0; iMarker < nMarker; ++iMarker)
+//       if (config->GetMarker_All_ZoneInterface(iMarker) == iMarkerInt)
+//         break;
+//     /*--- The current mpi rank may not have this marker ---*/
+//     if (iMarker == nMarker) continue;
+// 
+//     nElem = geometry->GetnElem_Bound(iMarker);
+// 
+//     for (iElem = 0; iElem < nElem; ++iElem) {
+//       bool quad = geometry->bound[iMarker][iElem]->GetVTK_Type() == QUADRILATERAL;
+//       nNode = quad? 4 : nDim;
+// 
+//       /*--- If this is an halo element we share the nodal forces ---*/
+//       for (iNode = 0; iNode < nNode; ++iNode)
+//         if (!geometry->node[geometry->bound[iMarker][iElem]->GetNode(iNode)]->GetDomain())
+//           break;
+// 
+//       if (iNode < nNode) {
+//         for (iNode = 0; iNode < nNode; ++iNode) {
+//           iPoint = geometry->bound[iMarker][iElem]->GetNode(iNode);
+//           /*--- local is for when later we update the values in this rank ---*/
+//           halo_point_loc.push_back(iPoint);
+//           halo_point_glb.push_back(geometry->node[iPoint]->GetGlobalIndex());
+//           for (iDim = 0; iDim < nDim; ++iDim)
+//             halo_force.push_back(node[iPoint]->Get_FlowTraction(iDim));
+//         }
+//       }
+//     }
+//   }
+//   /*--- Determine the size of the arrays we need ---*/
+//   unsigned long nHaloLoc = halo_point_loc.size();
+//   unsigned long nHaloMax;
+//   MPI_Allreduce(&nHaloLoc,&nHaloMax,1,MPI_UNSIGNED_LONG,MPI_MAX,MPI_COMM_WORLD);
+// 
+//   /*--- Shared arrays, all the: number of halo points; halo point global indices; respective forces ---*/
+//   unsigned long *halo_point_num = new unsigned long[size];
+//   unsigned long *halo_point_all = new unsigned long[size*nHaloMax];
+//   su2double *halo_force_all = new su2double[size*nHaloMax*nDim];
+//   
+//   /*--- If necessary put dummy values in halo_point_glb to get a valid pointer ---*/
+//   if (halo_point_glb.empty()) halo_point_glb.resize(1);
+//   /*--- Pad halo_force to avoid (observed) issues in the adjoint when nHaloLoc!=nHaloMax ---*/
+//   while (halo_force.size() < nHaloMax*nDim) halo_force.push_back(0.0);
+//   
+//   MPI_Allgather(&nHaloLoc,1,MPI_UNSIGNED_LONG,halo_point_num,1,MPI_UNSIGNED_LONG,MPI_COMM_WORLD);
+//   MPI_Allgather(&halo_point_glb[0],nHaloLoc,MPI_UNSIGNED_LONG,halo_point_all,nHaloMax,MPI_UNSIGNED_LONG,MPI_COMM_WORLD);
+//   SU2_MPI::Allgather(&halo_force[0],nHaloMax*nDim,MPI_DOUBLE,halo_force_all,nHaloMax*nDim,MPI_DOUBLE,MPI_COMM_WORLD);
+// 
+//   /*--- Find shared points with other ranks and update our values ---*/
+//   for (int proc = 0; proc < size; ++proc)
+//   if (proc != rank) {
+//     unsigned long offset = proc*nHaloMax;
+//     for (iPoint = 0; iPoint < halo_point_num[proc]; ++iPoint) {
+//       unsigned long iPoint_glb = halo_point_all[offset+iPoint];
+//       ptrdiff_t pos = find(halo_point_glb.begin(),halo_point_glb.end(),iPoint_glb)-halo_point_glb.begin();
+//       if (pos < long(halo_point_glb.size())) {
+//         unsigned long iPoint_loc = halo_point_loc[pos];
+//         node[iPoint_loc]->Add_FlowTraction(&halo_force_all[(offset+iPoint)*nDim]);
+//       }
+//     }
+//   }
+// 
+//   delete [] halo_point_num;
+//   delete [] halo_point_all;
+//   delete [] halo_force_all;
+// #endif
+//   
+//   /* --- project force onto modes---*/
+// 
+//     for(iMode = 0; iMode < nModes; ++iMode){
+//         modalForceLast[iMode] = modalForce[iMode];
+//         modalForce[iMode] = 0.0;
+//     }
+// 
+//     cout << "projecting force\n";
+//     for(iMode = 0; iMode < nModes; ++iMode){
+//         for(iPoint = 0; iPoint < nPoint; ++iPoint){
+//             GlobalIndex = geometry->node[iPoint]->GetGlobalIndex();
+//             cout << "Mode: " << iMode << ": node " << iPoint << "\t" << GlobalIndex << "\t";
+//             for(iDim = 0; iDim < nDim; ++iDim) cout << node[iPoint]->GetModeVector(iMode,iDim) << "\t";
+//             cout << "; Force  ";
+//             for(iDim = 0; iDim < nDim; ++iDim) cout << node[iPoint]->Get_FlowTraction(iDim) << "\t";
+//             cout << endl;
+//             for(iDim = 0; iDim < nDim; ++iDim){
+//                 modalForce[iMode] += node[iPoint]->GetModeVector(iMode,iDim)*node[iPoint]->Get_FlowTraction(iDim);
+//             }
+//         }
+//     }
+//     
+// //     vector<su2double>::iterator mode_it = modeShapes.begin();
+// //     cout << "mode\tDim\tiPoint\tmode Shape\n";
+// //     for(iMode = 0; iMode < nModes; ++iMode)
+// //         for(iDim=0; iDim < nDim; ++iDim)
+// //             for(iPoint = 0; iPoint < nPoint; ++iPoint){
+// //                 modalForce[iMode] += *(mode_it++)*node[iPoint]->Get_FlowTraction(iDim);
+// // //                 cout << iMode <<"\t" << iDim << "\t" << iPoint <<"\t" << *(mode_it) << "\t" << modalForce[iMode] << endl;
+// //             }
+// 
+// //     for(iMode = 0; iMode < nModes; ++iMode){
+// //         for(iPoint = 0; iPoint < nPoint; ++iPoint){
+// //             GlobalIndex = geometry->node[iPoint]->GetGlobalIndex();
+// //             cout << "Mode: " << iMode << ": node " << iPoint << "\t" << GlobalIndex << "\t";
+// //             for(iDim = 0; iDim < nDim; ++iDim) cout << node[iPoint]->GetModeVector(iMode,iDim)<< " ";
+// //             cout << "\t; Force ";
+// //             for(iDim = 0; iDim < nDim; ++iDim) cout << node[iPoint]->Get_FlowTraction(iDim)<< " ";
+// // //             cout << "; Coord iP ";            
+// // //             for(iDim = 0; iDim < nDim ; ++iDim) {
+// // //             cout << geometry->node[iPoint]->GetCoord(iDim) << "\t";
+// // //             }
+// //             cout << "\t; Coord GI ";            
+// //             for(iDim = 0; iDim < nDim ; ++iDim) {
+// //             cout << geometry->node[GlobalIndex]->GetCoord(iDim) << " ";
+// //             }  
+// //             cout << endl;
+// // //             for(iDim = 0; iDim < nDim; ++iDim){
+// // //                 modalForce[iMode] += node[iPoint]->GetModeVector(iMode,iDim)*node[iPoint]->Get_FlowTraction(iDim);
+// // //             }
+// //         }
+// //     }
+// //     cout << "Struct\tForce\n";
+// //     for(iPoint = 0; iPoint < nPoint; ++iPoint){
+// //         for(iDim=0; iDim < nDim; ++iDim)
+// //             cout << node[iPoint]->Get_FlowTraction(iDim)<< "\t";
+// //         cout << endl;
+// //     }
+// 
+//     cout << "Modal\tForce\n";
+//     for(iMode = 0; iMode < nModes; ++iMode){
+//         cout << iMode << "\t" << modalForce[iMode] << endl;
+//     }
+// //     exit(0);
+// }
+
 void CModalSolver::ComputeModalFluidForces(CGeometry *geometry, CConfig *config) {
 
-  unsigned short iDim, iNode, nNode, iMode;
+  unsigned short iDim, iNode, nNode, iMode,GlobalIndex;
   unsigned long iPoint, iElem, nElem;
 
   unsigned short iMarkerInt, nMarkerInt = config->GetMarker_n_ZoneInterface()/2,
@@ -5947,185 +6243,7 @@ void CModalSolver::ComputeModalFluidForces(CGeometry *geometry, CConfig *config)
   vector<unsigned long> npointcheck;
 
   cout << "getting fluid force\n";
-  /*--- Loop through the FSI interface pairs ---*/
-  /*--- 1st pass to compute forces ---*/
-  for (iMarkerInt = 1; iMarkerInt <= nMarkerInt; ++iMarkerInt) {
-    /*--- Find the marker index associated with the pair ---*/
-    for (iMarker = 0; iMarker < nMarker; ++iMarker)
-      if (config->GetMarker_All_ZoneInterface(iMarker) == iMarkerInt)
-        break;
-    /*--- The current mpi rank may not have this marker ---*/
-    if (iMarker == nMarker) continue;
 
-    nElem = geometry->GetnElem_Bound(iMarker);
-
-    for (iElem = 0; iElem < nElem; ++iElem) {
-      /*--- Define the boundary element ---*/
-      unsigned long nodes[4];
-      su2double coords[4][3];
-      bool quad = geometry->bound[iMarker][iElem]->GetVTK_Type() == QUADRILATERAL;
-      nNode = quad? 4 : nDim;
-
-      for (iNode = 0; iNode < nNode; ++iNode) {
-        // getting pointer to stored node variable
-        nodes[iNode] = geometry->bound[iMarker][iElem]->GetNode(iNode);
-        // current location?
-        for (iDim = 0; iDim < nDim; ++iDim) {
-            coords[iNode][iDim] = geometry->node[nodes[iNode]]->GetCoord(iDim)+
-                                node[nodes[iNode]]->GetSolution(iDim);
-        }
-      }
-
-      /*--- Compute the area ---*/
-      su2double area = 0.0;
-
-      if (nDim == 2)
-        area = (coords[0][0]-coords[1][0])*(coords[0][0]-coords[1][0])+
-               (coords[0][1]-coords[1][1])*(coords[0][1]-coords[1][1]);
-
-      if (nDim == 3) {
-        su2double a[3], b[3], Ni, Nj, Nk;
-
-        if (!quad) { // sides of the triangle
-          for (iDim = 0; iDim < 3; iDim++) {
-            a[iDim] = coords[1][iDim]-coords[0][iDim];
-            b[iDim] = coords[2][iDim]-coords[0][iDim];
-          }
-        }
-        else { // diagonals of the quadrilateral
-          for (iDim = 0; iDim < 3; iDim++) {
-            a[iDim] = coords[2][iDim]-coords[0][iDim];
-            b[iDim] = coords[3][iDim]-coords[1][iDim];
-          }
-        }
-        /*--- Area = 0.5*||a x b|| ---*/
-        Ni = a[1]*b[2]-a[2]*b[1];
-        Nj =-a[0]*b[2]+a[2]*b[0];
-        Nk = a[0]*b[1]-a[1]*b[0];
-
-        area = 0.25*(Ni*Ni+Nj*Nj+Nk*Nk);
-      }
-      area = sqrt(area);
-
-      /*--- Integrate ---*/
-      passivedouble weight = 1.0/nNode;
-      su2double force[3] = {0.0, 0.0, 0.0};
-
-    for (iNode = 0; iNode < nNode; ++iNode)
-        for (iDim = 0; iDim < nDim; ++iDim)
-            force[iDim] += weight*area*node[nodes[iNode]]->Get_FlowTraction(iDim);
-        for (iDim = 0; iDim < nDim; ++iDim) {
-          forces.push_back(force[iDim]);
-      }
-//        cout <<"GetFlowTraction :: "<< force[0] << "\t"  << force[1] << "\t" << force[2] << endl;
-    }
-
-  }
-  /*--- 2nd pass to set values. This is to account for overlap in the markers. ---*/
-  /*--- By putting the integrated values back into the nodes no changes have to be made elsewhere. ---*/
-  for (iPoint = 0; iPoint < geometry->GetnPoint(); ++iPoint) node[iPoint]->Clear_FlowTraction();
-  
-  vector<su2double>::iterator force_it = forces.begin();
-  cout << "list points from elements\n";
-  for (iMarkerInt = 1; iMarkerInt <= nMarkerInt; ++iMarkerInt) {
-    /*--- Find the marker index associated with the pair ---*/
-    for (iMarker = 0; iMarker < nMarker; ++iMarker)
-      if (config->GetMarker_All_ZoneInterface(iMarker) == iMarkerInt) break;
-    /*--- The current mpi rank may not have this marker ---*/
-    if (iMarker == nMarker) continue;
-
-    nElem = geometry->GetnElem_Bound(iMarker);
-
-    for (iElem = 0; iElem < nElem; ++iElem) {
-      bool quad = geometry->bound[iMarker][iElem]->GetVTK_Type() == QUADRILATERAL;
-      nNode = quad? 4 : nDim;
-      passivedouble weight = 1.0/nNode;
-
-      su2double force[3];
-      for (iDim = 0; iDim < nDim; ++iDim) force[iDim] = *(force_it++)*weight;
-
-      for (iNode = 0; iNode < nNode; ++iNode) {
-        iPoint = geometry->bound[iMarker][iElem]->GetNode(iNode);
-        node[iPoint]->Add_FlowTraction(force);
-      }
-    }
-  }
-  cout << "finished with points\n";
-#ifdef HAVE_MPI
-  /*--- Perform a global reduction, every rank will get the nodal values of all halo elements ---*/
-  /*--- This should be cheaper than the "normal" way, since very few points are both halo and interface ---*/
-  vector<unsigned long> halo_point_loc, halo_point_glb;
-  vector<su2double> halo_force;
-
-  for (iMarkerInt = 1; iMarkerInt <= nMarkerInt; ++iMarkerInt) {
-    /*--- Find the marker index associated with the pair ---*/
-    for (iMarker = 0; iMarker < nMarker; ++iMarker)
-      if (config->GetMarker_All_ZoneInterface(iMarker) == iMarkerInt)
-        break;
-    /*--- The current mpi rank may not have this marker ---*/
-    if (iMarker == nMarker) continue;
-
-    nElem = geometry->GetnElem_Bound(iMarker);
-
-    for (iElem = 0; iElem < nElem; ++iElem) {
-      bool quad = geometry->bound[iMarker][iElem]->GetVTK_Type() == QUADRILATERAL;
-      nNode = quad? 4 : nDim;
-
-      /*--- If this is an halo element we share the nodal forces ---*/
-      for (iNode = 0; iNode < nNode; ++iNode)
-        if (!geometry->node[geometry->bound[iMarker][iElem]->GetNode(iNode)]->GetDomain())
-          break;
-
-      if (iNode < nNode) {
-        for (iNode = 0; iNode < nNode; ++iNode) {
-          iPoint = geometry->bound[iMarker][iElem]->GetNode(iNode);
-          /*--- local is for when later we update the values in this rank ---*/
-          halo_point_loc.push_back(iPoint);
-          halo_point_glb.push_back(geometry->node[iPoint]->GetGlobalIndex());
-          for (iDim = 0; iDim < nDim; ++iDim)
-            halo_force.push_back(node[iPoint]->Get_FlowTraction(iDim));
-        }
-      }
-    }
-  }
-  /*--- Determine the size of the arrays we need ---*/
-  unsigned long nHaloLoc = halo_point_loc.size();
-  unsigned long nHaloMax;
-  MPI_Allreduce(&nHaloLoc,&nHaloMax,1,MPI_UNSIGNED_LONG,MPI_MAX,MPI_COMM_WORLD);
-
-  /*--- Shared arrays, all the: number of halo points; halo point global indices; respective forces ---*/
-  unsigned long *halo_point_num = new unsigned long[size];
-  unsigned long *halo_point_all = new unsigned long[size*nHaloMax];
-  su2double *halo_force_all = new su2double[size*nHaloMax*nDim];
-  
-  /*--- If necessary put dummy values in halo_point_glb to get a valid pointer ---*/
-  if (halo_point_glb.empty()) halo_point_glb.resize(1);
-  /*--- Pad halo_force to avoid (observed) issues in the adjoint when nHaloLoc!=nHaloMax ---*/
-  while (halo_force.size() < nHaloMax*nDim) halo_force.push_back(0.0);
-  
-  MPI_Allgather(&nHaloLoc,1,MPI_UNSIGNED_LONG,halo_point_num,1,MPI_UNSIGNED_LONG,MPI_COMM_WORLD);
-  MPI_Allgather(&halo_point_glb[0],nHaloLoc,MPI_UNSIGNED_LONG,halo_point_all,nHaloMax,MPI_UNSIGNED_LONG,MPI_COMM_WORLD);
-  SU2_MPI::Allgather(&halo_force[0],nHaloMax*nDim,MPI_DOUBLE,halo_force_all,nHaloMax*nDim,MPI_DOUBLE,MPI_COMM_WORLD);
-
-  /*--- Find shared points with other ranks and update our values ---*/
-  for (int proc = 0; proc < size; ++proc)
-  if (proc != rank) {
-    unsigned long offset = proc*nHaloMax;
-    for (iPoint = 0; iPoint < halo_point_num[proc]; ++iPoint) {
-      unsigned long iPoint_glb = halo_point_all[offset+iPoint];
-      ptrdiff_t pos = find(halo_point_glb.begin(),halo_point_glb.end(),iPoint_glb)-halo_point_glb.begin();
-      if (pos < long(halo_point_glb.size())) {
-        unsigned long iPoint_loc = halo_point_loc[pos];
-        node[iPoint_loc]->Add_FlowTraction(&halo_force_all[(offset+iPoint)*nDim]);
-      }
-    }
-  }
-
-  delete [] halo_point_num;
-  delete [] halo_point_all;
-  delete [] halo_force_all;
-#endif
-  
   /* --- project force onto modes---*/
 
     for(iMode = 0; iMode < nModes; ++iMode){
@@ -6136,7 +6254,8 @@ void CModalSolver::ComputeModalFluidForces(CGeometry *geometry, CConfig *config)
     cout << "projecting force\n";
     for(iMode = 0; iMode < nModes; ++iMode){
         for(iPoint = 0; iPoint < nPoint; ++iPoint){
-            cout << "node: " << iPoint << " - Mode ";
+            GlobalIndex = geometry->node[iPoint]->GetGlobalIndex();
+            cout << "Mode: " << iMode << ": node " << iPoint << "\t" << GlobalIndex << "\t";
             for(iDim = 0; iDim < nDim; ++iDim) cout << node[iPoint]->GetModeVector(iMode,iDim) << "\t";
             cout << "; Force  ";
             for(iDim = 0; iDim < nDim; ++iDim) cout << node[iPoint]->Get_FlowTraction(iDim) << "\t";
@@ -6146,7 +6265,8 @@ void CModalSolver::ComputeModalFluidForces(CGeometry *geometry, CConfig *config)
             }
         }
     }
-    cout << "Mode\tForce\n";
+    
+    cout << "Modal\tForce\n";
     for(iMode = 0; iMode < nModes; ++iMode){
         cout << iMode << "\t" << modalForce[iMode] << endl;
     }
@@ -6167,13 +6287,13 @@ void CModalSolver::Postprocessing(CGeometry *geometry, CSolver **solver_containe
         if(deltaMax < delta) deltaMax = delta;
     }
     cout << "max. displacement/refLength = " << deltaMax << "/" << refLength << endl;
-    cout << "\tGen. Displacement\tGen. Velocity\n";
-    for(iMode = 0; iMode < nModes; ++iMode){
-        cout <<"Mode " << iMode+1 << "\t";
-        dq      = generalizedDisplacement[iMode][0] - generalizedDisplacement[iMode][1];
-        dqdot   = generalizedVelocity[iMode][0] - generalizedVelocity[iMode][1];
-        cout << setw(7) << dq << "\t" << dqdot << endl;
-    }
+//     cout << "\tGen. Displacement\tGen. Velocity\n";
+//     for(iMode = 0; iMode < nModes; ++iMode){
+//         cout <<"Mode " << iMode+1 << "\t";
+//         dq      = generalizedDisplacement[iMode][0] - generalizedDisplacement[iMode][1];
+//         dqdot   = generalizedVelocity[iMode][0] - generalizedVelocity[iMode][1];
+//         cout << setw(7) << dq << "\t" << dqdot << endl;
+//     }
     
     return;    
 }

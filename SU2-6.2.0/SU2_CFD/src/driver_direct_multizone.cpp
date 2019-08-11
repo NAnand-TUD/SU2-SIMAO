@@ -318,7 +318,6 @@ void CMultizoneDriver::Run_GaussSeidel() {
         cout << "\n\n run GS dynupdatemesh --> " << iZone <<" updatemesh= " << UpdateMesh <<"\n";
         if (UpdateMesh > 0) DynamicMeshUpdate(iZone, ExtIter);
 
-
         /*--- Iterate the zone as a block, either to convergence or to a max number of iterations ---*/
         for (iInst = 0; iInst < nInst[iZone]; iInst++) {
             cout << "\n\n run GS iteration->solve --> " << iZone << "\n(Fluid: zone 0; Structure: zone 1)\n";
@@ -328,6 +327,12 @@ void CMultizoneDriver::Run_GaussSeidel() {
             /*--- A corrector step can help preventing numerical instabilities ---*/
             if (config_container[0]->GetKind_Solver() != FEM_MODAL &&
               config_container[1]->GetKind_Solver() != FEM_MODAL) Corrector(iZone);
+
+            if (config_container[0]->GetKind_Solver() == EULER){
+    solver_container[0][iInst][MESH_0][FLOW_SOL]->Pressure_Forces(geometry_container[0][iInst][MESH_0], config_container[0]);
+            }
+
+            
         }
 
     // Solver Update
@@ -351,7 +356,7 @@ void CMultizoneDriver::Run_GaussSeidel() {
     Convergence = OuterConvergence(iOuter_Iter);
     cout << "convergence: " << Convergence << endl;
 //     if (Convergence) break;
-
+    exit(0);
   }
 
 }

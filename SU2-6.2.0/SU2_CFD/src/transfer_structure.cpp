@@ -291,7 +291,7 @@ void CTransfer::Broadcast_InterfaceData(CSolver *donor_solution, CSolver *target
     /*--- This helps on identifying halo nodes and avoids setting wrong values ---*/
     for (iVertex = 0; iVertex < nBuffer_DonorIndices; iVertex++) Buffer_Send_DonorIndices[iVertex] = -1;
 
-    
+    su2double force[3]={0.0,0.0,0.0};
     for (iVertex = 0; iVertex < nLocalVertexDonor; iVertex++) {
         Point_Donor = donor_geometry->vertex[Marker_Donor][iVertex]->GetNode();
     /*--- If this processor owns the node ---*/
@@ -299,14 +299,17 @@ void CTransfer::Broadcast_InterfaceData(CSolver *donor_solution, CSolver *target
         if (donor_geometry->node[Point_Donor]->GetDomain()) {
         GetDonor_Variable(donor_solution, donor_geometry, donor_config, Marker_Donor, iVertex, Point_Donor);
         
-        for (iVar = 0; iVar < nVar; iVar++) Buffer_Send_DonorVariables[iVertex*nVar+iVar] = Donor_Variable[iVar];
+        for (iVar = 0; iVar < nVar; iVar++) {
+            Buffer_Send_DonorVariables[iVertex*nVar+iVar] = Donor_Variable[iVar];
+            force[iVar] += Donor_Variable[iVar];
+        }
         
         Point_Donor_Global = donor_geometry->node[Point_Donor]->GetGlobalIndex();
         Buffer_Send_DonorIndices[iVertex]     = Point_Donor_Global;
         }
 
     }
-     
+    cout << "marker forces=[" << force[0] << "\t"<< force[1] << "\t"<< force[2] << "]\n";
 
 
 #ifdef HAVE_MPI

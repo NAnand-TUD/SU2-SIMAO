@@ -1644,7 +1644,7 @@ inline void CModalVariable::SetSolution_Pred(unsigned short val_var, su2double v
 inline void CModalVariable::SetSolution_Pred(su2double *val_solution_pred) { Solution_Pred = val_solution_pred;  }
 
 inline void CModalVariable::SetSolution_Pred(void) {
-  for (unsigned short iVar = 0; iVar < nVar; iVar++) Solution_Pred[iVar] = Solution[iVar];
+  for (unsigned short iVar = 0; iVar < nDim; iVar++) Solution_Pred[iVar] = Solution[iVar];
 }
 
 inline void CModalVariable::SetSolution_Pred_Old(unsigned short val_var, su2double val_solution_pred_old) { Solution_Pred_Old[val_var] = val_solution_pred_old;}
@@ -1652,7 +1652,7 @@ inline void CModalVariable::SetSolution_Pred_Old(unsigned short val_var, su2doub
 inline void CModalVariable::SetSolution_Pred_Old(su2double *val_solution_pred_Old) { Solution_Pred_Old = val_solution_pred_Old;  }
 
 inline void CModalVariable::SetSolution_Pred_Old(void) {
-  for (unsigned short iVar = 0; iVar < nVar; iVar++) Solution_Pred_Old[iVar] = Solution_Pred[iVar];
+  for (unsigned short iVar = 0; iVar < nDim; iVar++) Solution_Pred_Old[iVar] = Solution_Pred[iVar];
 }
 
 inline su2double *CModalVariable::GetSolution_Pred(void) { return Solution_Pred; }
@@ -1664,11 +1664,11 @@ inline su2double *CModalVariable::GetSolution_Pred_Old(void) { return Solution_P
 inline su2double CModalVariable::GetSolution_Pred_Old(unsigned short val_var) { return Solution_Pred_Old[val_var]; }
 
 inline void CModalVariable::Set_FlowTraction(su2double *val_flowTraction) {
-  for (unsigned short iVar = 0; iVar < nVar; iVar++) FlowTraction[iVar] = val_flowTraction[iVar];
+  for (unsigned short iVar = 0; iVar < nDim; iVar++) FlowTraction[iVar] = val_flowTraction[iVar];
 }
 
 inline void CModalVariable::Add_FlowTraction(su2double *val_flowTraction) {
-  for (unsigned short iVar = 0; iVar < nVar; iVar++) FlowTraction[iVar] += val_flowTraction[iVar];
+  for (unsigned short iVar = 0; iVar < nDim; iVar++) FlowTraction[iVar] += val_flowTraction[iVar];
 }
 
 inline su2double *CModalVariable::Get_FlowTraction(void) { return FlowTraction;}
@@ -1676,21 +1676,21 @@ inline su2double *CModalVariable::Get_FlowTraction(void) { return FlowTraction;}
 inline su2double CModalVariable::Get_FlowTraction(unsigned short iVar) { return FlowTraction[iVar];}
 
 inline void CModalVariable::Clear_FlowTraction(void) {
-  for (unsigned short iVar = 0; iVar < nVar; iVar++)  FlowTraction[iVar] = 0.0;
+  for (unsigned short iVar = 0; iVar < nDim; iVar++)  FlowTraction[iVar] = 0.0;
 }
 
 inline void CModalVariable::Set_FlowTraction_n(void) {
-  for (unsigned short iVar = 0; iVar < nVar; iVar++)  FlowTraction_time_n[iVar] = FlowTraction[iVar];
+  for (unsigned short iVar = 0; iVar < nDim; iVar++)  FlowTraction_time_n[iVar] = FlowTraction[iVar];
 }
 
 inline su2double CModalVariable::Get_FlowTraction_n(unsigned short iVar) { return FlowTraction_time_n[iVar];}
 
 inline void CModalVariable::SetSolution_time_n(void) {
-  for (unsigned short iVar = 0; iVar < nVar; iVar++)  Solution_time_n[iVar] = Solution[iVar];
+  for (unsigned short iVar = 0; iVar < nDim; iVar++)  Solution_time_n[iVar] = Solution[iVar];
 }
 
 inline void CModalVariable::SetSolution_time_n(su2double *val_solution_time_n) {
-  for (unsigned short iVar = 0; iVar < nVar; iVar++)  Solution_time_n[iVar] = val_solution_time_n[iVar];
+  for (unsigned short iVar = 0; iVar < nDim; iVar++)  Solution_time_n[iVar] = val_solution_time_n[iVar];
 }
 
 inline void CModalVariable::SetSolution_time_n(unsigned short val_var, su2double val_solution_time_n) { Solution_time_n[val_var] = val_solution_time_n; }
@@ -1698,17 +1698,17 @@ inline void CModalVariable::SetSolution_time_n(unsigned short val_var, su2double
 inline void CModalVariable::SetSolution_Vel(unsigned short val_var, su2double val_solution_vel) { Solution_Vel[val_var] = val_solution_vel; }
 
 inline void CModalVariable::SetSolution_Vel(su2double *val_solution_vel) {
-  for (unsigned short iVar = 0; iVar < nVar; iVar++)  Solution_Vel[iVar] = val_solution_vel[iVar];
+  for (unsigned short iVar = 0; iVar < nDim; iVar++)  Solution_Vel[iVar] = val_solution_vel[iVar];
 }
 
 inline void CModalVariable::SetSolution_Vel_time_n(unsigned short val_var, su2double val_solution_vel_time_n) { Solution_Vel_time_n[val_var] = val_solution_vel_time_n; }
 
 inline void CModalVariable::SetSolution_Vel_time_n(void) {
-  for (unsigned short iVar = 0; iVar < nVar; iVar++)  Solution_Vel_time_n[iVar] = Solution_Vel[iVar];
+  for (unsigned short iVar = 0; iVar < nDim; iVar++)  Solution_Vel_time_n[iVar] = Solution_Vel[iVar];
 }
 
 inline void CModalVariable::SetSolution_Vel_time_n(su2double *val_solution_vel_time_n) {
-  for (unsigned short iVar = 0; iVar < nVar; iVar++)  Solution_Vel_time_n[iVar] = val_solution_vel_time_n[iVar];
+  for (unsigned short iVar = 0; iVar < nDim; iVar++)  Solution_Vel_time_n[iVar] = val_solution_vel_time_n[iVar];
 }
 
 inline su2double CModalVariable::GetModeVector(unsigned short val_mode, unsigned short val_dim){

@@ -4900,7 +4900,6 @@ void COutput::SetConvHistory_Body(ofstream *ConvHist_file,
     if(buffet) Surface_Buffet_Metric = new su2double[config[ZONE_0]->GetnMarker_Monitoring()];
     
     /*--- Write information from nodes ---*/
-    
     switch (config[val_iZone]->GetKind_Solver()) {
         
       case EULER:                   case NAVIER_STOKES:                   case RANS:
@@ -4992,6 +4991,7 @@ void COutput::SetConvHistory_Body(ofstream *ConvHist_file,
           Total_Power     = solver_container[val_iZone][val_iInst][FinestMesh][FLOW_SOL]->GetTotal_Power();
           Total_AeroCD    = solver_container[val_iZone][val_iInst][FinestMesh][FLOW_SOL]->GetTotal_AeroCD();
           Total_SolidCD   = solver_container[val_iZone][val_iInst][FinestMesh][FLOW_SOL]->GetTotal_SolidCD();
+          Total_SolidCD   = solver_container[val_iZone][val_iInst][FinestMesh][FLOW_SOL]->GetTotal_SolidCD();
           Total_IDR       = solver_container[val_iZone][val_iInst][FinestMesh][FLOW_SOL]->GetTotal_IDR();
           Total_IDC       = solver_container[val_iZone][val_iInst][FinestMesh][FLOW_SOL]->GetTotal_IDC();
         }
@@ -5075,7 +5075,7 @@ void COutput::SetConvHistory_Body(ofstream *ConvHist_file,
         }
         
         /*--- Flow Residuals ---*/
-        
+
         for (iVar = 0; iVar < nVar_Flow; iVar++)
           residual_flow[iVar] = solver_container[val_iZone][val_iInst][FinestMesh][FLOW_SOL]->GetRes_RMS(iVar);
         

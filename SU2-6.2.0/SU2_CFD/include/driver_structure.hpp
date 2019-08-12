@@ -1707,5 +1707,7 @@ public:
 
     void StabilizeHarmonicBalance(unsigned short val_iZone, unsigned short val_Sol);
 
+    void SetTimeSpectral_Velocities(bool reset, unsigned short val_izone);
+
 };
 

@@ -5712,7 +5712,7 @@ void CModalSolver::RungeKutta_TimeInt(CGeometry *geometry, CSolver **solver_cont
     yout    = new su2double[2*nModes];
     ForceVec= new su2double[2*nModes];
 
-        cout << "solving structural equations of motion using n-stage RK method "<< endl;
+    cout << "solving structural equations of motion using n-stage RK method "<< endl;
 
     // solution array includes X, Y, Z displacements, obtained from gen. vars;
     // and must be parsed to node variable
@@ -5724,7 +5724,6 @@ void CModalSolver::RungeKutta_TimeInt(CGeometry *geometry, CSolver **solver_cont
 
     // Get the modal forces from the interpolation
     ComputeModalFluidForces(geometry, config);
-
     for(iMode = 0; iMode < nModes; ++iMode) qsol[iMode]         = generalizedDisplacement[iMode][0];
     for(iMode = 0; iMode < nModes; ++iMode) qsol[iMode+nModes]  = generalizedVelocity[iMode][0];
     for(iMode = 0; iMode < 2*nModes; ++iMode) dy[iMode]         = 0;
@@ -5750,7 +5749,7 @@ void CModalSolver::RungeKutta_TimeInt(CGeometry *geometry, CSolver **solver_cont
             //rk1    
             dgemv(trans, 2 * nModes, 2 * nModes, 1.0, Ass, 2 * nModes, qsol, 1, 0., yout, 1);
             for (iMode = 0; iMode < 2 * nModes; ++iMode) {
-//                HB_Source = GetHarmonicBalance_Source(iMode);
+                cout<<"HB Source :: "<< HB_Source[iMode]*yout[iMode]<<endl;
                 irk1[iMode] = yout[iMode] + ForceVec[iMode] + HB_Source[iMode]*yout[iMode];
             }
             for (iMode = 0; iMode < 2 * nModes; ++iMode) yout[iMode] = 0;
@@ -5833,22 +5832,6 @@ void CModalSolver::RungeKutta_TimeInt(CGeometry *geometry, CSolver **solver_cont
         }
             delete [] irk1;
             delete [] irk2;
-            break;
-
-        case (IMPLICIT):{
-            dgemv(trans,2*nModes,2*nModes,1.0,Ass,2*nModes,qsol,1,0.,yout, 1 );
-            for(iMode = 0; iMode < 2*nModes; ++iMode) qsol[iMode] = yout[iMode] + 
-            ForceVec[iMode];
-            
-            UpdateStructuralNodes();
-            
-            for( iMode = 0; iMode < nModes; ++iMode) {
-                generalizedDisplacement[iMode][1]   = generalizedDisplacement[iMode][0];
-                generalizedVelocity[iMode][1]       = generalizedVelocity[iMode][0];
-                generalizedDisplacement[iMode][0]   = qsol[2*iMode];
-                generalizedVelocity[iMode][0]       = qsol[2*iMode+1];
-            }
-        }
             break;
 
         }
@@ -5934,6 +5917,7 @@ void CModalSolver::UpdateStructuralNodes() {
                 node[iPoint]->Add_DeltaSolution(iDim,solutionValue);
             }
         }
+        cout<<"Modal Delta :: "<<delta<<endl;
             // repeat to update velocities
         delta = generalizedVelocity[iMode][0];// - generalizedVelocity[iMode][1];
         for(iPoint = 0; iPoint < nPoint; ++iPoint) {
@@ -6259,22 +6243,22 @@ void CModalSolver::ComputeModalFluidForces(CGeometry *geometry, CConfig *config)
     for(iMode = 0; iMode < nModes; ++iMode){
         for(iPoint = 0; iPoint < nPoint; ++iPoint){
             GlobalIndex = geometry->node[iPoint]->GetGlobalIndex();
-            cout << "Mode: "<<iMode<<"; node= "<<iPoint<<"; GI= "<<GlobalIndex<<" \t";
+//            cout << "Mode: "<<iMode<<"; node= "<<iPoint<<"; GI= "<<GlobalIndex<<" \t";
 
-            for(iDim = 0; iDim < nDim; ++iDim) cout << node[iPoint]->GetModeVector(iMode,iDim) << "\t";
-            cout << "; Force  ";
-            for(iDim = 0; iDim < nDim; ++iDim) cout << node[iPoint]->Get_FlowTraction(iDim) << "\t";
-            cout << endl;
+//            for(iDim = 0; iDim < nDim; ++iDim) cout << node[iPoint]->GetModeVector(iMode,iDim) << "\t";
+//            cout << "; Force  ";
+//            for(iDim = 0; iDim < nDim; ++iDim) cout << node[iPoint]->Get_FlowTraction(iDim) << "\t";
+//            cout << endl;
             for(iDim = 0; iDim < nDim; ++iDim){
                 modalForce[iMode] += node[iPoint]->GetModeVector(iMode,iDim)*node[iPoint]->Get_FlowTraction(iDim);
             }
         }
     }
     
-    cout << "Modal\tForce\n";
-    for(iMode = 0; iMode < nModes; ++iMode){
-        cout << iMode << "\t" << modalForce[iMode] << endl;
-    }
+//    cout << "Modal\tForce\n";
+//    for(iMode = 0; iMode < nModes; ++iMode){
+//        cout << iMode << "\t" << modalForce[iMode] << endl;
+//    }
 }
 
 void CModalSolver::Postprocessing(CGeometry *geometry, CSolver **solver_container, CConfig *config,  CNumerics **numerics,unsigned short iMesh) {

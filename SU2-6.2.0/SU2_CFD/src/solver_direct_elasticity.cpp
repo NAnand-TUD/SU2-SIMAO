@@ -5241,6 +5241,7 @@ CModalSolver::CModalSolver(CGeometry *geometry, CConfig *config) : CSolver() {
     omega       = new su2double[nModes];
     HB_Source   = new su2double[nVar];
     omega[0]    = 106.69842;
+    unsteady_time = 0;
     cout<< "nModes: "<< nModes<<endl;
     cout << "modal solver initialized: Dim=" << nDim << " \t; Vars=" << nVar << "\t; nPoints= " << nPoint << endl;
     
@@ -5483,6 +5484,10 @@ void CModalSolver::ReadCSD_Mesh_Nastran(CConfig *config,CGeometry *geometry){
     //
     unsigned long iPoint,iMode,nModesPoints;
 	unsigned short number_of_modes,iDim;
+    nInst = config->GetnTimeInstances();
+    cout<<"nTime Instaces = "<<nInst<<endl;
+    HB_Period = config->GetHarmonicBalance_Period();
+    theta = 60.31*HB_Period*iInst/(su2double)(nInst);
 	vector<unsigned long>::iterator it;
 	su2double frequency,modalScaling,Density_inf;
 	su2double Coord_3D[3];
@@ -5640,10 +5645,10 @@ void CModalSolver::ReadCSD_Mesh_Nastran(CConfig *config,CGeometry *geometry){
     cout<<" Theta :: "<<sin(theta)<<endl;
     if (config->GetDynamic_Method() == MODAL_HARMONIC_BALANCE)
         for (iPoint = 0; iPoint < geometry->GetnPoint(); iPoint++)
-            for(iMode = 0; iMode<nModes; iMode++){
-                node[iPoint]->SetSolution_Pred(0,node[iPoint]->GetModeVector(iMode,0)*0.01*sin(theta));
-                node[iPoint]->SetSolution_Pred(1,node[iPoint]->GetModeVector(iMode,1)*0.01*sin(theta));
-                node[iPoint]->SetSolution_Pred(2,node[iPoint]->GetModeVector(iMode,2)*0.01*sin(theta));
+            for(iMode = 0; iMode<nModes; iMode++) {
+                node[iPoint]->SetSolution_Pred(0,node[iPoint]->GetModeVector(iMode,0)*1.0*sin(theta));
+                node[iPoint]->SetSolution_Pred(1,node[iPoint]->GetModeVector(iMode,1)*1.0*sin(theta));
+                node[iPoint]->SetSolution_Pred(2,node[iPoint]->GetModeVector(iMode,2)*1.0*sin(theta));
             }
 
     delete [] XV;
@@ -5734,6 +5739,8 @@ void CModalSolver::RungeKutta_TimeInt(CGeometry *geometry, CSolver **solver_cont
         ForceVec[iMode]             = 0;
         ForceVec[iMode+nModes]      = flutter_index*modalForce[iMode]*Bss[nModes+iMode + iMode*2*nModes];
     }
+    cout<<"modalForce :: "<<modalForce<<endl;
+    cout<<"Time Stepping :: "<<unsteady_time<<endl;
     // R-K number of stages and coefficients
     cout << "rk scheme: " << config->GetKind_TimeIntScheme_FEA() << endl;
     switch (config->GetKind_TimeIntScheme_FEA()){
@@ -5744,14 +5751,12 @@ void CModalSolver::RungeKutta_TimeInt(CGeometry *geometry, CSolver **solver_cont
             irk2 = new su2double[2 * nModes];
             irk3 = new su2double[2 * nModes];
             irk4 = new su2double[2 * nModes];
-//            cout<< "HB Source Term "<<endl;
-//            cout<< HB_Source[0]<< " "<< HB_Source[1]<< " "<< HB_Source[2]<< endl;
-//            cout<< HB_Source[3]<< " "<< HB_Source[4]<< " "<< HB_Source[5]<< endl;
+
             //rk1    
             dgemv(trans, 2 * nModes, 2 * nModes, 1.0, Ass, 2 * nModes, qsol, 1, 0., yout, 1);
             for (iMode = 0; iMode < 2 * nModes; ++iMode) {
-                cout<<"HB Source :: "<< HB_Source[iMode]*yout[iMode]<<endl;
-                irk1[iMode] = yout[iMode] + ForceVec[iMode] + HB_Source[iMode]*yout[iMode];
+                cout<<"HB Source :: "<< HB_Source[iMode]<<endl;
+                irk1[iMode] = yout[iMode] + ForceVec[iMode] + HB_Source[iMode];
             }
             for (iMode = 0; iMode < 2 * nModes; ++iMode) yout[iMode] = 0;
 
@@ -5759,7 +5764,7 @@ void CModalSolver::RungeKutta_TimeInt(CGeometry *geometry, CSolver **solver_cont
             for (iMode = 0; iMode < 2 * nModes; ++iMode) dy[iMode] = qsol[iMode] + ONE2 * dt * irk1[iMode];
             dgemv(false, 2 * nModes, 2 * nModes, 1.0, Ass, 2 * nModes, dy, 1, 0., yout, 1);
             for (iMode = 0; iMode < 2 * nModes; ++iMode){
-                irk2[iMode] = yout[iMode] + ForceVec[iMode] + HB_Source[iMode]*yout[iMode];
+                irk2[iMode] = yout[iMode] + ForceVec[iMode] + HB_Source[iMode];
             }
             for (iMode = 0; iMode < 2 * nModes; ++iMode) yout[iMode] = 0;
 
@@ -5767,7 +5772,7 @@ void CModalSolver::RungeKutta_TimeInt(CGeometry *geometry, CSolver **solver_cont
             for (iMode = 0; iMode < 2 * nModes; ++iMode) dy[iMode] = qsol[iMode] + ONE2 * dt * irk2[iMode];
             dgemv(false, 2 * nModes, 2 * nModes, 1.0, Ass, 2 * nModes, dy, 1, 0., yout, 1);
             for (iMode = 0; iMode < 2 * nModes; ++iMode) {
-                irk3[iMode] = yout[iMode] + ForceVec[iMode] + HB_Source[iMode]*yout[iMode];
+                irk3[iMode] = yout[iMode] + ForceVec[iMode] + HB_Source[iMode];
             }
             for (iMode = 0; iMode < 2 * nModes; ++iMode) yout[iMode] = 0;
 
@@ -5775,7 +5780,7 @@ void CModalSolver::RungeKutta_TimeInt(CGeometry *geometry, CSolver **solver_cont
             for (iMode = 0; iMode < 2 * nModes; ++iMode) dy[iMode] = qsol[iMode] + ONE2 * dt * irk3[iMode];
             dgemv(false, 2 * nModes, 2 * nModes, 1.0, Ass, 2 * nModes, dy, 1, 0., yout, 1);
             for (iMode = 0; iMode < 2 * nModes; ++iMode) {
-                irk4[iMode] = yout[iMode] + ForceVec[iMode] + HB_Source[iMode] * yout[iMode];
+                irk4[iMode] = yout[iMode] + ForceVec[iMode] + HB_Source[iMode];
             }
 
             for (iMode = 0; iMode < nModes; ++iMode) {
@@ -5831,16 +5836,15 @@ void CModalSolver::RungeKutta_TimeInt(CGeometry *geometry, CSolver **solver_cont
                 generalizedVelocity[iMode][0] = qsol[2 * iMode + 1];
             }
         }
-            delete [] irk1;
-            delete [] irk2;
-            break;
+        delete [] irk1;
+        delete [] irk2;
+        break;
 
-        }
+    }
 
-//     for( iMode = 0; iMode < nModes; ++iMode) generalizedDisplacement[iMode][0] = 0;
-//     for( iMode = 0; iMode < nModes; ++iMode) generalizedVelocity[iMode][0] = 0;
-    
-    delete [] qsol;
+    /* Update Unsteady Time */
+    unsteady_time += dt;
+
     delete [] dy;
     delete [] yout;
 }
@@ -5912,15 +5916,19 @@ void CModalSolver::UpdateStructuralNodes() {
 
         //the actual delta is computed in the main loop (drive_mz)
         delta = generalizedDisplacement[iMode][0];// - generalizedDisplacement[iMode][1];
+//        delta = 1.0*sin(60.31*unsteady_time); //amplitude of vibration
+//        delta = 1.0;
         for(iPoint = 0; iPoint < nPoint; ++iPoint) {
             for(iDim = 0; iDim < nDim; ++iDim) {
                 solutionValue = delta*node[iPoint]->GetModeVector(iMode,iDim);
                 node[iPoint]->Add_DeltaSolution(iDim,solutionValue);
             }
         }
-        cout<<"Modal Delta :: "<<delta<<endl;
+        cout<<"Modal Delta :: Inst "<<iInst<<"\t"<<delta<<endl;
             // repeat to update velocities
         delta = generalizedVelocity[iMode][0];// - generalizedVelocity[iMode][1];
+//        delta = 1.0*sin(60.31*unsteady_time); //amplitude of vibration
+
         for(iPoint = 0; iPoint < nPoint; ++iPoint) {
             for(iDim = 0; iDim < nDim; ++iDim) {
                 solutionValue = delta*node[iPoint]->GetModeVector(iMode,iDim);

@@ -627,7 +627,7 @@ void CFluidIteration::Iterate(COutput *output,
   ExtIter = config_container[val_iZone]->GetExtIter();
   
   /* --- Setting up iteration values depending on if this is a
-   steady or an unsteady simulaiton */
+   steady or an unsteady simulation */
   
   if ( !unsteady ) IntIter = ExtIter;
   else IntIter = config_container[val_iZone]->GetIntIter();

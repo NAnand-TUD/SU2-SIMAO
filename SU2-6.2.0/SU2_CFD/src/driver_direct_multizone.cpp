@@ -305,7 +305,7 @@ void CMultizoneDriver::Run_GaussSeidel() {
         /*--- Transfer from all the remaining zones ---*/
         for (jZone = 0; jZone < nZone; jZone++){
             /*--- The target zone is iZone ---*/
-            if (jZone != iZone){
+            if (jZone != iZone) {
                 cout << "\n\n run GS trasfer data:";
                 if(jZone == 0) cout << " donor=fluid; target=structure\n\n";
                 if(jZone == 1) cout << " donor=structure; target=fluid\n\n";
@@ -319,25 +319,34 @@ void CMultizoneDriver::Run_GaussSeidel() {
         if (UpdateMesh > 0) DynamicMeshUpdate(iZone, ExtIter);
 
         /*--- Iterate the zone as a block, either to convergence or to a max number of iterations ---*/
-        for (iInst = 0; iInst < nInst[iZone]; iInst++) {
-            cout << "\n\n run GS iteration->solve --> " << iZone << "\n(Fluid: zone 0; Structure: zone 1)\n";
-            iteration_container[iZone][iInst]->Solve(output, integration_container, geometry_container, solver_container,numerics_container, config_container, surface_movement,grid_movement, FFDBox, iZone, iInst);
-            cout << "\n\n completed iteration->solve\n";
+        unsigned short N = 1;
+        if (iZone == 0)
+            N=1;
 
-            /*--- A corrector step can help preventing numerical instabilities ---*/
-            if (config_container[0]->GetKind_Solver() != FEM_MODAL &&
-              config_container[1]->GetKind_Solver() != FEM_MODAL) Corrector(iZone);
-            
+        for (unsigned short i = 0; i < N; i++) {
+            cout<<"++++++++++++++++ N is :: ++++++++++++++++"<<i<<endl;
+            for (iInst = 0; iInst < nInst[iZone]; iInst++) {
+                cout << "\n\n run GS iteration->solve --> " << iZone << "\n(Fluid: zone 0; Structure: zone 1)\n";
+                iteration_container[iZone][iInst]->Solve(output, integration_container, geometry_container,
+                                                         solver_container, numerics_container, config_container,
+                                                         surface_movement, grid_movement, FFDBox, iZone, iInst);
+                cout << "\n\n completed iteration->solve\n";
+
+                /*--- A corrector step can help preventing numerical instabilities ---*/
+                if (config_container[0]->GetKind_Solver() != FEM_MODAL &&
+                    config_container[1]->GetKind_Solver() != FEM_MODAL)
+                    Corrector(iZone);
+
+            }
+
+            // Solver Update
+            if (config_container[iZone]->GetUnsteady_Simulation() == HARMONIC_BALANCE)
+                FluidHBUpdate(iZone, FLOW_SOL);
+            else if (config_container[iZone]->GetDynamic_Method() == MODAL_HARMONIC_BALANCE) {
+                FluidHBUpdate(iZone, MODAL_SOL);
+            } else
+                continue;
         }
-
-    // Solver Update
-    if (config_container[iZone]->GetUnsteady_Simulation() == HARMONIC_BALANCE)
-        FluidHBUpdate(iZone,FLOW_SOL);
-    else if (config_container[iZone]->GetDynamic_Method() == MODAL_HARMONIC_BALANCE) {
-        FluidHBUpdate(iZone,MODAL_SOL);
-    }
-    else
-        continue;
     }
 
 
@@ -687,7 +696,6 @@ void CMultizoneDriver::DynamicMeshUpdate(unsigned long ExtIter) {
     if ((config_container[iZone]->GetGrid_Movement()) && (!harmonic_balance) && (!fsi)) {
       iteration_container[iZone][INST_0]->SetGrid_Movement(geometry_container, surface_movement, grid_movement, FFDBox, solver_container, config_container, iZone, INST_0, 0, ExtIter );
     }
-
   }
 }
 
@@ -807,7 +815,6 @@ void CMultizoneDriver::FluidHBUpdate(unsigned short val_iZone, unsigned short va
             SetHarmonicBalance_Modal(val_iZone, iInst, val_Sol);
         else
             exit(1);
-
     }
 
     /*--- Precondition the harmonic balance source terms ---*/
@@ -825,8 +832,6 @@ void CMultizoneDriver::FluidHBUpdate(unsigned short val_iZone, unsigned short va
                                                    surface_movement, grid_movement, FFDBox, val_iZone, iInst);
 
     }
-
-
 }
 
 void CMultizoneDriver::ModalHBUpdate(unsigned short val_iZone) {
@@ -864,8 +869,7 @@ void CMultizoneDriver::SetHarmonicBalance(unsigned short val_iZone, unsigned sho
     /*--- Non-dimensionalize the input period, if necessary.  */
     period /= config_container[val_iZone]->GetTime_Ref();
 
-    if (ExtIter == 0)
-        ComputeHB_Operator(val_iZone);
+    ComputeHB_Operator(val_iZone);
 
     /*--- Compute various source terms for explicit direct, implicit direct, and adjoint problems ---*/
     /*--- Loop over all grid levels ---*/
@@ -906,6 +910,7 @@ void CMultizoneDriver::SetHarmonicBalance(unsigned short val_iZone, unsigned sho
                             Source[iVar] += deltaPsi*D[jInst][iInst];
                         }
                     }
+//                    if (iPoint == 0)
 //                    cout<<"HB Source Term :: "<<U[iVar]<<" "<<D[iInst][jInst]<<" "<<Source[iVar]<<endl;
                 }
 
@@ -919,7 +924,6 @@ void CMultizoneDriver::SetHarmonicBalance(unsigned short val_iZone, unsigned sho
                         solver_container[val_iZone][iInst][iMGlevel][val_Sol_Adj]->node[iPoint]->SetHarmonicBalance_Source(iVar, Source[iVar]);
                     }
                 }
-
             }
         }
     }
@@ -984,8 +988,7 @@ void CMultizoneDriver::SetHarmonicBalance_Modal(unsigned short val_iZone, unsign
     /*--- Non-dimensionalize the input period, if necessary.  */
     period /= config_container[val_iZone]->GetTime_Ref();
 
-    if (ExtIter == 0)
-        ComputeHB_Operator(val_iZone);
+//    ComputeHB_Operator(val_iZone);
 
     /*--- Compute various source terms for explicit direct, implicit direct, and adjoint problems ---*/
     /*--- Loop over all grid levels ---*/
@@ -1034,14 +1037,14 @@ void CMultizoneDriver::ComputeHB_Operator(unsigned short val_iZone) {
     su2double Period = config_container[val_iZone]->GetHarmonicBalance_Period();
 
     /*--- Non-dimensionalize the input period, if necessary.      */
-//    Period /= config_container[val_iZone]->GetTime_Ref();
+    Period /= config_container[val_iZone]->GetTime_Ref();
 
     /*--- Build the array containing the selected frequencies to solve ---*/
     for (iInst = 0; iInst < nInst[val_iZone]; iInst++) {
         Omega_HB[iInst]  = config_container[val_iZone]->GetOmega_HB()[iInst];
-//        Omega_HB[iInst] /= config_container[val_iZone]->GetOmega_Ref(); //TODO: check
+        Omega_HB[iInst] /= config_container[val_iZone]->GetOmega_Ref(); //TODO: check
         cout<< "Omega HB = "<<Omega_HB[iInst]<<endl;
-//        cout<< "Omega Ref = "<<config_container[val_iZone]->GetOmega_Ref()<<endl;
+        cout<< "Omega Ref = "<<config_container[val_iZone]->GetOmega_Ref()<<endl;
     }
 
     /*--- Build the diagonal matrix of the frequencies DD ---*/
@@ -1377,11 +1380,11 @@ void CMultizoneDriver::SetTimeSpectral_Velocities(bool reset, unsigned short val
     su2double *Coord;
     su2double *GridVel;
     unsigned long iPoint;
-    cout<<"Angural interval :: "<<angular_interval<<endl;
+    cout<<"Angular interval :: "<<angular_interval<<endl;
 
     /*--- Compute period of oscillation & compute time interval using nTimeInstances ---*/
-    su2double period = config_container[val_izone]->GetHarmonicBalance_Period();//config_container[ZONE_0]->GetTimeSpectral_Period();
-    period /= config_container[val_izone]->GetTime_Ref();
+    su2double period = config_container[val_izone]->GetHarmonicBalance_Period();
+    //period /= config_container[val_izone]->GetTime_Ref();
     su2double deltaT = period/(su2double)(config_container[val_izone]->GetnTimeInstances());
 
     /*--- allocate dynamic memory for angular positions (these are the abscissas) ---*/
@@ -1434,9 +1437,9 @@ void CMultizoneDriver::SetTimeSpectral_Velocities(bool reset, unsigned short val
                 for (jDegree = 0; jDegree < highest_degree+1; jDegree++) {
                     a_coeffs[jDegree] = 0;
                     b_coeffs[jDegree] = 0;
-                    for (iZone = 0; iZone < nZone; iZone++) {
-                        a_coeffs[jDegree] = a_coeffs[jDegree] + (2.0/(su2double)nZone)*cos(jDegree*angular_positions[iZone])*coords[iZone][iDim];
-                        b_coeffs[jDegree] = b_coeffs[jDegree] + (2.0/(su2double)nZone)*sin(jDegree*angular_positions[iZone])*coords[iZone][iDim];
+                    for (iZone = 0; iZone < nInst[val_izone]; iZone++) {
+                        a_coeffs[jDegree] = a_coeffs[jDegree] + (2.0/(su2double)nInst[val_izone])*cos(jDegree*angular_positions[iZone])*coords[iZone][iDim];
+                        b_coeffs[jDegree] = b_coeffs[jDegree] + (2.0/(su2double)nInst[val_izone])*sin(jDegree*angular_positions[iZone])*coords[iZone][iDim];
                     }
                 }
 
@@ -1469,7 +1472,7 @@ void CMultizoneDriver::SetTimeSpectral_Velocities(bool reset, unsigned short val
     delete [] b_coeffs;
     delete [] fitted_coords;
     delete [] fitted_velocities;
-    for (iZone = 0; iZone < nZone; iZone++) {
+    for (iZone = 0; iZone < nInst[val_izone]; iZone++) {
         delete [] coords[iZone];
     }
     delete [] coords;

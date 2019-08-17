@@ -216,11 +216,11 @@ CDriver::CDriver(char* confFile,
               cout << "3A Harmonic-Balance Dynamic Fluid-Structure Interaction driver has been instantiated." << endl;
           if(config_container[0]->GetKind_Solver() == FEM_MODAL) {
               cout << "For aeroelastic analysis using modal structural solver." << endl;
-              config_container[0]->SetMach(config_container[1]->GetMach());
+                config_container[0]->SyncRefValues(config_container[1]);
           }
           if(config_container[1]->GetKind_Solver() == FEM_MODAL) {
               cout << "For aeroelastic analysis using modal structural solver." << endl;
-              config_container[1]->SetMach(config_container[0]->GetMach());
+            config_container[1]->SyncRefValues(config_container[0]);
           }
       }
       else
@@ -236,11 +236,11 @@ CDriver::CDriver(char* confFile,
           if (rank == MASTER_NODE) cout << "2A Static Fluid-Structure Interaction driver has been instantiated." << endl;
             if(config_container[0]->GetKind_Solver() == FEM_MODAL) {
                 cout << "For aerostatic analysis using modal structural solver." << endl;
-                config_container[0]->SetMach(config_container[1]->GetMach());
+                config_container[0]->SyncRefValues(config_container[1]);
             }
             if(config_container[1]->GetKind_Solver() == FEM_MODAL) {
                 cout << "For aerostatic analysis using modal structural solver." << endl;
-                config_container[1]->SetMach(config_container[0]->GetMach());
+                config_container[1]->SyncRefValues(config_container[0]);
             }
     }
       else{
@@ -248,16 +248,15 @@ CDriver::CDriver(char* confFile,
               cout << "3A Dynamic Fluid-Structure Interaction driver has been instantiated." << endl;
               if(config_container[0]->GetKind_Solver() == FEM_MODAL) {
                   cout << "For aeroelastic analysis using modal structural solver." << endl;
-                  config_container[0]->SetMach(config_container[1]->GetMach());
+                config_container[0]->SyncRefValues(config_container[1]);
               }
               if(config_container[1]->GetKind_Solver() == FEM_MODAL) {
                   cout << "For aeroelastic analysis using modal structural solver." << endl;
-                  config_container[1]->SetMach(config_container[0]->GetMach());
+                config_container[1]->SyncRefValues(config_container[0]);
               }
           }
       }
     }
-
   }
   else if (config_container[ZONE_0]->GetBoolZoneSpecific()) {
     if (rank == MASTER_NODE) {

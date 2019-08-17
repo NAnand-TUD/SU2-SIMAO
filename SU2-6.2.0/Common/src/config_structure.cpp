@@ -9242,3 +9242,13 @@ void CConfig::SetMultizone(CConfig *driver_config, CConfig **config_container){
 
 }
 
+void CConfig::SyncRefValues(CConfig *configFluid){
+    
+            SetMach(configFluid->GetMach());
+            SetPressure_FreeStream(configFluid->GetPressure_FreeStream());
+            SetDensity_FreeStream(configFluid->GetDensity_FreeStream());
+            SetTemperature_FreeStream(configFluid->GetTemperature_FreeStream());
+            SetPressure_Ref(configFluid->GetPressure_Ref());
+            SetDensity_Ref(configFluid->GetDensity_Ref());
+            SetTemperature_Ref(configFluid->GetTemperature_Ref());
+}

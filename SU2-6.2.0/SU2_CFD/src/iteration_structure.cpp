@@ -306,11 +306,8 @@ void CIteration::SetGrid_Movement(CGeometry ****geometry_container,
                   su2double *U_time_n = solver_container[val_iZone][val_iInst][MESH_0][FEA_SOL]->node[iPoint]->GetSolution_time_n();
 
                   for (iDim = 0; iDim < geometry_container[val_iZone][val_iInst][MESH_0]->GetnDim(); iDim++)
-                      geometry_container[val_iZone][val_iInst][MESH_0]->node[iPoint]->AddCoord(iDim, U_time_n[iDim] -
-                                                                                                     U_time_nM1[iDim]);
-
+                      geometry_container[val_iZone][val_iInst][MESH_0]->node[iPoint]->AddCoord(iDim, U_time_n[iDim] - U_time_nM1[iDim]);
               }
-
           }
 
           break;
@@ -323,15 +320,16 @@ void CIteration::SetGrid_Movement(CGeometry ****geometry_container,
           /*--- Deform the volume grid around the new boundary locations ---*/
 
           if (rank == MASTER_NODE)
-              cout << "Deforming the volume grid. Iteration_Strucutre 317" << endl;
-          //grid_movement[val_iZone][val_iInst]->SetVolume_Deformation(geometry_container[val_iZone][val_iInst][MESH_0],
-//                                           config_container[val_iZone], true);
-          grid_movement[val_iZone][val_iInst]->SetVolume_Deformation_Elas(
-                  geometry_container[val_iZone][val_iInst][MESH_0],
-                  config_container[val_iZone], true, false);
-          cout << " After Volumetric grid movement. Iteraiton Strucutre 320\n";
+              cout << "Deforming the volume grid. Iteration_Structure 317" << endl;
+          grid_movement[val_iZone][val_iInst]->SetVolume_Deformation( geometry_container[val_iZone][val_iInst][MESH_0], config_container[val_iZone], true );
+//           grid_movement[val_iZone][val_iInst]->SetVolume_Deformation_Elas(
+//                   geometry_container[val_iZone][val_iInst][MESH_0],
+//                   config_container[val_iZone], true, false);
+          
+          cout << " After Volumetric grid movement. Iteration Strucutre 320\n";
           nIterMesh = grid_movement[val_iZone][val_iInst]->Get_nIterMesh();
           stat_mesh = (nIterMesh == 0);
+          
           cout << "Hacked into the code to make it unsteady Iterating Structure.cpp 325.\n";
           stat_mesh = 0;
           if (!adjoint && !stat_mesh) {
@@ -346,8 +344,7 @@ void CIteration::SetGrid_Movement(CGeometry ****geometry_container,
           /*--- Update the multigrid structure after moving the finest grid,
            including computing the grid velocities on the coarser levels. ---*/
 
-          grid_movement[val_iZone][val_iInst]->UpdateMultiGrid(geometry_container[val_iZone][val_iInst],
-                                                               config_container[val_iZone]);
+          grid_movement[val_iZone][val_iInst]->UpdateMultiGrid(geometry_container[val_iZone][val_iInst],config_container[val_iZone]);
 
           break;
           /*--- Already initialized in the static mesh movement routine at driver level. ---*/
@@ -364,7 +361,7 @@ void CIteration::SetGrid_Movement(CGeometry ****geometry_container,
           /*--- Deform the volume grid around the new boundary locations ---*/
 
           if ((rank == MASTER_NODE) && (!discrete_adjoint))
-              cout << "Deforming the volume grid." << endl;
+              cout << "FSI_Stat Deforming the volume grid." << endl;
 
           grid_movement[val_iZone][val_iInst]->SetVolume_Deformation_Elas(
                   geometry_container[val_iZone][val_iInst][MESH_0],
@@ -375,8 +372,9 @@ void CIteration::SetGrid_Movement(CGeometry ****geometry_container,
 
           nIterMesh = grid_movement[val_iZone][val_iInst]->Get_nIterMesh();
           stat_mesh = (nIterMesh == 0);
-          cout << "Hacked into the code to make it unsteady Iterating Structure.cpp 325.\n";
+          cout << "Hacked into the code to make it unsteady Iterating Structure.cpp 381.\n";
           stat_mesh = 0;
+          if(config_container[val_iZone]->GetKind_GridMovement() == FLUID_STRUCTURE_STATIC) stat_mesh = 1;
           if (!adjoint && !stat_mesh) {
               if (rank == MASTER_NODE)
                   cout << "Computing grid velocities by finite differencing." << endl;

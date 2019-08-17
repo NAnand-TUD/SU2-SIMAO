@@ -137,7 +137,7 @@ void CVolumetricMovement::SetVolume_Deformation(CGeometry *geometry, CConfig *co
   su2double MinVolume, MaxVolume, NumError, Residual = 0.0, Residual_Init = 0.0;
   bool Screen_Output;
 
-    cout << "Here 140\n";
+//     cout << "Here 140\n";
   /*--- Retrieve number or iterations, tol, output, etc. from config ---*/
   
   Smoothing_Iter = config->GetGridDef_Linear_Iter();
@@ -156,7 +156,7 @@ void CVolumetricMovement::SetVolume_Deformation(CGeometry *geometry, CConfig *co
   /*--- Loop over the total number of grid deformation iterations. The surface
    deformation can be divided into increments to help with stability. In
    particular, the linear elasticity equations hold only for small deformations. ---*/
-    cout << "start loop 159\n";
+//     cout << "start loop 159\n";
   for (iNonlinear_Iter = 0; iNonlinear_Iter < Nonlinear_Iter; iNonlinear_Iter++) {
     
     /*--- Initialize vector and sparse matrix ---*/
@@ -164,24 +164,24 @@ void CVolumetricMovement::SetVolume_Deformation(CGeometry *geometry, CConfig *co
     LinSysSol.SetValZero();
     LinSysRes.SetValZero();
     StiffMatrix.SetValZero();
-            cout << "1iter " << iNonlinear_Iter << "\n";
+//             cout << "1iter " << iNonlinear_Iter << "\n";
 
     /*--- Compute the stiffness matrix entries for all nodes/elements in the
      mesh. FEA uses a finite element method discretization of the linear
      elasticity equations (transfers element stiffnesses to point-to-point). ---*/
-            cout << "2iter " << iNonlinear_Iter << "\n";
+//             cout << "2iter " << iNonlinear_Iter << "\n";
 
     MinVolume = SetFEAMethodContributions_Elem(geometry, config);
     
     /*--- Set the boundary and volume displacements (as prescribed by the 
      design variable perturbations controlling the surface shape) 
      as a Dirichlet BC. ---*/
-            cout << "3iter " << iNonlinear_Iter << "\n";
+//             cout << "3iter " << iNonlinear_Iter << "\n";
 
     SetBoundaryDisplacements(geometry, config);
 
     /*--- Fix the location of any points in the domain, if requested. ---*/
-            cout << "4iter " << iNonlinear_Iter << "\n";
+//             cout << "4iter " << iNonlinear_Iter << "\n";
 
     SetDomainDisplacements(geometry, config);
 
@@ -195,7 +195,7 @@ void CVolumetricMovement::SetVolume_Deformation(CGeometry *geometry, CConfig *co
     /*--- Communicate any prescribed boundary displacements via MPI,
      so that all nodes have the same solution and r.h.s. entries
      across all partitions. ---*/
-        cout << "5iter " << iNonlinear_Iter << "\n";
+//         cout << "5iter " << iNonlinear_Iter << "\n";
 
     StiffMatrix.SendReceive_Solution(LinSysSol, geometry, config);
     StiffMatrix.SendReceive_Solution(LinSysRes, geometry, config);
@@ -1636,6 +1636,7 @@ void CVolumetricMovement::SetBoundaryDisplacements(CGeometry *geometry, CConfig 
   /*--- If requested (no by default) impose the surface deflections in
    increments and solve the grid deformation equations iteratively with
    successive small deformations. ---*/
+//   cout << "def_nonlinear " << config->GetGridDef_Nonlinear_Iter() << endl;
   
   VarIncrement = 1.0/((su2double)config->GetGridDef_Nonlinear_Iter());
 	
@@ -1660,7 +1661,7 @@ void CVolumetricMovement::SetBoundaryDisplacements(CGeometry *geometry, CConfig 
     }
   }
 
-
+//     cout << "2.def_nonlinear " << endl;
   /*--- Set the known displacements, note that some points of the moving surfaces
    could be on on the symmetry plane, we should specify DeleteValsRowi again (just in case) ---*/
   
@@ -1673,6 +1674,9 @@ void CVolumetricMovement::SetBoundaryDisplacements(CGeometry *geometry, CConfig 
         iPoint = geometry->vertex[iMarker][iVertex]->GetNode();
         for (iDim = 0; iDim < nDim; iDim++) {
           total_index = iPoint*nDim + iDim;
+          
+          VarCoord = geometry->vertex[iMarker][iVertex]->GetVarCoord();
+          
           LinSysRes[total_index] = SU2_TYPE::GetValue(VarCoord[iDim] * VarIncrement);
           LinSysSol[total_index] = SU2_TYPE::GetValue(VarCoord[iDim] * VarIncrement);
           StiffMatrix.DeleteValsRowi(total_index);
@@ -1680,10 +1684,10 @@ void CVolumetricMovement::SetBoundaryDisplacements(CGeometry *geometry, CConfig 
       }
     }
   }
-  cout << endl << endl;
+//   cout << endl << endl;
 
   /*--- Set to zero displacements of the normal component for the symmetry plane condition ---*/
-  
+//   cout << "3.def_nonlinear " << endl;
   for (iMarker = 0; iMarker < config->GetnMarker_All(); iMarker++) {
     if ((config->GetMarker_All_KindBC(iMarker) == SYMMETRY_PLANE) ) {
       
@@ -1723,7 +1727,7 @@ void CVolumetricMovement::SetBoundaryDisplacements(CGeometry *geometry, CConfig 
   }
   
   /*--- Don't move the nearfield plane ---*/
-  
+//   cout << "4.def_nonlinear " << endl;
   for (iMarker = 0; iMarker < config->GetnMarker_All(); iMarker++) {
     if (config->GetMarker_All_KindBC(iMarker) == NEARFIELD_BOUNDARY) {
       for (iVertex = 0; iVertex < geometry->nVertex[iMarker]; iVertex++) {
@@ -1739,7 +1743,7 @@ void CVolumetricMovement::SetBoundaryDisplacements(CGeometry *geometry, CConfig 
   }
 
   /*--- Move the FSI interfaces ---*/
-  
+//   cout << "5.def_nonlinear " << endl;
   for (iMarker = 0; iMarker < config->GetnMarker_All(); iMarker++) {
     if ((config->GetMarker_All_ZoneInterface(iMarker) != 0) && (Kind_SU2 == SU2_CFD)) {
       for (iVertex = 0; iVertex < geometry->nVertex[iMarker]; iVertex++) {
@@ -6372,6 +6376,11 @@ void CSurfaceMovement::AeroelasticDeform(CGeometry *geometry, CConfig *config, u
   
 }
 
+/*
+void CSurfaceMovement::ModalDeform(CGeometry *geometry, CConfig *config, unsigned long ExtIter, unsigned short iMarker, unsigned short iMarker_Monitoring, vector<su2double>& displacements){
+
+    
+}*/
 void CSurfaceMovement::SetBoundary_Flutter3D(CGeometry *geometry, CConfig *config,
                                              CFreeFormDefBox **FFDBox, unsigned long iter, unsigned short iZone) {
 	
@@ -9209,14 +9218,16 @@ CElasticityMovement::~CElasticityMovement(void) {
 
 void CElasticityMovement::SetVolume_Deformation_Elas(CGeometry *geometry, CConfig *config, bool UpdateGeo, bool Derivative){
 
+        cout << "set volume deformation elas" << endl;
+
   unsigned long iNonlinear_Iter, Nonlinear_Iter = 0;
 
   bool discrete_adjoint = config->GetDiscrete_Adjoint();
 
   /*--- Retrieve number or internal iterations from config ---*/
-//   cout << "here 9209\n";
+  
   Nonlinear_Iter = config->GetGridDef_Nonlinear_Iter();
-
+    cout << "here 9209\nnonlinear iter=" << Nonlinear_Iter << endl;
   /*--- Loop over the total number of grid deformation iterations. The surface
    deformation can be divided into increments to help with stability. ---*/
 

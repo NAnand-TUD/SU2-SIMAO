@@ -321,8 +321,13 @@ inline void CVertex::SetNormal(su2double *val_face_normal) {
 }
 
 inline void CVertex::SetVarCoord(su2double *val_varcoord) { 
-	for (unsigned short iDim = 0; iDim < nDim; iDim++) 
+// 	cout << "old coordinates/new coordinates\n";
+//     for (unsigned short iDim = 0; iDim < nDim; iDim++) cout << VarCoord[iDim] << "\t";
+//     cout << "\n";
+    for (unsigned short iDim = 0; iDim < nDim; iDim++) 
 		VarCoord[iDim] = val_varcoord[iDim];
+//     for (unsigned short iDim = 0; iDim < nDim; iDim++) cout << VarCoord[iDim] << "\t";
+//     cout << endl;
 }
 
 inline void CVertex::AddVarCoord(su2double *val_varcoord) { 

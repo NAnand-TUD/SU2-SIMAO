@@ -125,7 +125,7 @@ CMultizoneDriver::CMultizoneDriver(char* confFile,
         prefixed_motion[iZone] = false; break;
     }
   }
-
+  
   if(config_container[ZONE_0]->GetUnsteady_Simulation() == HARMONIC_BALANCE) {
       D = NULL;
       /*--- allocate dynamic memory for the Harmonic Balance operator ---*/
@@ -307,8 +307,8 @@ void CMultizoneDriver::Run_GaussSeidel() {
             /*--- The target zone is iZone ---*/
             if (jZone != iZone) {
                 cout << "\n\n run GS trasfer data:";
-                if(jZone == 0) cout << " donor=fluid; target=structure\n\n";
-                if(jZone == 1) cout << " donor=structure; target=fluid\n\n";
+                if(jZone == 0) cout << " transfer forces\n\n";
+                if(jZone == 1) cout << " transfer displacements\n\n";
                 DeformMesh = Transfer_Data(jZone, iZone);
                 cout << "finish data transfer\n";
                 if (DeformMesh) UpdateMesh+=1;
@@ -320,8 +320,7 @@ void CMultizoneDriver::Run_GaussSeidel() {
 
         /*--- Iterate the zone as a block, either to convergence or to a max number of iterations ---*/
         unsigned short N = 1;
-        if (iZone == 0)
-            N=1;
+        if (iZone == 0) N=1;
 
         for (unsigned short i = 0; i < N; i++) {
             cout<<"++++++++++++++++ N is :: ++++++++++++++++"<<i<<endl;
@@ -358,6 +357,7 @@ void CMultizoneDriver::Run_GaussSeidel() {
 
     Convergence = OuterConvergence(iOuter_Iter);
     cout << "convergence: " << Convergence << endl;
+//     if( iOuter_Iter == 2) exit(0);
   }
 
 }
@@ -628,7 +628,7 @@ void CMultizoneDriver::Output(unsigned long TimeIter) {
     output_files = true;
 
   }
-
+  
   /*--- Determine whether a solution doesn't need to be written
    after the current iteration ---*/
 
@@ -636,6 +636,7 @@ void CMultizoneDriver::Output(unsigned long TimeIter) {
     if (config_container[ZONE_0]->GetnExtIter()-config_container[ZONE_0]->GetIter_dCL_dAlpha() - 1 < ExtIter) output_files = false;
     if (config_container[ZONE_0]->GetnExtIter() - 1 == ExtIter) output_files = true;
   }
+  output_files = true;
 
   /*--- write the solution ---*/
 
@@ -658,9 +659,9 @@ void CMultizoneDriver::Output(unsigned long TimeIter) {
 
     /*--- Execute the routine for writing restart, volume solution,
      surface solution, and surface comma-separated value files. ---*/
-    cout << "driver MZ" << endl;
+    cout << "driver MZ " << TimeIter << endl;
+//      config_container[ZONE_0]->SetOuterIter(TimeIter);
      output->SetResult_Files_Parallel(solver_container, geometry_container, config_container, TimeIter, nZone);
-
 
     /*--- Execute the routine for writing special output. ---*/
     output->SetSpecial_Output(solver_container, geometry_container, config_container, TimeIter, nZone);
@@ -700,11 +701,11 @@ void CMultizoneDriver::DynamicMeshUpdate(unsigned long ExtIter) {
 }
 
 void CMultizoneDriver::DynamicMeshUpdate(unsigned short val_iZone, unsigned long ExtIter) {
+    
     for(iInst = 0; iInst < nInst[val_iZone]; iInst++) {
-        iteration_container[val_iZone][iInst]->SetGrid_Movement(geometry_container, surface_movement, grid_movement, FFDBox,
-                                                                solver_container, config_container, val_iZone, iInst, 0,
-                                                                ExtIter);
+        iteration_container[val_iZone][iInst]->SetGrid_Movement(geometry_container, surface_movement, grid_movement, FFDBox,solver_container, config_container, val_iZone, iInst, 0,ExtIter);
     }
+    
     if (config_container[val_iZone]->GetUnsteady_Simulation()==HARMONIC_BALANCE)
         SetTimeSpectral_Velocities(false, val_iZone);
 }
@@ -754,7 +755,7 @@ bool CMultizoneDriver::Transfer_Data(unsigned short donorZone, unsigned short ta
             cout << solver_container[donorZone][INST_0][MESH_0][MODAL_SOL]->getGeneralizedDisplacement(iMode) <<
             "\t" << solver_container[donorZone][INST_0][MESH_0][MODAL_SOL]->getGeneralizedVelocity(iMode) << endl;
         }
-
+        cout << endl;
         for (iInst = 0; iInst<nInst[donorZone]; iInst++){
         transfer_container[donorZone][targetZone][iInst]->Broadcast_InterfaceData(solver_container[donorZone][iInst][MESH_0][MODAL_SOL],solver_container[targetZone][iInst][MESH_0][FLOW_SOL],
                 geometry_container[donorZone][iInst][MESH_0],geometry_container[targetZone][iInst][MESH_0],

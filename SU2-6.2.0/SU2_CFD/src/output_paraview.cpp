@@ -2037,15 +2037,23 @@ void COutput::WriteParaViewASCII_Parallel(CConfig *config, CGeometry *geometry, 
     if ((SU2_TYPE::Int(iExtIter) >= 100) && (SU2_TYPE::Int(iExtIter) < 1000)) SPRINTF (buffer, "_00%d.vtk", SU2_TYPE::Int(iExtIter));
     if ((SU2_TYPE::Int(iExtIter) >= 1000) && (SU2_TYPE::Int(iExtIter) < 10000)) SPRINTF (buffer, "_0%d.vtk", SU2_TYPE::Int(iExtIter));
     if (SU2_TYPE::Int(iExtIter) >= 10000) SPRINTF (buffer, "_%d.vtk", SU2_TYPE::Int(iExtIter));
-
-  } else if (config->GetDynamic_Analysis() && config->GetWrt_Dynamic()) {
+  } 
+  else if (config->GetDynamic_Analysis() && config->GetWrt_Dynamic()) {
     if ((SU2_TYPE::Int(iExtIter) >= 0) && (SU2_TYPE::Int(iExtIter) < 10)) SPRINTF (buffer, "_0000%d.vtk", SU2_TYPE::Int(iExtIter));
     if ((SU2_TYPE::Int(iExtIter) >= 10) && (SU2_TYPE::Int(iExtIter) < 100)) SPRINTF (buffer, "_000%d.vtk", SU2_TYPE::Int(iExtIter));
     if ((SU2_TYPE::Int(iExtIter) >= 100) && (SU2_TYPE::Int(iExtIter) < 1000)) SPRINTF (buffer, "_00%d.vtk", SU2_TYPE::Int(iExtIter));
     if ((SU2_TYPE::Int(iExtIter) >= 1000) && (SU2_TYPE::Int(iExtIter) < 10000)) SPRINTF (buffer, "_0%d.vtk", SU2_TYPE::Int(iExtIter));
     if (SU2_TYPE::Int(iExtIter) >= 10000) SPRINTF (buffer, "_%d.vtk", SU2_TYPE::Int(iExtIter));
-  } else if (Kind_Solver == FEM_MODAL) {
+  } 
+  else if (Kind_Solver == FEM_MODAL) {
     if ((SU2_TYPE::Int(iExtIter) >= 0) && (SU2_TYPE::Int(iExtIter) < 10)) SPRINTF (buffer, "_0000%d.vtk", SU2_TYPE::Int(iExtIter));
+    if ((SU2_TYPE::Int(iExtIter) >= 10) && (SU2_TYPE::Int(iExtIter) < 100)) SPRINTF (buffer, "_000%d.vtk", SU2_TYPE::Int(iExtIter));
+    if ((SU2_TYPE::Int(iExtIter) >= 100) && (SU2_TYPE::Int(iExtIter) < 1000)) SPRINTF (buffer, "_00%d.vtk", SU2_TYPE::Int(iExtIter));
+    if ((SU2_TYPE::Int(iExtIter) >= 1000) && (SU2_TYPE::Int(iExtIter) < 10000)) SPRINTF (buffer, "_0%d.vtk", SU2_TYPE::Int(iExtIter));
+    if (SU2_TYPE::Int(iExtIter) >= 10000) SPRINTF (buffer, "_%d.vtk", SU2_TYPE::Int(iExtIter));
+  }
+  else if (config->GetKind_GridMovement() && config->GetUnsteady_Simulation() == STEADY) {
+    if (SU2_TYPE::Int(iExtIter) < 10) SPRINTF (buffer, "_0000%d.vtk", SU2_TYPE::Int(iExtIter));
     if ((SU2_TYPE::Int(iExtIter) >= 10) && (SU2_TYPE::Int(iExtIter) < 100)) SPRINTF (buffer, "_000%d.vtk", SU2_TYPE::Int(iExtIter));
     if ((SU2_TYPE::Int(iExtIter) >= 100) && (SU2_TYPE::Int(iExtIter) < 1000)) SPRINTF (buffer, "_00%d.vtk", SU2_TYPE::Int(iExtIter));
     if ((SU2_TYPE::Int(iExtIter) >= 1000) && (SU2_TYPE::Int(iExtIter) < 10000)) SPRINTF (buffer, "_0%d.vtk", SU2_TYPE::Int(iExtIter));

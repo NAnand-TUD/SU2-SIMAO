@@ -4614,7 +4614,7 @@ void COutput::SetConvHistory_Body(ofstream *ConvHist_file,
   
   if(csd) {
     nModes = config[val_iZone]->GetNumberOfModes();
-    cout << "found " << nModes << " modes" << endl;
+//     cout << "found " << nModes << " modes" << endl;
     iExtIter = config[val_iZone]->GetOuterIter();   //GetOuterIter();
   }  
   
@@ -5546,7 +5546,7 @@ void COutput::SetConvHistory_Body(ofstream *ConvHist_file,
 		      SPRINTF(surface_coeff, ", %12.10f", modalVelocity[iMode]);
 		      strcat(csd_modal_coord, surface_coeff);
 		}
-		cout << "mode: " << iMode << "\t" << csd_modal_coord << endl;
+// 		cout << "mode: " << iMode << "\t" << csd_modal_coord << endl;
             }
             SPRINTF (end_fem,"\n");
             cout << csd_modal_coord << endl;

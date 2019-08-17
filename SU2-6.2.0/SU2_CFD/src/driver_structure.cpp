@@ -471,8 +471,10 @@ CDriver::CDriver(char* confFile,
       if (rank == MASTER_NODE)
         cout << "Setting moving mesh structure for static FSI problems." << endl;
       /*--- Instantiate the container for the grid movement structure ---*/
+      
       for (iInst = 0; iInst < nInst[iZone]; iInst++)
-        grid_movement[iZone][iInst] = new CElasticityMovement(geometry_container[iZone][iInst][MESH_0], config_container[iZone]);
+//         grid_movement[iZone][iInst] = new CElasticityMovement(geometry_container[iZone][iInst][MESH_0], config_container[iZone]);
+        grid_movement[iZone][iInst] = new CVolumetricMovement(geometry_container[iZone][iInst][MESH_0], config_container[iZone]);        
     }
 
   }

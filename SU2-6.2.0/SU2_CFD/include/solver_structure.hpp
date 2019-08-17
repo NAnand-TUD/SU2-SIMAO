@@ -16016,7 +16016,7 @@ public:
     * \brief updates cartesian displacements associated with each structural node
     * \param[in] qsol - solution of modal equations of motion
     */
-    void UpdateStructuralNodes(void);
+    void UpdateStructuralNodes(CGeometry *geometry);
     
     void SetInitialCondition(CGeometry **geometry, CSolver ***solver_container, CConfig *config, unsigned long ExtIter);
     

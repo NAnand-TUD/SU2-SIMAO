@@ -1440,13 +1440,18 @@ void CModalIteration::Iterate(COutput *output,
                                 ){
     ofstream ConvHist_file;
     bool write_output = true;
-    unsigned long IntIter = 0; config_container[val_iZone]->SetIntIter(IntIter);
+    
+    unsigned long IntIter = 0; 
+    cout << "zone: " << val_iZone << endl;
+    config_container[val_iZone]->SetIntIter(IntIter);
     unsigned long ExtIter = config_container[val_iZone]->GetExtIter();
     
     cout << "iterating0" << endl;
+    
     integration_container[val_iZone][val_iInst][MODAL_SOL]->SetConvergence(false);
     
     config_container[val_iZone]->SetGlobalParam(FEM_MODAL, RUNTIME_MODAL_SYS, ExtIter); //TODO: Check
+    
     /*--- Run the iteration ---*/
     integration_container[val_iZone][val_iInst][MODAL_SOL]->Modal_Iteration(geometry_container, solver_container, numerics_container,config_container, RUNTIME_MODAL_SYS, IntIter, val_iZone, val_iInst);   
 
@@ -1474,6 +1479,7 @@ void CModalIteration::Solve(COutput *output,
   bool multizone = config_container[val_iZone]->GetMultizone_Problem();
 
   /*------------------ Structural subiteration ----------------------*/
+  cout << "modal iteration" << endl;
   Iterate(output, integration_container, geometry_container,
       solver_container, numerics_container, config_container,
       surface_movement, grid_movement, FFDBox, val_iZone, val_iInst);

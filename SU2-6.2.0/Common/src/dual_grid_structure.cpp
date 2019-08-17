@@ -208,7 +208,7 @@ CPoint::CPoint(su2double val_coord_0, su2double val_coord_1, unsigned long val_g
       for (jDim = 0; jDim < nDim; jDim++)
         GridVel_Grad[iDim][jDim] = 0.0;
     }
-
+    
     /*--- Structures for storing old node coordinates for computing grid
     velocities via finite differencing with dynamically deforming meshes. ---*/
     if (config->GetUnsteady_Simulation() != NO) {
@@ -222,7 +222,6 @@ CPoint::CPoint(su2double val_coord_0, su2double val_coord_1, unsigned long val_g
       }
     }
   }
-
   /*--- Intialize the value of the curvature ---*/
   Curvature = 0.0;
 
@@ -291,7 +290,7 @@ CPoint::CPoint(su2double val_coord_0, su2double val_coord_1, su2double val_coord
   }
 
   /*--- Storage of grid velocities for dynamic meshes ---*/
-
+//     cout << "CPoint, unsteady flag= " << config->GetGrid_Movement() << endl;
   if (config->GetGrid_Movement()) {
     GridVel = new su2double[nDim];
     for (iDim = 0; iDim < nDim; iDim ++)
@@ -307,6 +306,7 @@ CPoint::CPoint(su2double val_coord_0, su2double val_coord_1, su2double val_coord
 
     /*--- Structures for storing old node coordinates for computing grid
     velocities via finite differencing with dynamically deforming meshes. ---*/
+//     cout << "CPoint, unsteady flag= " << config->GetUnsteady_Simulation() << endl;
     if ( config->GetUnsteady_Simulation() != NO ) {
       Coord_p1 = new su2double[nDim];
       Coord_n  = new su2double[nDim];
@@ -317,6 +317,7 @@ CPoint::CPoint(su2double val_coord_0, su2double val_coord_1, su2double val_coord
         Coord_n1[iDim] = Coord[iDim];
       }
     }
+//     exit(0);
   }
 
   /*--- Intialize the value of the curvature ---*/

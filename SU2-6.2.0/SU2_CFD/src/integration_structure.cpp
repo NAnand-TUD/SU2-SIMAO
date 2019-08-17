@@ -466,7 +466,9 @@ void CIntegration::Time_Integration_Modal(CGeometry *geometry, CSolver **solver_
     }
     cout<< "After RK";
     
+    //the newmark update computes the delta_disp. to be added to mesh points
     solver_container[MainSolver]->ImplicitNewmark_Update(geometry, solver_container, config);
+    
     /*--- Perform the MPI communication of the solution ---*/
 //    solver_container[MainSolver]->Set_MPI_Solution(geometry, config); //TODO: check this function for modal
 
@@ -620,11 +622,13 @@ void CIntegration::SetDualTime_Solver(CGeometry *geometry, CSolver *solver, CCon
     geometry->node[iPoint]->SetVolume_n();
     
     /*--- Store old coordinates in case there is grid movement ---*/
-    
+//     cout << "set dual solver0\n";
     if (config->GetGrid_Movement()) {
       geometry->node[iPoint]->SetCoord_n1();
       geometry->node[iPoint]->SetCoord_n();
+//       cout << "set dual solver1\n";
     }
+//     cout << "set dual solver2\n";
   }
   
   /*--- Store old aeroelastic solutions ---*/

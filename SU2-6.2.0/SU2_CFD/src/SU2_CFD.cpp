@@ -103,7 +103,8 @@ int main(int argc, char *argv[]) {
   zone_specific = config->GetBoolZoneSpecific();
 
   cout << "SU2_CFD nzone=\n" << nZone << endl;
-  cout<< " \n\n\nMach Inf       :: "<< config->GetMach() << endl;
+  cout<< " \n\nMach Inf :: "<< config->GetMach() << endl;
+  cout<< " \n\nFSI      :: "<< fsi << endl;
   /*--- First, given the basic information about the number of zones and the
    solver types from the config, instantiate the appropriate driver for the problem
    and perform all the preprocessing. ---*/
@@ -126,12 +127,12 @@ int main(int argc, char *argv[]) {
     if (nZone > 1 ) {
       SU2_MPI::Error("The required solver doesn't support multizone simulations", CURRENT_FUNCTION);
     }
-    
     driver = new CGeneralDriver(config_file_name, nZone, nDim, periodic, MPICommunicator);
 
   } else if (config->GetKind_Solver() == MULTIZONE) {
 
     /*--- Multizone Driver. ---*/
+    cout << "starting here 134" << endl;//exit(0);
 
     driver = new CMultizoneDriver(config_file_name, nZone, nDim, periodic, MPICommunicator);
 

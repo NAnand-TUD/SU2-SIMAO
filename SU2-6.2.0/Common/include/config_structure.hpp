@@ -9178,6 +9178,13 @@ public:
    * \return YES if the forces breakdown file is written.
    */
   bool GetWrt_ForcesBreakdown(void);
+  
+  /*!
+   * \brief copies flow reference values to Structure zone config
+   * \param[in] Fluid Config file
+   */
+  void SyncRefValues(CConfig *);
+
 };
 
 #include "config_structure.inl"

@@ -9244,11 +9244,21 @@ void CConfig::SetMultizone(CConfig *driver_config, CConfig **config_container){
 
 void CConfig::SyncRefValues(CConfig *configFluid){
     
+      unsigned short iDim, nDim = 3;
+      su2double *Vel;
+
             SetMach(configFluid->GetMach());
+            
             SetPressure_FreeStream(configFluid->GetPressure_FreeStream());
-            SetDensity_FreeStream(configFluid->GetDensity_FreeStream());
-            SetTemperature_FreeStream(configFluid->GetTemperature_FreeStream());
             SetPressure_Ref(configFluid->GetPressure_Ref());
+            
+            SetDensity_FreeStream(configFluid->GetDensity_FreeStream());
             SetDensity_Ref(configFluid->GetDensity_Ref());
+            SetDensity_FreeStreamND(configFluid->GetDensity_FreeStreamND());
+            
+            SetTemperature_FreeStream(configFluid->GetTemperature_FreeStream());
             SetTemperature_Ref(configFluid->GetTemperature_Ref());
+
+            Vel = configFluid->GetVelocity_FreeStream();
+            for(iDim = 0; iDim < nDim; ++iDim) SetVelocity_FreeStream(Vel[iDim],iDim);
 }

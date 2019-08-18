@@ -169,6 +169,9 @@ void CMultizoneDriver::StartSolver() {
   /*--- Set the initial time iteration to the restart iteration. ---*/
   if (driver_config->GetRestart()) TimeIter = driver_config->GetRestart_Iter();
 
+  //syncing config files thermodynamic properties.
+  config_container[ZONE_1]->SyncRefValues(config_container[ZONE_0]);
+ 
   /*--- Run the problem until the number of time iterations required is reached. ---*/
   while ( TimeIter < driver_config->GetnTime_Iter() ) {
 

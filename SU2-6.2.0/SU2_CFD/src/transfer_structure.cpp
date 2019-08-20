@@ -398,8 +398,8 @@ void CTransfer::Broadcast_InterfaceData(CSolver *donor_solution, CSolver *target
             
             
             /*--- If the value is not directly aggregated in the previous function ---*/
+//             cout << "setting target variable\n";
             if (!valAggregated) SetTarget_Variable(target_solution, target_geometry, target_config, Marker_Target, iVertex, Point_Target);
-            
 
           }
 

@@ -224,7 +224,7 @@ void CMultizoneDriver::Preprocess(unsigned long TimeIter) {
     /*--- TODO: This routine should be taken out of output, and made general for multiple zones. ---*/
     if (config_container[iZone]->GetInvDesign_Cp() == YES)
       output->SetCp_InverseDesign(solver_container[iZone][INST_0][MESH_0][FLOW_SOL],
-          geometry_container[iZone][INST_0][MESH_0], config_container[iZone], TimeIter);
+          geometry_container[iZone][INST_0][MESH_0],config_container[iZone], TimeIter);
 
     /*--- Read the target heat flux ----------------------------------------------------------------*/
     /*--- TODO: This routine should be taken out of output, and made general for multiple zones. ---*/
@@ -240,8 +240,11 @@ void CMultizoneDriver::Preprocess(unsigned long TimeIter) {
         if(!fsi) solver_container[iZone][INST_0][MESH_0][FLOW_SOL]->SetInitialCondition(geometry_container[iZone][INST_0], solver_container[iZone][INST_0], config_container[iZone], TimeIter);
     }
 
+    if (config_container[iZone]->GetKind_Solver() ==  FEM_MODAL) {
+        solver_container[iZone][INST_0][MESH_0][MODAL_SOL]->Preprocessing(geometry_container[iZone][iInst][MESH_0],solver_container[iZone][INST_0][MESH_0], config_container[iZone],MESH_0, NO_RK_ITER, RUNTIME_MODAL_SYS, true);
+    }
   }
-
+  
 #ifdef HAVE_MPI
   SU2_MPI::Barrier(MPI_COMM_WORLD);
 #endif
@@ -260,22 +263,23 @@ void CMultizoneDriver::Preprocess(unsigned long TimeIter) {
 
   cout << "unsteady flag1: " << unsteady << endl;
 //   cout << "unsteady flag2: " << config_container[iZone]->GetUnsteady_Simulation() << endl;
+  
   /*--- Updating zone interface communication patterns for unsteady problems with pre-fixed motion in the config file ---*/
-  if ( unsteady /*|| config_container[iZone]->GetUnsteady_Simulation()==HARMONIC_BALANCE*/) {
-    cout << "here mz driver 260\n";
-    for (iZone = 0; iZone < nZone; iZone++) {
-      for (unsigned short jZone = 0; jZone < nZone; jZone++){
-          cout << "zones: " << iZone << "\t" << jZone << "\n";
-          for(iInst=0; iInst<nInst[iZone]; iInst++)
-                cout << "isnts: " << iInst << "\n";
-                if(jZone != iZone && interpolator_container[iZone][jZone][iInst] != NULL && prefixed_motion[iZone]){
-                    cout << "here mz driver 264\n";
-                    interpolator_container[iZone][jZone][iInst]->Set_TransferCoeff(config_container);
+//     if ( unsteady || config_container[iZone]->GetUnsteady_Simulation()==HARMONIC_BALANCE) {
+    if ( unsteady ) {
+        cout << "here mz driver 260\n";
+        for (iZone = 0; iZone < nZone; iZone++) {
+            for (unsigned short jZone = 0; jZone < nZone; jZone++){
+                cout << "zones: " << iZone << "\t" << jZone << "\n";
+                for(iInst=0; iInst<nInst[iZone]; iInst++){
+                    if(jZone != iZone && interpolator_container[iZone][jZone][iInst] != NULL && prefixed_motion[iZone]){
+                        cout << "here mz driver 264\n";
+                        interpolator_container[iZone][jZone][iInst]->Set_TransferCoeff(config_container);
+                    }
                 }
-      }
+            }
+        }
     }
-  }
-
 }
 
 void CMultizoneDriver::Run_GaussSeidel() {
@@ -329,8 +333,7 @@ void CMultizoneDriver::Run_GaussSeidel() {
             cout<<"++++++++++++++++ N is :: ++++++++++++++++"<<i<<endl;
             for (iInst = 0; iInst < nInst[iZone]; iInst++) {
                 cout << "\n\n run GS iteration->solve --> " << iZone << "\n(Fluid: zone 0; Structure: zone 1)\n";
-                iteration_container[iZone][iInst]->Solve(output, integration_container, geometry_container,
-                                                         solver_container, numerics_container, config_container,
+                iteration_container[iZone][iInst]->Solve(output, integration_container, geometry_container,solver_container, numerics_container, config_container,
                                                          surface_movement, grid_movement, FFDBox, iZone, iInst);
                 cout << "\n\n completed iteration->solve\n";
 

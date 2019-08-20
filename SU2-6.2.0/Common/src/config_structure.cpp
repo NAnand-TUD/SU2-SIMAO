@@ -9261,4 +9261,7 @@ void CConfig::SyncRefValues(CConfig *configFluid){
 
             Vel = configFluid->GetVelocity_FreeStream();
             for(iDim = 0; iDim < nDim; ++iDim) SetVelocity_FreeStream(Vel[iDim],iDim);
+            
+            Vel = configFluid->GetVelocity_FreeStreamND();
+            for(iDim = 0; iDim < nDim; ++iDim) SetVelocity_FreeStreamND(Vel[iDim],iDim);
 }

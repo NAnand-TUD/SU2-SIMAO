@@ -5343,7 +5343,7 @@ CModalSolver::~CModalSolver(void) {
     if( blasFunctions ) delete blasFunctions;
 }
 
-void CModalSolver::Preprocessing(CGeometry *geometry, CSolver **solver_container, CConfig *config, CNumerics **numerics, unsigned short iMesh, unsigned long Iteration, unsigned short RunTime_EqSystem, bool Output) {
+void CModalSolver::Preprocessing(CGeometry *geometry, CSolver **solver_container, CConfig *config, CNumerics **numerics, unsigned short iMesh, unsigned long Iteration, unsigned short RunTime_EqSystem, bool Output){
   
     /*
      * TODO:    adjoint (differentiation)
@@ -5352,131 +5352,36 @@ void CModalSolver::Preprocessing(CGeometry *geometry, CSolver **solver_container
      */
   
     unsigned long iPoint;
-    cout << "modal solver Preprocessing completed\n";
-//   unsigned short iMode;
-//   bool initial_calc = (config->GetExtIter() == 0);  // Checks if it is the first calculation.
-//   bool first_iter = (config->GetIntIter() == 0);    // Checks if it is the first iteration
-// //   bool dynamic = (config->GetDynamic_Analysis() == DYNAMIC);              // Dynamic simulations.
-// //   bool linear_analysis = (config->GetGeometricConditions() == SMALL_DEFORMATIONS);  // Linear analysis.
-//   bool nonlinear_analysis = (config->GetGeometricConditions() == LARGE_DEFORMATIONS);  // Nonlinear analysis.
-//   bool newton_raphson = (config->GetKind_SpaceIteScheme_FEA() == NEWTON_RAPHSON);    // Newton-Raphson method
-//   bool restart = config->GetRestart();                        // Restart analysis
-//   bool initial_calc_restart = (SU2_TYPE::Int(config->GetExtIter()) == config->GetDyn_RestartIter()); // Initial calculation for restart
-//   
-// //   bool disc_adj_fem = (config->GetKind_Solver() == DISC_ADJ_FEM);   // Discrete adjoint FEM solver
-//   bool incremental_load = config->GetIncrementalLoad();             // If an incremental load is applied
-//   bool body_forces = config->GetDeadLoad();                         // Body forces (dead loads).
-//   
-//   bool fsi = config->GetFSI_Simulation();
-//   bool consistent_interpolation = (!config->GetConservativeInterpolation() ||
-//                                   (config->GetKindInterpolation() == WEIGHTED_AVERAGE));
-//     
-//     nModes  = geometry->getnModes();
-//     omega   = new su2double[nModes];
-//     damping = new su2double[nModes];
-    //   nPointDomain  = geometry->GetnPointDomain();
+    su2double *VelInf, *Velocity_ND;
+    su2double Vel2_Inf,Velocity2_ND,DensityInf,Density_ND; 
+    
+    VelInf      = config->GetVelocity_FreeStream();
+    DensityInf  = config->GetDensity_FreeStream();
 
-}
+    Velocity_ND = config->GetVelocity_FreeStreamND();
+    Density_ND  = config->GetDensity_FreeStreamND();
 
-void CModalSolver::ReadCSD_Mesh_Ansys(CConfig *config) {
-    //TODO: add options to config file (hardwire test case for now?!)
-    //
-    unsigned long iPoint,iMode,nModesPoints;
-    unsigned short nModes,iDim;
-    vector<unsigned long>::iterator it;
-    su2double frequency, Uinf;
-    su2double Coord_3D[3];
-    su2double *XV,*YV,*ZV;
-    ifstream mode_file, mesh_file;
-    string::size_type position;
-    string line, dummy, text_line;
-    char cstr[200];
+    Vel2_Inf        = 0.0;
+    Velocity2_ND    = 0.0;
+    for (unsigned short iVar = 0; iVar < nVar; iVar++) {
+        Vel2_Inf        += VelInf[iVar]*VelInf[iVar];
+        Velocity2_ND    += Velocity_ND[iVar]*Velocity_ND[iVar];
+    }
 
-//     mesh_file.close();
-//     Uinf = 0.96*pow(config->GetGamma()*config->GetGas_Constant()*config->GetTemperature_FreeStream(),0.5);
-//     cout<< " Mach Inf       :: "<<config->GetMach_Motion()<<endl;
-//     cout<< " Gamma          :: "<<config->GetGamma()<<endl;
-//     cout<< " Temperature    :: "<<config->GetTemperature_FreeStream()<<endl;
-// 
-//     /* --- Read in modes' frequencies and mode shapes vectors --- */
-//     strcpy(cstr,"Mode_shaoe_node_coord_mode_1.dat");
-// 
-//     mode_file.open(cstr, ios::in);
-// 
-//     // open the input file
-//     if (mode_file.fail()) {
-//         cout << "Modes File could not be opened! Terminating!" << endl;
-//         exit(EXIT_FAILURE);
-//     }
-// 
-//     getline(mode_file, line);
-//     nModes = 1; //atoi(line.c_str());
-// 
-// //    getline(mode_file, line);
-// //    nModesPoints = atoi(line.c_str());
-// //    cout << "npoints/nModesPoints: " << nPoint << "\t" << nModesPoints << endl;
-// //    assert(nModesPoints == nPoint);
-// 
-// //    getline(mode_file, line);
-// //    refLength = atof(line.c_str());
-// //
-// //    cout << "N. of modes = " << nModes << "\n";
-// //    cout << "N. of nodes in CSD mesh = "<< nPoint << "\n";
-// //    cout << "Reference Length = " << refLength << endl;
-// 
-//     // initialize modes shapes, frequency and coordinate arrays
-//     modeShapes.reserve(nDim*nPoint*nModes);
-//     omega           = new su2double [nModes];
-//     modalForce      = new su2double [nModes];
-//     modalForceLast  = new su2double [nModes];
-//     XV              = new su2double [nPoint];
-//     YV              = new su2double [nPoint];
-//     ZV              = new su2double [nPoint];
-// 
-//     generalizedDisplacement   = new su2double *[nModes];
-//     generalizedVelocity       = new su2double *[nModes];
-// 
-//     for (iMode=0; iMode < nModes; ++iMode) generalizedDisplacement[iMode]   = new su2double [3];
-//     for (iMode=0; iMode < nModes; ++iMode) generalizedVelocity[iMode]       = new su2double [3];
-// 
-//     for (iPoint = 0; iPoint < nPoint; iPoint++) {
-//         node[iPoint] = new CModalVariable(SolRest, nDim, nVar, nModes, config);
-//     }
-// 
-//     for (iMode=0; iMode < nModes; ++iMode) {
-//         getline(mode_file, line);
-//         istringstream iss(line);
-//         iss >> frequency;
-//         omega[iMode] = frequency;//2.0*PI_NUMBER*frequency*refLength/Uinf; //frequency; // TODO: compute Uinf from config;
-//         cout<< "Omega :: "<<omega[iMode]<<" Freq ::"<<  frequency<<endl;
-//         iss.clear();
-//     }
-// 
-//     for (iMode=0; iMode < nModes; ++iMode) {
-//         for (iPoint = 0 ; iPoint < nPoint; iPoint++) {
-//             getline(mode_file, line);
-//             istringstream iss(line);
-//             iss >> Coord_3D[0]; iss >> Coord_3D[1]; iss >> Coord_3D[2];
-//             XV[iPoint] = Coord_3D[0]/refLength;
-//             YV[iPoint] = Coord_3D[1]/refLength;
-//             ZV[iPoint] = Coord_3D[2]/refLength;
-//             for(iDim=0; iDim < nDim; ++iDim) node[iPoint]->SetModeVector(iMode,iDim,Coord_3D[iDim]);
-//             iss.clear();
-//         }
-//         for (iPoint = 0 ; iPoint < nPoint; iPoint++) modeShapes.push_back(XV[iPoint]);
-//         for (iPoint = 0 ; iPoint < nPoint; iPoint++) modeShapes.push_back(YV[iPoint]);
-//         for (iPoint = 0 ; iPoint < nPoint; iPoint++) modeShapes.push_back(ZV[iPoint]);
-//     }
-// 
-//     for (iMode=0; iMode < nModes; ++iMode) {
-//         cout << "Mode " << iMode+1 << " Frequency:\t" << " = " << omega[iMode] << endl;
-//     }
-// 
-//     mode_file.close();
-// 
-//     delete [] XV;
-//     delete [] YV;
-//     delete [] ZV;
+  massRatio = DensityInf*refLength*refLength*(Density_ND*Velocity2_ND)/(DensityInf*Vel2_Inf);
+  
+    cout<< " Mach Inf       :: "<<config->GetMach()<<endl;
+    cout<< " Gamma          :: "<<config->GetGamma()<<endl;
+    cout<< " Temperature    :: "<<config->GetTemperature_FreeStream() << endl;
+    cout<< " Pressure_inf   :: "<<config->GetPressure_FreeStream() << endl;
+    cout<< " Density_inf    :: "<<config->GetDensity_FreeStream() << endl;
+    cout<< " U_inf          :: "<< sqrt(Vel2_Inf) << endl;
+    cout<< " Q              :: "<< ONE2*Vel2_Inf*DensityInf <<endl;
+    cout<< " Density        :: "<< DensityInf <<endl;
+    cout << " Mass Ratio    :: " << massRatio << endl;
+  cout << "modal solver Preprocessing completed\n";
+//     exit(0);
+
 }
 
 void CModalSolver::ReadCSD_Mesh_Nastran(CConfig *config,CGeometry *geometry){
@@ -5504,7 +5409,7 @@ void CModalSolver::ReadCSD_Mesh_Nastran(CConfig *config,CGeometry *geometry){
     Density_inf = config->GetPressure_FreeStream()/(config->GetGas_Constant()*config->GetTemperature_FreeStream());
     refLength = config->GetRefLength();
 //     speedSound = 
-	massRatio = Density_inf*refLength*refLength*refLength*refLength*refLength;
+// 	massRatio = Density_inf*refLength*refLength*refLength*refLength*refLength;
     
     su2double flutter_index = config->GetAeroelastic_Flutter_Speed_Index();
     
@@ -5544,7 +5449,7 @@ void CModalSolver::ReadCSD_Mesh_Nastran(CConfig *config,CGeometry *geometry){
     cout << "N. of nodes in CSD mesh = "<< nPoint << "\n";
     cout << "Reference Length = " << refLength << endl;
     cout << "Modal Scaling = " << modalScaling << endl; //TODO: link with unit option?
-    cout << "Mass Ratio = " << massRatio << endl;       //only used based on non-
+//     cout << "Mass Ratio = " << massRatio << endl;       //only used based on non-
                                                         // dimensionalization
 
 	// initialize modes shapes, frequency and coordinate arrays
@@ -5691,8 +5596,8 @@ void CModalSolver::ReadCSD_Mesh_Nastran(CConfig *config,CGeometry *geometry){
 void CModalSolver::RungeKutta_TimeInt(CGeometry *geometry, CSolver **solver_container, CConfig *config){
 
     unsigned short iMode, iDim, irk, nStage,ind;
-    su2double *dy,*ForceVec;
-    su2double *irk1,*irk2,*irk3,*irk4,*yout;
+    su2double *edy,*ForceVec;
+    su2double *irk1,*irk2,*irk3,*irk4,*yout, *dy;
 //     su2double dy[4] = {0.0, 0.0, 0.0, 0.0};
     su2double rkcoeff[4] = {0.0, 0.0, 0.0, 0.0};
     bool trans = false;

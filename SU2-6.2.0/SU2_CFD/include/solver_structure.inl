@@ -2536,7 +2536,11 @@ inline su2double CDiscAdjFEASolver::GetVal_DVFEA(unsigned short iVal) { return D
 
 inline void CSolver::ReadCSD_Mesh(CConfig *config) {}
 
+inline void CSolver::ModalPreprocessing(CConfig *config) {}
+
 inline void CSolver::SolveStatic(CGeometry *geometry, CSolver **solver_container, CConfig *config) {}
+
+inline void CSolver::SolveForced(CGeometry *geometry, CSolver **solver_container, CConfig *config) {}
 
 inline void CSolver::RungeKutta_TimeInt(CGeometry *geometry, CSolver **solver_container, CConfig *config) {}
 

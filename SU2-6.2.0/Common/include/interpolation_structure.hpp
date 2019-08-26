@@ -50,6 +50,10 @@
 #include "geometry_structure.hpp"
 #include "vector_structure.hpp"
 
+#include <Eigen/Core>
+#include <Eigen/LU>
+#include <Eigen/Dense>
+
 #ifdef HAVE_LAPACK
 /*--- Lapack / Blas routines used in RBF interpolation. ---*/
 extern "C" void dsptrf_(char*, int*, passivedouble*, int*, int*);
@@ -59,7 +63,7 @@ extern "C" void dsymm_(char*, char*, int*, int*, passivedouble*, passivedouble*,
 #endif
 
 using namespace std;
-
+using namespace Eigen;
 
 /*!
  * \class CInterpolator
@@ -178,6 +182,8 @@ public:
    * \param[in] config - Definition of the particular problem.
    */
   virtual void Set_TransferCoeff(CConfig **config);
+  
+  virtual void Set_TransferCoeffEigen(CConfig **config);
 
   /*!
    * \brief Determine array sizes used to collect and send coordinate and global point
@@ -440,6 +446,8 @@ public:
    * \param[in] config - Definition of the particular problem.
    */
   void Set_TransferCoeff(CConfig **config);
+  
+  void Set_TransferCoeffEigen(CConfig **config);
 
   /*!
    * \brief Compute the value of a radial basis function, this is static so it can be re-used.

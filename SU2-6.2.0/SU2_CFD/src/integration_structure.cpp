@@ -463,6 +463,11 @@ void CIntegration::Time_Integration_Modal(CGeometry *geometry, CSolver **solver_
             solver_container[MainSolver]->SolveStatic(geometry, solver_container,config);
         }
         break;
+        case(FORCED):{
+            cout << "forced motion problem" << endl;
+            solver_container[MainSolver]->SolveForced(geometry, solver_container,config);
+        }
+        break;
     }
     cout<< "After RK";
     

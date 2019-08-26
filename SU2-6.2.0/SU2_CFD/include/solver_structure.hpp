@@ -745,6 +745,7 @@ public:
    */
   virtual void Preprocessing(CGeometry *geometry, CSolver **solver_container, CConfig *config, CNumerics **numerics, unsigned short iMesh, unsigned long Iteration, unsigned short RunTime_EqSystem, bool Output);
   
+  virtual void ModalPreprocessing(CConfig *config);
   /*!
    * \brief A virtual member.
    * \param[in] geometry - Geometrical definition of the problem.
@@ -4412,6 +4413,7 @@ public:
   virtual void ReadCSD_Mesh(CConfig *config);
   
   virtual void SolveStatic(CGeometry *geometry, CSolver **solver_container, CConfig *config);
+  virtual void SolveForced(CGeometry *geometry, CSolver **solver_container, CConfig *config);
   
   /*!
    * \brief A virtual member.
@@ -15887,6 +15889,7 @@ private:
   
     bool element_based;             /*!< \brief Bool to determine if an element-based file is used. */  
     su2double *omega, 				/*!< \brief Natural frequencies. */
+    *omegad,                        /*!< \brief Damped frequencies. */
     *mass, 							/*!< \brief normalized modal mass matrix*/
     *damping, 						/*!< \brief structural modal damping matrix*/
     *stiffness,						/*!< \brief structural modal stiffness matrix */
@@ -15974,10 +15977,7 @@ public:
     * \param[in] iRKStep - Current step of the Runge-Kutta iteration.
     * \param[in] RunTime_EqSystem - System of equations which is going to be solved.
     */
-    void Preprocessing(CGeometry *geometry, CSolver **solver_container, CConfig *config, CNumerics **numerics, unsigned short iMesh, unsigned long Iteration, unsigned short RunTime_EqSystem, bool Output);
-//         CGeometry *geometry, CSolver **solver_container, CConfig *config, CNumerics 
-//     **numerics, unsigned short iMesh, unsigned long Iteration, unsigned short 
-//     RunTime_EqSystem, bool Output);
+    void ModalPreprocessing(CConfig *config);
   
     void ReadCSD_Mesh_Nastran(CConfig *config, CGeometry *geometry);
 
@@ -16000,6 +16000,8 @@ public:
     * \param[in] config - Definition of the particular problem.
     */
     void SolveStatic(CGeometry *geometry, CSolver **solver_container, CConfig *config);
+    
+    void SolveForced(CGeometry *geometry, CSolver **solver_container, CConfig *config);
     
     /*!
     * \brief Step to map fluid forces and project them onto structural mode shapes.

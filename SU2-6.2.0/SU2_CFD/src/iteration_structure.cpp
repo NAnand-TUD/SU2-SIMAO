@@ -118,8 +118,7 @@ void CIteration::SetGrid_Movement(CGeometry ****geometry_container,
 
           /*--- Compute the new node locations for moving markers ---*/
 
-          surface_movement[val_iZone]->Surface_Translating(geometry_container[val_iZone][val_iInst][MESH_0],
-                                                           config_container[val_iZone], ExtIter, val_iZone);
+          surface_movement[val_iZone]->Surface_Translating(geometry_container[val_iZone][val_iInst][MESH_0],config_container[val_iZone], ExtIter, val_iZone);
           /*--- Deform the volume grid around the new boundary locations ---*/
 
           if (rank == MASTER_NODE)
@@ -1511,7 +1510,7 @@ void CModalIteration::Update(COutput *output,
     su2double nPoint = geometry_container[val_iZone][val_iInst][MESH_0]->GetnPoint();
     su2double nPointDomain  = geometry_container[val_iZone][val_iInst][MESH_0]->GetnPointDomain();
     su2double *valSolutionPred;
-    bool dynamic = (config_container[val_iZone]->GetDynamic_Analysis() == DYNAMIC);
+    bool dynamic = (config_container[val_iZone]->GetDynamic_Analysis() == DYNAMIC || config_container[val_iZone]->GetDynamic_Analysis() == FORCED);
 
     bool fsi = config_container[val_iZone]->GetFSI_Simulation();         // Fluid-Structure Interaction problems
     if (fsi) {

@@ -134,6 +134,8 @@ CInterpolator::CInterpolator(CGeometry ****geometry_container, CConfig **config,
 
 inline void CInterpolator::Set_TransferCoeff(CConfig **config) { }
 
+inline void CInterpolator::Set_TransferCoeffEigen(CConfig **config) { }
+
 void CInterpolator::Determine_ArraySize(bool faces, int markDonor, int markTarget, unsigned long nVertexDonor, unsigned short nDim) {
   unsigned long nLocalVertex_Donor = 0, nLocalFaceNodes_Donor=0, nLocalFace_Donor=0;
   unsigned long iVertex, iPointDonor = 0;
@@ -2755,7 +2757,8 @@ CRadialBasisFunction::CRadialBasisFunction(void):  CInterpolator() { }
 CRadialBasisFunction::CRadialBasisFunction(CGeometry ****geometry_container, CConfig **config,  unsigned int iZone, unsigned int jZone, unsigned short iInst) :  CInterpolator(geometry_container, config, iZone, jZone, iInst) {
 
   /*--- Initialize transfer coefficients between the zones ---*/
-  Set_TransferCoeff(config);
+//   Set_TransferCoeff(config);
+  Set_TransferCoeffEigen(config);
 
 }
 
@@ -3126,10 +3129,8 @@ void CRadialBasisFunction::Set_TransferCoeff(CConfig **config) {
         for (iProcessor=0; iProcessor<nProcessor; iProcessor++) {
           for (iVertexDonor=0; iVertexDonor<Buffer_Receive_nVertex_Donor[iProcessor]; iVertexDonor++) {
             for (iDim=0; iDim<nDim; iDim++)
-              Coord_j[iDim] = Buffer_Receive_Coord[(iProcessor*MaxLocalVertex_Donor+iVertexDonor)*nDim + iDim];  		
-
-            target_vec[iCount++] = Get_RadialBasisValue(config[donorZone]->GetKindRadialBasisFunction(),
-                                                        config[donorZone]->GetRadialBasisFunctionParameter(),
+              Coord_j[iDim] = Buffer_Receive_Coord[(iProcessor*MaxLocalVertex_Donor+iVertexDonor)*nDim + iDim];
+            target_vec[iCount++] = Get_RadialBasisValue(config[donorZone]->GetKindRadialBasisFunction(),config[donorZone]->GetRadialBasisFunctionParameter(),
                                                         PointsDistance(Coord_i, Coord_j));
           }
         }
@@ -3385,6 +3386,469 @@ su2double CRadialBasisFunction::Get_RadialBasisValue(const short unsigned int ty
 
   return rbf;
 }
+
+/*** START OF SPM RBF HACK ***/
+void CRadialBasisFunction::Set_TransferCoeffEigen(CConfig **config) {
+
+  using namespace Eigen;
+  
+  int iProcessor, nProcessor = size;
+  int nPolynomial = 0;
+  int mark_donor, mark_target, target_check, donor_check;
+  int *skip_row = NULL, *calc_polynomial_check;
+
+  unsigned short iDim, nDim, iMarkerInt, nMarkerInt;    
+
+  unsigned long iVertexDonor, jVertexDonor, iVertexTarget, iCount, jCount;
+  unsigned long nVertexDonor, nVertexTarget, nVertexDonorInDomain;
+  unsigned long nGlobalVertexDonor, iGlobalVertexDonor_end, nLocalM;
+  unsigned long point_donor, point_target;
+  unsigned long *nLocalM_arr;
+  
+  su2double val_i, val_j;
+  su2double interface_coord_tol=1e6*numeric_limits<double>::epsilon();
+  su2double *Coord_i, *Coord_j;
+  su2double *local_M;
+  su2double *P = NULL;
+  su2double *C_inv_trunc = NULL, *C_tmp = NULL;
+  su2double *target_vec, *coeff_vec;
+  
+  CSymmetricMatrix *global_M = NULL, *Mp = NULL;
+
+// 	typedef Matrix<double,1,Dynamic> MatrixType;
+// 	typedef Map<MatrixType> MapType;
+
+//     rbfradius = 5.; //TODO: 5 is support rad, this needs to be made case dependent;
+    MatrixXd Peig   = MatrixXd::Zero(4, 5);
+    MatrixXd Meig   = MatrixXd::Zero(4, 5);
+  
+//     cout << "here\n"; exit(-9);
+#ifdef HAVE_MPI
+  unsigned long iLocalM;
+  su2double *global_M_val_arr = NULL, *Buffer_recv_local_M;
+  int *Buffer_Recv_mark = new int[nProcessor], iRank;
+#endif
+
+  /*--- Initialize variables --- */
+  
+  nMarkerInt = (int) ( config[donorZone]->GetMarker_n_ZoneInterface() / 2 );
+  
+  nDim = donor_geometry->GetnDim();
+  
+  Buffer_Receive_nVertex_Donor = new unsigned long [nProcessor];
+
+  /*--- Cycle over nMarkersInt interface to determine communication pattern ---*/
+
+  for (iMarkerInt = 1; iMarkerInt <= nMarkerInt; iMarkerInt++) {
+
+    /*--- On the donor side: find the tag of the boundary sharing the interface ---*/
+    mark_donor  = Find_InterfaceMarker(config[donorZone],  iMarkerInt);
+      
+    /*--- On the target side: find the tag of the boundary sharing the interface ---*/
+    mark_target = Find_InterfaceMarker(config[targetZone], iMarkerInt);
+
+#ifdef HAVE_MPI
+
+    donor_check  = -1;
+    target_check = -1;
+        
+    /*--- We gather a vector in MASTER_NODE to determines whether the boundary is not on the processor because of the partition or because the zone does not include it ---*/
+    
+    SU2_MPI::Gather(&mark_donor , 1, MPI_INT, Buffer_Recv_mark, 1, MPI_INT, MASTER_NODE, MPI_COMM_WORLD);
+    
+    if (rank == MASTER_NODE)
+      for (iRank = 0; iRank < nProcessor; iRank++)
+        if( Buffer_Recv_mark[iRank] != -1 ) {
+          donor_check = Buffer_Recv_mark[iRank];
+          break;
+        }
+    
+    SU2_MPI::Bcast(&donor_check , 1, MPI_INT, MASTER_NODE, MPI_COMM_WORLD);
+    
+    
+    SU2_MPI::Gather(&mark_target, 1, MPI_INT, Buffer_Recv_mark, 1, MPI_INT, MASTER_NODE, MPI_COMM_WORLD);
+    
+    if (rank == MASTER_NODE)
+      for (iRank = 0; iRank < nProcessor; iRank++)
+        if( Buffer_Recv_mark[iRank] != -1 ) {
+          target_check = Buffer_Recv_mark[iRank];
+          break;
+        }
+
+    SU2_MPI::Bcast(&target_check, 1, MPI_INT, MASTER_NODE, MPI_COMM_WORLD);
+        
+#else
+    donor_check  = mark_donor;
+    target_check = mark_target;  
+#endif
+    
+    /*--- Checks if the zone contains the interface, if not continue to the next step ---*/
+    if(target_check == -1 || donor_check == -1) continue;
+
+    if(mark_donor != -1)
+      nVertexDonor  = donor_geometry->GetnVertex( mark_donor );
+    else
+      nVertexDonor  = 0;
+    
+    if(mark_target != -1)
+      nVertexTarget = target_geometry->GetnVertex( mark_target );
+    else
+      nVertexTarget  = 0;
+
+    Buffer_Send_nVertex_Donor  = new unsigned long [ 1 ];
+
+    /*--- Sets MaxLocalVertex_Donor, Buffer_Receive_nVertex_Donor ---*/
+    Determine_ArraySize(false, mark_donor, mark_target, nVertexDonor, nDim);
+    
+    /*--- Collect information about number of donor vertices in domain.
+          Calculate total number of donor vertices across all ranks and
+          number of vertices on boundary prior to current rank. ---*/
+    nVertexDonorInDomain = Buffer_Send_nVertex_Donor[0];
+    iGlobalVertexDonor_end = nGlobalVertexDonor = 0;
+    for (iProcessor = 0; iProcessor < nProcessor; iProcessor++){
+      nGlobalVertexDonor += Buffer_Receive_nVertex_Donor[iProcessor];
+      if (iProcessor<=rank) iGlobalVertexDonor_end += Buffer_Receive_nVertex_Donor[iProcessor];
+    }
+
+    /*-- Collect coordinates, global points, and normal vectors ---*/
+    Buffer_Send_Coord          = new su2double     [ MaxLocalVertex_Donor * nDim ];
+    Buffer_Send_GlobalPoint    = new unsigned long [ MaxLocalVertex_Donor ];
+    Buffer_Receive_Coord       = new su2double     [ nProcessor * MaxLocalVertex_Donor * nDim ];
+    Buffer_Receive_GlobalPoint = new unsigned long [ nProcessor * MaxLocalVertex_Donor ];
+
+    Collect_VertexInfo( false, mark_donor, mark_target, nVertexDonor, nDim);
+
+    /*--- Send information about size of local_M array ---*/
+    nLocalM = nVertexDonorInDomain*(nVertexDonorInDomain+1)/2 \
+		    + nVertexDonorInDomain*(nGlobalVertexDonor-iGlobalVertexDonor_end);
+
+    nLocalM_arr = new unsigned long [nProcessor];
+#ifdef HAVE_MPI
+    SU2_MPI::Allgather(&nLocalM, 1, MPI_UNSIGNED_LONG, nLocalM_arr, 1, MPI_UNSIGNED_LONG, MPI_COMM_WORLD);
+#else
+    nLocalM_arr[MASTER_NODE] = nLocalM;
+#endif
+    
+    /*--- Initialize local M array and calculate values ---*/
+    local_M = new su2double [nLocalM];  
+    Coord_i = new su2double [nDim];
+    Coord_j = new su2double [nDim];
+    iCount=0;
+    for (iVertexDonor=0; iVertexDonor<nVertexDonorInDomain; iVertexDonor++){
+      for (iDim=0; iDim<nDim; iDim++) {
+          Coord_i[iDim] = Buffer_Send_Coord[iVertexDonor*nDim + iDim];
+      }
+      Coord_i[2] += 0.01*pow(-1,iVertexDonor);
+        
+      for (jVertexDonor=iVertexDonor; jVertexDonor<nVertexDonorInDomain; jVertexDonor++){ 
+        for (iDim=0; iDim<nDim; iDim++) Coord_j[iDim] = Buffer_Send_Coord[jVertexDonor*nDim + iDim];
+        
+        Coord_j[2] += 0.01*pow(-1,jVertexDonor);
+        
+        local_M[iCount++] = Get_RadialBasisValue(config[donorZone]->GetKindRadialBasisFunction(),
+                                                 config[donorZone]->GetRadialBasisFunctionParameter(),
+                                                 PointsDistance(Coord_i, Coord_j));
+      }
+
+      for (iProcessor=rank+1; iProcessor<nProcessor; iProcessor++){
+        for (jVertexDonor=0; jVertexDonor<Buffer_Receive_nVertex_Donor[iProcessor]; jVertexDonor++){
+          for (iDim=0; iDim<nDim; iDim++)
+              Coord_j[iDim] = Buffer_Receive_Coord[(iProcessor*MaxLocalVertex_Donor+jVertexDonor)*nDim + iDim];
+          
+          Coord_j[2] += 0.01*pow(-1,jVertexDonor);
+          local_M[iCount++] = Get_RadialBasisValue(config[donorZone]->GetKindRadialBasisFunction(),config[donorZone]->GetRadialBasisFunctionParameter(),
+                                                   PointsDistance(Coord_i, Coord_j));
+        }
+      }
+    }
+    
+#ifdef HAVE_MPI
+    if (rank != MASTER_NODE) {
+    	SU2_MPI::Send(local_M, nLocalM, MPI_DOUBLE, MASTER_NODE, 0, MPI_COMM_WORLD);
+    }
+    
+    /*--- Assemble global_M ---*/
+    if (rank == MASTER_NODE) {
+      global_M_val_arr = new su2double [nGlobalVertexDonor*(nGlobalVertexDonor+1)/2];
+    	
+      /*--- Copy master node local_M to global_M ---*/
+      iCount = 0;
+      for (iLocalM=0; iLocalM<nLocalM; iLocalM++) {
+        global_M_val_arr[iCount] = local_M[iLocalM];
+        iCount++;
+      }
+    	
+      /*--- Receive local_M from other processors ---*/
+      if (nProcessor > SINGLE_NODE) {
+        for (iProcessor=1; iProcessor<nProcessor; iProcessor++) {
+          Buffer_recv_local_M = new su2double[nLocalM_arr[iProcessor]];
+          SU2_MPI::Recv(Buffer_recv_local_M, nLocalM_arr[iProcessor], MPI_DOUBLE, iProcessor, 0, MPI_COMM_WORLD, MPI_STATUS_IGNORE);
+
+          /*--- Copy processor's local_M to global_M ---*/
+          for (iLocalM=0; iLocalM<nLocalM_arr[iProcessor]; iLocalM++) {
+            global_M_val_arr[iCount] = Buffer_recv_local_M[iLocalM];
+            iCount++;
+          }
+          delete [] Buffer_recv_local_M;
+        }
+      }
+    	
+      /*--- Initialize global_M ---*/
+      global_M = new CSymmetricMatrix;
+      global_M->Initialize(nGlobalVertexDonor, global_M_val_arr);
+    }
+    
+#else
+    global_M = new CSymmetricMatrix;
+    global_M->Initialize((int)nVertexDonorInDomain, local_M);
+#endif
+    
+    /*--- Invert M matrix ---*/
+    if (rank == MASTER_NODE) {
+      switch (config[donorZone]->GetKindRadialBasisFunction())
+      {
+        /*--- Basis functions that make M positive definite ---*/
+        case WENDLAND_C2:
+        case INV_MULTI_QUADRIC:
+        case GAUSSIAN:
+          global_M->Invert(true);
+          break;
+
+        case THIN_PLATE_SPLINE:
+        case MULTI_QUADRIC:
+          global_M->Invert(false);
+          break;
+      }
+    }
+    
+    calc_polynomial_check = new int [nDim];
+    
+    /*--- Calculate C_inv_trunc ---*/
+    if (rank == MASTER_NODE) {
+		
+      if ( config[donorZone]->GetRadialBasisFunctionPolynomialOption() ) {
+			  
+        /*--- Fill P matrix and get minimum and maximum values ---*/
+        P = new su2double [nGlobalVertexDonor*(nDim+1)];
+        iCount = 0;
+        for (iProcessor=MASTER_NODE; iProcessor<nProcessor; iProcessor++) {
+          for (iVertexDonor=0; iVertexDonor<Buffer_Receive_nVertex_Donor[iProcessor]; iVertexDonor++) {
+            P[iCount*(nDim+1)] = 1;
+            for (iDim=0; iDim<nDim; iDim++) {
+              P[iCount*(nDim+1)+iDim+1] = Buffer_Receive_Coord[(iProcessor*MaxLocalVertex_Donor+iVertexDonor)*nDim + iDim];
+              if(iDim == 2) P[iCount*(nDim+1)+iDim+1] += 0.01*pow(-1,iVertexDonor);
+            }
+            iCount++;
+          }
+        }
+
+        skip_row = new int [nDim+1];
+        skip_row[0] = 1;
+        for (int i=1; i<nDim+1; i++) skip_row[i] = 0;
+
+        Check_PolynomialTerms(nDim+1, nGlobalVertexDonor, skip_row, interface_coord_tol, calc_polynomial_check, nPolynomial, P);
+
+        /*--- Calculate Mp ---*/
+        Mp = new CSymmetricMatrix;
+        Mp->Initialize(nPolynomial+1);
+        for (int m=0; m<nPolynomial+1; m++) {
+          for (int n=m; n<nPolynomial+1; n++) {
+            val_i = 0;
+            for (iVertexDonor=0; iVertexDonor<nGlobalVertexDonor; iVertexDonor++) {
+              val_j = 0;
+              for (jVertexDonor=0; jVertexDonor<nGlobalVertexDonor; jVertexDonor++) {
+                val_j += global_M->Read((int)iVertexDonor, (int)jVertexDonor)*P[jVertexDonor*(nPolynomial+1)+n];
+              }
+              val_i += val_j*P[iVertexDonor*(nPolynomial+1)+m];
+            }
+            Mp->Write(m, n, val_i);
+          }
+        }
+        Mp->Invert(false);
+
+        /*--- Calculate M_p*P*M_inv ---*/
+        C_inv_trunc = new su2double [(nGlobalVertexDonor+nPolynomial+1)*nGlobalVertexDonor];
+      	for (int m=0; m<nPolynomial+1; m++) {
+          for (iVertexDonor=0; iVertexDonor<nGlobalVertexDonor; iVertexDonor++) {
+            val_i = 0;
+            for (int n=0; n<nPolynomial+1; n++) {
+              val_j = 0;
+              for (jVertexDonor=0; jVertexDonor<nGlobalVertexDonor; jVertexDonor++) {
+                val_j += P[jVertexDonor*(nPolynomial+1)+n]*global_M->Read((int)jVertexDonor, (int)iVertexDonor);
+
+              }
+              val_i += val_j*Mp->Read(m, n);
+            }
+            /*--- Save in row major order ---*/
+            C_inv_trunc[m*nGlobalVertexDonor+iVertexDonor] = val_i;
+          }  		
+      	}
+
+        /*--- Calculate (I - P'*M_p*P*M_inv) ---*/
+        C_tmp = new su2double [nGlobalVertexDonor*nGlobalVertexDonor];
+        for (iVertexDonor=0; iVertexDonor<nGlobalVertexDonor; iVertexDonor++) {
+          for (jVertexDonor=0; jVertexDonor<nGlobalVertexDonor; jVertexDonor++) {
+            val_i = 0;
+            for (int m=0; m<nPolynomial+1; m++) {
+              val_i += P[iVertexDonor*(nPolynomial+1)+m]*C_inv_trunc[m*nGlobalVertexDonor+jVertexDonor];
+            }
+            /*--- Save in row major order ---*/
+            C_tmp[iVertexDonor*(nGlobalVertexDonor)+jVertexDonor] = -val_i;
+
+            if (jVertexDonor==iVertexDonor) { C_tmp[iVertexDonor*(nGlobalVertexDonor)+jVertexDonor] += 1; }
+          }
+        }
+
+        /*--- Calculate M_inv*(I - P'*M_p*P*M_inv) ---*/
+        global_M->MatMatMult(true, C_tmp, (int)nGlobalVertexDonor);
+
+        /*--- Write to C_inv_trunc matrix ---*/
+        for (iVertexDonor=0; iVertexDonor<nGlobalVertexDonor; iVertexDonor++)
+      	  for (jVertexDonor=0; jVertexDonor<nGlobalVertexDonor; jVertexDonor++)
+            C_inv_trunc[(iVertexDonor+nPolynomial+1)*(nGlobalVertexDonor)+jVertexDonor] = C_tmp[iVertexDonor*(nGlobalVertexDonor)+jVertexDonor];
+
+      } else { // no polynomial term used in the interpolation
+
+        C_inv_trunc = new su2double [nGlobalVertexDonor*nGlobalVertexDonor];
+        for (iVertexDonor=0; iVertexDonor<nGlobalVertexDonor; iVertexDonor++)
+          for (jVertexDonor=0; jVertexDonor<nGlobalVertexDonor; jVertexDonor++)
+      		C_inv_trunc[iVertexDonor*nGlobalVertexDonor+jVertexDonor] = global_M->Read((int)iVertexDonor, (int)jVertexDonor);
+      
+      } // endif GetRadialBasisFunctionPolynomialOption
+    } // endif (rank == MASTER_NODE)
+    
+#ifdef HAVE_MPI
+    SU2_MPI::Bcast(&nPolynomial, 1, MPI_INT, MASTER_NODE, MPI_COMM_WORLD);
+    SU2_MPI::Bcast(calc_polynomial_check, nDim, MPI_INT, MASTER_NODE, MPI_COMM_WORLD);
+    
+    if (rank != MASTER_NODE) {
+      C_inv_trunc = new su2double [(nGlobalVertexDonor+nPolynomial+1)*nGlobalVertexDonor];
+    }
+
+  	SU2_MPI::Bcast(C_inv_trunc, (nGlobalVertexDonor+nPolynomial+1)*nGlobalVertexDonor, MPI_DOUBLE, MASTER_NODE, MPI_COMM_WORLD);
+#endif
+    
+    /*--- Calculate H matrix ---*/
+    if (config[donorZone]->GetRadialBasisFunctionPolynomialOption())
+      target_vec = new su2double [nGlobalVertexDonor+nPolynomial+1];
+    else
+      target_vec = new su2double [nGlobalVertexDonor];
+    
+    coeff_vec = new su2double [nGlobalVertexDonor];
+    
+    for (iVertexTarget = 0; iVertexTarget < nVertexTarget; iVertexTarget++) {
+
+      point_target = target_geometry->vertex[mark_target][iVertexTarget]->GetNode();
+    
+      if ( target_geometry->node[point_target]->GetDomain() ) {
+        iCount = 0;
+        if (config[donorZone]->GetRadialBasisFunctionPolynomialOption()) {
+          target_vec[iCount] = 1;
+          iCount++;
+        }
+        
+        for (iDim=0; iDim<nDim; iDim++) {
+          Coord_i[iDim] = target_geometry->node[point_target]->GetCoord(iDim);
+          if (config[donorZone]->GetRadialBasisFunctionPolynomialOption()) {
+            if (calc_polynomial_check[iDim] == 1) {
+              target_vec[iCount] = Coord_i[iDim];
+              iCount++;
+            }
+          }
+        }
+				
+        for (iProcessor=0; iProcessor<nProcessor; iProcessor++) {
+          for (iVertexDonor=0; iVertexDonor<Buffer_Receive_nVertex_Donor[iProcessor]; iVertexDonor++) {
+            for (iDim=0; iDim<nDim; iDim++)
+              Coord_j[iDim] = Buffer_Receive_Coord[(iProcessor*MaxLocalVertex_Donor+iVertexDonor)*nDim + iDim];  		
+
+            target_vec[iCount++] = Get_RadialBasisValue(config[donorZone]->GetKindRadialBasisFunction(),config[donorZone]->GetRadialBasisFunctionParameter(),
+                                                        PointsDistance(Coord_i, Coord_j));
+          }
+        }
+		  	
+        for (iVertexDonor=0; iVertexDonor<nGlobalVertexDonor; iVertexDonor++) {
+          coeff_vec[iVertexDonor] = 0;
+          for (jVertexDonor=0; jVertexDonor<iCount; jVertexDonor++) // May have error here, original loop ends at: jVertexDonor < nGlobalVertexDonor+nPolynomial+1
+            coeff_vec[iVertexDonor] += target_vec[jVertexDonor]*C_inv_trunc[jVertexDonor*nGlobalVertexDonor+iVertexDonor];
+        }
+
+        iCount = 0;
+        for (iVertexDonor=0; iVertexDonor<nGlobalVertexDonor; iVertexDonor++) {
+          if ( coeff_vec[iVertexDonor] != 0 ) {
+            iCount++;
+          }
+        }
+        target_geometry->vertex[mark_target][iVertexTarget]->SetnDonorPoints(iCount);
+        target_geometry->vertex[mark_target][iVertexTarget]->Allocate_DonorInfo();
+
+        iCount = 0;
+        jCount = 0;
+        for (iProcessor=0; iProcessor<nProcessor; iProcessor++) {
+          for (iVertexDonor=0; iVertexDonor<Buffer_Receive_nVertex_Donor[iProcessor]; iVertexDonor++) {
+            if ( coeff_vec[iCount] != 0 ) {
+              point_donor = Buffer_Receive_GlobalPoint[iProcessor*MaxLocalVertex_Donor+iVertexDonor];
+              target_geometry->vertex[mark_target][iVertexTarget]->SetInterpDonorPoint(jCount, point_donor);
+              target_geometry->vertex[mark_target][iVertexTarget]->SetInterpDonorProcessor(jCount, iProcessor);	
+              target_geometry->vertex[mark_target][iVertexTarget]->SetDonorCoeff(jCount, coeff_vec[iCount]);
+              
+//               cout << "target " << iVertexTarget << " coeff= " << coeff_vec[iCount] << endl;
+              
+              jCount++;
+            }
+            iCount++;
+          }
+        }
+      } // endif
+    } // endfor
+    
+        
+    /*--- Memory management ---*/
+    delete [] nLocalM_arr;
+    delete [] local_M;
+    delete [] Coord_i;
+    delete [] Coord_j;
+    delete [] calc_polynomial_check;
+    delete [] C_inv_trunc;
+    delete [] target_vec;
+    delete [] coeff_vec;   
+    
+    if ( rank == MASTER_NODE ) {
+      delete global_M;
+      
+      if ( config[donorZone]->GetRadialBasisFunctionPolynomialOption() ) {
+        delete [] skip_row;
+        delete [] P;
+        delete Mp;
+        delete [] C_tmp;
+      }
+    }
+    
+    delete[] Buffer_Send_Coord;
+    delete[] Buffer_Send_GlobalPoint;
+    
+    delete[] Buffer_Receive_Coord;
+    delete[] Buffer_Receive_GlobalPoint;
+
+    delete[] Buffer_Send_nVertex_Donor;
+    
+#ifdef HAVE_MPI
+    if (rank == MASTER_NODE)
+      delete [] global_M_val_arr;
+#endif
+  } // end loop over markers
+
+  delete[] Buffer_Receive_nVertex_Donor;
+
+#ifdef HAVE_MPI
+  if (rank == MASTER_NODE) 
+    delete [] Buffer_Recv_mark;
+#endif
+}
+
+
+
+/*** END OF SPM RBF HACK ***/
 
 /*--- Symmetric matrix class definitions ---*/
 CSymmetricMatrix::CSymmetricMatrix()

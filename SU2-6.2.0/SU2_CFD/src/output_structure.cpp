@@ -12997,6 +12997,7 @@ void COutput::LoadLocalData_Flow(CConfig *config, CGeometry *geometry, CSolver *
       Aux_yPlus[iPoint]   = 0.0;
       Aux_Buffet[iPoint]  = 0.0;
     }
+
     for (iMarker = 0; iMarker < config->GetnMarker_All(); iMarker++) {
       if (config->GetMarker_All_Plotting(iMarker) == YES) {
         for (iVertex = 0; iVertex < geometry->nVertex[iMarker]; iVertex++) {
@@ -13056,9 +13057,44 @@ void COutput::LoadLocalData_Flow(CConfig *config, CGeometry *geometry, CSolver *
   /*---         ordering of the data loading MUST match the order of the   ---*/
   /*---         variable registration above for the files to be correct.   ---*/
   /*--------------------------------------------------------------------------*/
-  
+  // *** start of hack  to dumpout forces***
+//   su2double *Normal_Flow;
+//   su2double FPn;
+//   cout << "WARNING WARNING WARNING\ntemp. re-routing forces to be dumped in vtk\n output_structure.cpp\n";
+//   if (Kind_Solver == EULER){
+//     Aux_Frict_x = new su2double[geometry->GetnPoint()];
+//     Aux_Frict_y = new su2double[geometry->GetnPoint()];
+//     Aux_Frict_z = new su2double[geometry->GetnPoint()];
+//     
+//     /*--- First, loop through the mesh in order to find and store the
+//      value of the viscous coefficients at any surface nodes. They
+//      will be placed in an auxiliary vector and then communicated like
+//      all other volumetric variables. ---*/
+//     
+//     for (iPoint = 0; iPoint < geometry->GetnPoint(); iPoint++) {
+//       Aux_Frict_x[iPoint] = 0.0;
+//       Aux_Frict_y[iPoint] = 0.0;
+//       Aux_Frict_z[iPoint] = 0.0;
+//     }
+// 
+//     for (iMarker = 0; iMarker < config->GetnMarker_All(); iMarker++) {
+//       if (config->GetMarker_All_Plotting(iMarker) == YES) {
+//         for (iVertex = 0; iVertex < geometry->nVertex[iMarker]; iVertex++) {
+//           iPoint                = geometry->vertex[iMarker][iVertex]->GetNode();
+//           Normal_Flow           = geometry->vertex[iMarker][iVertex]->GetNormal();
+//           FPn                   = solver[FLOW_SOL]->node[iPoint]->GetPressure(); 
+//           Aux_Frict_x[iPoint]   = Normal_Flow[0]*FPn;
+//           Aux_Frict_y[iPoint]   = Normal_Flow[1]*FPn;
+//           Aux_Frict_z[iPoint]   = Normal_Flow[2]*FPn;
+// //           cout << iPoint << " " << Aux_Frict_x[iPoint] << " " << Aux_Frict_y[iPoint]  << " " << Aux_Frict_z[iPoint]  << endl;
+//         }
+//       }
+//     }
+//   }
+//   delete Normal_Flow;
+//   
+//   // *** end of hack ***
   jPoint = 0;
-  
   for (iPoint = 0; iPoint < geometry->GetnPoint(); iPoint++) {
     
     /*--- Check for halos & write only if requested ---*/
@@ -13157,10 +13193,15 @@ void COutput::LoadLocalData_Flow(CConfig *config, CGeometry *geometry, CSolver *
         }
         
         /*--- Load data for the pressure, temperature, Cp, and Mach variables. ---*/
-        
-        Local_Data[jPoint][iVar] = solver[FLOW_SOL]->node[iPoint]->GetPressure(); iVar++;
-        Local_Data[jPoint][iVar] = solver[FLOW_SOL]->node[iPoint]->GetTemperature(); iVar++;
-        Local_Data[jPoint][iVar] = sqrt(solver[FLOW_SOL]->node[iPoint]->GetVelocity2())/solver[FLOW_SOL]->node[iPoint]->GetSoundSpeed(); iVar++;
+        Local_Data[jPoint][iVar] = Aux_Frict_x[iPoint]; 
+//         Local_Data[jPoint][iVar] = solver[FLOW_SOL]->node[iPoint]->GetPressure(); 
+        iVar++;
+        Local_Data[jPoint][iVar] = Aux_Frict_y[iPoint]; 
+//         Local_Data[jPoint][iVar] = solver[FLOW_SOL]->node[iPoint]->GetTemperature(); 
+        iVar++;
+        Local_Data[jPoint][iVar] = Aux_Frict_z[iPoint]; 
+//         Local_Data[jPoint][iVar] = sqrt(solver[FLOW_SOL]->node[iPoint]->GetVelocity2())/solver[FLOW_SOL]->node[iPoint]->GetSoundSpeed(); 
+        iVar++;
         Local_Data[jPoint][iVar] = (solver[FLOW_SOL]->node[iPoint]->GetPressure() - RefPressure)*factor*RefArea; iVar++;
         
         if ((Kind_Solver == NAVIER_STOKES) || (Kind_Solver == RANS)) {
@@ -14635,7 +14676,7 @@ void COutput::LoadLocalData_Modal(CConfig *config, CGeometry *geometry, CSolver 
         case FEM_MODAL: FirstIndex = MODAL_SOL; break;
     }
 
-    nVar_First = 3;//solver[FirstIndex]->GetnVar();
+    nVar_First = 6;//solver[FirstIndex]->GetnVar();
     nVar_Consv_Par = nVar_First;
 
     /*--------------------------------------------------------------------------*/
@@ -14652,7 +14693,8 @@ void COutput::LoadLocalData_Modal(CConfig *config, CGeometry *geometry, CSolver 
     nVar_Par  = 1; Variable_Names.push_back("x");
     nVar_Par += 1; Variable_Names.push_back("y");
     if (geometry->GetnDim() == 3) {
-        nVar_Par += 1; Variable_Names.push_back("z");
+        nVar_Par += 1; 
+        Variable_Names.push_back("z");
     }
 
     /*--- At a mininum, the restarts and visualization files need the
@@ -14667,8 +14709,15 @@ void COutput::LoadLocalData_Modal(CConfig *config, CGeometry *geometry, CSolver 
 
     Variable_Names.push_back("Displacement_x");
     Variable_Names.push_back("Displacement_y");
-    if (geometry->GetnDim() == 3)
-        Variable_Names.push_back("Displacement_z");
+    if (geometry->GetnDim() == 3) Variable_Names.push_back("Displacement_z");
+    
+    Variable_Names.push_back("FORCE_x");
+    Variable_Names.push_back("FORCE_y");
+    if (geometry->GetnDim() == 3) {
+        Variable_Names.push_back("FORCE_z");
+    }
+
+    
     /*--- If requested, register the limiter and residuals for all of the
      equations in the current flow problem. ---*/
 
@@ -14779,7 +14828,6 @@ void COutput::LoadLocalData_Modal(CConfig *config, CGeometry *geometry, CSolver 
     for (iPoint = 0; iPoint < geometry->GetnPoint(); iPoint++) {
 
         /*--- Check for halos & write only if requested ---*/
-//         cout << "point["<<iPoint<<"]=>";
         if (!Local_Halo[iPoint] || Wrt_Halo) {
 
             /*--- Restart the column index with each new point. ---*/
@@ -14799,6 +14847,13 @@ void COutput::LoadLocalData_Modal(CConfig *config, CGeometry *geometry, CSolver 
             for (jVar = 0; jVar < geometry->GetnDim(); jVar++) {
                 Local_Data[jPoint][iVar] = solver[FirstIndex]->node[iPoint]->GetSolution(jVar); //displacements
                 iVar++;
+            }
+            
+            if(config->GetKind_Solver() == FEM_MODAL){
+                for (jVar = 0; jVar < geometry->GetnDim(); jVar++) {
+                    Local_Data[jPoint][iVar] = solver[FirstIndex]->node[iPoint]->Get_FlowTraction(jVar); //forces
+                    iVar++;
+                }    
             }
             jPoint++;
         }

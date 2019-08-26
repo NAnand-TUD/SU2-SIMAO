@@ -220,7 +220,9 @@ void CTransfer_FlowTraction::SetTarget_Variable(CSolver *fea_solution, CGeometry
 
   /*--- Add to the Flow traction. If nonconservative interpolation is in use,
         this is a stress and is integrated by the structural solver later on. ---*/
-  fea_solution->node[Point_Struct]->Add_FlowTraction(Target_Variable);
+//     cout << "transfer force - SetTarget_Variable: " << Point_Struct << "= " << Target_Variable[0]
+//       << " "<<Target_Variable[1] << " " << Target_Variable[2] << endl;  
+      fea_solution->node[Point_Struct]->Add_FlowTraction(Target_Variable);
 
 }
 
@@ -252,7 +254,7 @@ void CTransfer_StructuralDisplacements::GetDonor_Variable(CSolver *struct_soluti
   DisplacementDonor = struct_solution->node[Point_Struct]->GetSolution_Pred();
   DisplacementDonor_Prev = struct_solution->node[Point_Struct]->GetSolution_Pred_Old();
   
-//  cout<<"trasnfer physics.cpp 249 : Diff in DonorDisplacement " << DisplacementDonor[2]-DisplacementDonor_Prev[2]<<endl;
+// //  cout<<"trasnfer physics.cpp 249 : Diff in DonorDisplacement " << DisplacementDonor[2]-DisplacementDonor_Prev[2]<<endl;
   for (iDim = 0; iDim < struct_geometry->GetnDim(); iDim++){
     Donor_Variable[iDim] = DisplacementDonor[iDim] - DisplacementDonor_Prev[iDim];
 //     cout << Donor_Variable[iDim] <<" " << DisplacementDonor[iDim] << " "<< DisplacementDonor_Prev[iDim] << endl;
@@ -263,6 +265,8 @@ void CTransfer_StructuralDisplacements::GetDonor_Variable(CSolver *struct_soluti
 void CTransfer_StructuralDisplacements::SetTarget_Variable(CSolver *flow_solution, CGeometry *flow_geometry,CConfig *flow_config, unsigned long Marker_Flow,
                                unsigned long Vertex_Flow, unsigned long Point_Flow) {
 //    cout<<"@ transfer_physics.cpp L 256 \n Target Variable is : "<< Target_Variable[0]<<endl;
+//       cout << "transfer disps - SetTarget_Variable: " << Vertex_Flow << "= " << Target_Variable[0]
+//       << " "<<Target_Variable[1] << " " << Target_Variable[2] << endl;
     flow_geometry->vertex[Marker_Flow][Vertex_Flow]->SetVarCoord(Target_Variable);
 }
 
@@ -603,6 +607,7 @@ void CTransfer_SlidingInterface::InitializeTarget_Variable(CSolver *target_solut
 
 void CTransfer_SlidingInterface::RecoverTarget_Variable(long indexPoint_iVertex, su2double *Buffer_Bcast_Variables,su2double donorCoeff){
     
+    cout << " RecoverTarget_Variable\n";
     for (unsigned short iVar = 0; iVar < nVar; iVar++)
       Target_Variable[iVar] = Buffer_Bcast_Variables[ indexPoint_iVertex*nVar + iVar ];
 

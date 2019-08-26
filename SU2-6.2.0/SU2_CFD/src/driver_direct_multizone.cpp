@@ -214,6 +214,9 @@ void CMultizoneDriver::Preprocess(unsigned long TimeIter) {
   bool unsteady = driver_config->GetTime_Domain();
 
   cout << "\n\nmz solver; unsteady= " << unsteady << endl;
+  if (config_container[0]->GetKind_Solver()== FEM_MODAL) cout << "0= modal preprocess" << endl;
+  if (config_container[1]->GetKind_Solver()== FEM_MODAL) cout << "1= modal preprocess" << endl;
+    
   for (iZone = 0; iZone < nZone; iZone++){
 
     /*--- Set the value of the external iteration to TimeIter. -------------------------------------*/
@@ -241,7 +244,8 @@ void CMultizoneDriver::Preprocess(unsigned long TimeIter) {
     }
 
     if (config_container[iZone]->GetKind_Solver() ==  FEM_MODAL) {
-        solver_container[iZone][INST_0][MESH_0][MODAL_SOL]->Preprocessing(geometry_container[iZone][iInst][MESH_0],solver_container[iZone][INST_0][MESH_0], config_container[iZone],MESH_0, NO_RK_ITER, RUNTIME_MODAL_SYS, true);
+        if (config_container[iZone]->GetKind_Solver() ==  FEM_MODAL) cout << "modal preprocess" << endl;
+        solver_container[iZone][INST_0][MESH_0][MODAL_SOL]->ModalPreprocessing(config_container[iZone]);
     }
   }
   
@@ -363,7 +367,7 @@ void CMultizoneDriver::Run_GaussSeidel() {
 
     Convergence = OuterConvergence(iOuter_Iter);
     cout << "convergence: " << Convergence << endl;
-//     if( iOuter_Iter == 2) exit(0);
+//     if( iOuter_Iter == 1) exit(0);
   }
 
 }
@@ -622,7 +626,7 @@ void CMultizoneDriver::Output(unsigned long TimeIter) {
       ((config_container[ZONE_0]->GetUnsteady_Simulation() == DT_STEPPING_2ND) &&
        ((TimeIter == 0) || ((TimeIter % config_container[ZONE_0]->GetWrt_Sol_Freq_DualTime() == 0)))) ||
 
-      ((config_container[ZONE_0]->GetDynamic_Analysis() == DYNAMIC) &&
+      ((config_container[ZONE_0]->GetDynamic_Analysis() == DYNAMIC || config_container[ZONE_0]->GetDynamic_Analysis() == FORCED) &&
        ((TimeIter == 0) || (TimeIter % config_container[ZONE_0]->GetWrt_Sol_Freq_DualTime() == 0))) ||
 
       /*--- No inlet profile file found. Print template. ---*/
@@ -711,7 +715,7 @@ void CMultizoneDriver::DynamicMeshUpdate(unsigned short val_iZone, unsigned long
     for(iInst = 0; iInst < nInst[val_iZone]; iInst++) {
         iteration_container[val_iZone][iInst]->SetGrid_Movement(geometry_container, surface_movement, grid_movement, FFDBox,solver_container, config_container, val_iZone, iInst, 0,ExtIter);
     }
-    
+
     if (config_container[val_iZone]->GetUnsteady_Simulation()==HARMONIC_BALANCE)
         SetTimeSpectral_Velocities(false, val_iZone);
 }

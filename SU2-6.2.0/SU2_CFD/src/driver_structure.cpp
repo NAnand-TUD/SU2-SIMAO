@@ -1614,7 +1614,7 @@ void CDriver::Solver_Restart(CSolver ****solver_container, CGeometry ***geometry
                     (config->GetUnsteady_Simulation() == DT_STEPPING_2ND));
   bool time_stepping = config->GetUnsteady_Simulation() == TIME_STEPPING;
   bool adjoint = (config->GetDiscrete_Adjoint() || config->GetContinuous_Adjoint());
-  bool dynamic = (config->GetDynamic_Analysis() == DYNAMIC); // Dynamic simulation (FSI).
+  bool dynamic = (config->GetDynamic_Analysis() == DYNAMIC || config->GetDynamic_Analysis() == FORCED); // Dynamic simulation (FSI).
 
   if (dual_time) {
     if (adjoint) val_iter = SU2_TYPE::Int(config->GetUnst_AdjointIter())-1;
@@ -4031,7 +4031,7 @@ void CDriver::Output(unsigned long ExtIter) {
       ((config_container[ZONE_0]->GetUnsteady_Simulation() == DT_STEPPING_2ND) && (fsi) &&
        ((ExtIter == 0) || ((ExtIter % config_container[ZONE_0]->GetWrt_Sol_Freq_DualTime() == 0)))) ||
       
-      ((config_container[ZONE_0]->GetDynamic_Analysis() == DYNAMIC) &&
+      ((config_container[ZONE_0]->GetDynamic_Analysis() == DYNAMIC ||config_container[ZONE_0]->GetDynamic_Analysis() == FORCED) &&
        ((ExtIter == 0) || (ExtIter % config_container[ZONE_0]->GetWrt_Sol_Freq_DualTime() == 0))) ||
       
       /*--- No inlet profile file found. Print template. ---*/
@@ -5613,8 +5613,7 @@ void CFSIDriver::Run() {
 
   /*--- Boolean to determine if we are running a static or dynamic case ---*/
   bool stat_fsi = ((config_container[ZONE_FLOW]->GetUnsteady_Simulation() == STEADY) && (config_container[ZONE_STRUCT]->GetDynamic_Analysis() == STATIC));
-  bool dyn_fsi = (((config_container[ZONE_FLOW]->GetUnsteady_Simulation() == DT_STEPPING_1ST) || (config_container[ZONE_FLOW]->GetUnsteady_Simulation() == DT_STEPPING_2ND))
-                   && (config_container[ZONE_STRUCT]->GetDynamic_Analysis() == DYNAMIC));
+  bool dyn_fsi = (((config_container[ZONE_FLOW]->GetUnsteady_Simulation() == DT_STEPPING_1ST) ||  (config_container[ZONE_FLOW]->GetUnsteady_Simulation() == DT_STEPPING_2ND)) && ((config_container[ZONE_STRUCT]->GetDynamic_Analysis() == DYNAMIC) || (config_container[ZONE_STRUCT]->GetDynamic_Analysis() == FORCED)));
 
   unsigned long IntIter = 0; for (iZone = 0; iZone < nZone; iZone++) config_container[iZone]->SetIntIter(IntIter);
   unsigned long OuterIter = 0; for (iZone = 0; iZone < nZone; iZone++) config_container[iZone]->SetOuterIter(OuterIter);
@@ -6451,7 +6450,7 @@ void CDiscAdjFSIDriver::Preprocess(unsigned short ZONE_FLOW,
   IntIter = 0;
   config_container[ZONE_STRUCT]->SetIntIter(IntIter);
   ExtIter = config_container[ZONE_STRUCT]->GetExtIter();
-  bool dynamic = (config_container[ZONE_STRUCT]->GetDynamic_Analysis() == DYNAMIC);
+  bool dynamic = (config_container[ZONE_STRUCT]->GetDynamic_Analysis() == DYNAMIC || config_container[ZONE_STRUCT]->GetDynamic_Analysis() == FORCED);
 
   int Direct_Iter_FEA;
 
@@ -6540,7 +6539,7 @@ void CDiscAdjFSIDriver::PrintDirect_Residuals(unsigned short ZONE_FLOW,
   bool turbulent = (config_container[ZONE_FLOW]->GetKind_Solver() == DISC_ADJ_RANS);
   bool nonlinear_analysis = (config_container[ZONE_STRUCT]->GetGeometricConditions() == LARGE_DEFORMATIONS);   // Nonlinear analysis.
   bool unsteady = config_container[ZONE_FLOW]->GetUnsteady_Simulation() != NONE;
-  bool dynamic = (config_container[ZONE_STRUCT]->GetDynamic_Analysis() == DYNAMIC);
+  bool dynamic = (config_container[ZONE_STRUCT]->GetDynamic_Analysis() == DYNAMIC ||config_container[ZONE_STRUCT]->GetDynamic_Analysis() == FORCED);
 
   su2double val_OFunction = 0.0;
   string kind_OFunction;
@@ -6808,7 +6807,7 @@ void CDiscAdjFSIDriver::SetRecording(unsigned short ZONE_FLOW,
 
   unsigned long IntIter = config_container[ZONE_0]->GetIntIter();
   bool unsteady = (config_container[ZONE_FLOW]->GetUnsteady_Simulation() != NONE);
-  bool dynamic = (config_container[ZONE_STRUCT]->GetDynamic_Analysis() == DYNAMIC);
+  bool dynamic = (config_container[ZONE_STRUCT]->GetDynamic_Analysis() == DYNAMIC || config_container[ZONE_STRUCT]->GetDynamic_Analysis() == FORCED);
 
   string kind_DirectIteration = " ";
   string kind_AdjointIteration = " ";
@@ -7026,7 +7025,7 @@ void CDiscAdjFSIDriver::Iterate_Block(unsigned short ZONE_FLOW,
   bool dual_time_1st = (config_container[ZONE_0]->GetUnsteady_Simulation() == DT_STEPPING_1ST);
   bool dual_time_2nd = (config_container[ZONE_0]->GetUnsteady_Simulation() == DT_STEPPING_2ND);
   bool dual_time = (dual_time_1st || dual_time_2nd);
-  bool dynamic = (config_container[ZONE_STRUCT]->GetDynamic_Analysis() == DYNAMIC);
+  bool dynamic = (config_container[ZONE_STRUCT]->GetDynamic_Analysis() == DYNAMIC || config_container[ZONE_STRUCT]->GetDynamic_Analysis() == FORCED);
 
   bool adjoint_convergence = false;
 

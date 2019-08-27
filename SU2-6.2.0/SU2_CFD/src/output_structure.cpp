@@ -13193,14 +13193,14 @@ void COutput::LoadLocalData_Flow(CConfig *config, CGeometry *geometry, CSolver *
         }
         
         /*--- Load data for the pressure, temperature, Cp, and Mach variables. ---*/
-        Local_Data[jPoint][iVar] = Aux_Frict_x[iPoint]; 
-//         Local_Data[jPoint][iVar] = solver[FLOW_SOL]->node[iPoint]->GetPressure(); 
+//         Local_Data[jPoint][iVar] = Aux_Frict_x[iPoint]; 
+        Local_Data[jPoint][iVar] = solver[FLOW_SOL]->node[iPoint]->GetPressure(); 
         iVar++;
-        Local_Data[jPoint][iVar] = Aux_Frict_y[iPoint]; 
-//         Local_Data[jPoint][iVar] = solver[FLOW_SOL]->node[iPoint]->GetTemperature(); 
+//         Local_Data[jPoint][iVar] = Aux_Frict_y[iPoint]; 
+        Local_Data[jPoint][iVar] = solver[FLOW_SOL]->node[iPoint]->GetTemperature(); 
         iVar++;
-        Local_Data[jPoint][iVar] = Aux_Frict_z[iPoint]; 
-//         Local_Data[jPoint][iVar] = sqrt(solver[FLOW_SOL]->node[iPoint]->GetVelocity2())/solver[FLOW_SOL]->node[iPoint]->GetSoundSpeed(); 
+//         Local_Data[jPoint][iVar] = Aux_Frict_z[iPoint]; 
+        Local_Data[jPoint][iVar] = sqrt(solver[FLOW_SOL]->node[iPoint]->GetVelocity2())/solver[FLOW_SOL]->node[iPoint]->GetSoundSpeed(); 
         iVar++;
         Local_Data[jPoint][iVar] = (solver[FLOW_SOL]->node[iPoint]->GetPressure() - RefPressure)*factor*RefArea; iVar++;
         

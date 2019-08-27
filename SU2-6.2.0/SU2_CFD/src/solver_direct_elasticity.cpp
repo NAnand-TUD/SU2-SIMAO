@@ -5368,7 +5368,7 @@ void CModalSolver::ModalPreprocessing(CConfig *config){
         Velocity2_ND    += Velocity_ND[iVar]*Velocity_ND[iVar];
     }
 
-    massRatio = DensityInf*refLength*refLength*(Density_ND*Velocity2_ND)/(DensityInf*Vel2_Inf);
+    massRatio = 1.;//DensityInf*refLength*refLength*(Density_ND*Velocity2_ND)/(DensityInf*Vel2_Inf);
   
     cout<< " Mach Inf       :: "<<config->GetMach()<<endl;
     cout<< " Gamma          :: "<<config->GetGamma()<<endl;
@@ -5481,7 +5481,7 @@ void CModalSolver::ReadCSD_Mesh_Nastran(CConfig *config,CGeometry *geometry){
 		iss >> frequency;
         
         // non-dimensionalize freq. or not; TODO: add option
-		omega[iMode] = 2.0*PI_NUMBER*frequency*refLength/(Uinf); //frequency;
+		omega[iMode] = 2.0*PI_NUMBER*frequency;   //*refLength/(Uinf); //frequency;
         
         omegad[iMode] = omega[iMode];   // TODO: when damping is input, it must be used here.
 //         omega[iMode] = 2.0*PI_NUMBER*frequency; //frequency;
